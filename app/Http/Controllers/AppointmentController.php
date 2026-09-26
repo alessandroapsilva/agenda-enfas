@@ -9,6 +9,8 @@ use App\Models\CustomFieldValue;
 use App\Models\Patient;
 use App\Models\Professional;
 use App\Models\Service;
+use App\Models\WaMessage;
+use App\Services\Enfas\MetaWhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -226,6 +228,22 @@ class AppointmentController extends Controller
             )
             ->get();
 
+        $communications = WaMessage::query()
+            ->where('appointment_id', $appointment->id)
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get()
+            ->map(fn ($message) => [
+                'id' => $message->id,
+                'direction' => $message->direction,
+                'type' => $message->message_type,
+                'status' => $message->status,
+                'body' => $message->body,
+                'recipient' => $message->recipient,
+                'date' => $message->created_at?->format('d/m/Y H:i'),
+            ])
+            ->values();
+
         return response()->json([
             'appointment' => [
                 'id' => $appointment->id,
@@ -243,6 +261,24 @@ class AppointmentController extends Controller
 
                 'phone' =>
                     $appointment->patient->phone,
+
+                'email' =>
+                    $appointment->patient->email,
+
+                'whatsapp_link' =>
+                    $appointment->patient->phone
+                        ? 'https://wa.me/' . preg_replace('/\D+/', '', $appointment->patient->phone)
+                        : null,
+
+                'tel_link' =>
+                    $appointment->patient->phone
+                        ? 'tel:' . preg_replace('/[^0-9+]/', '', $appointment->patient->phone)
+                        : null,
+
+                'email_link' =>
+                    $appointment->patient->email
+                        ? 'mailto:' . $appointment->patient->email
+                        : null,
 
                 'service' =>
                     $appointment->service->name,
@@ -273,6 +309,8 @@ class AppointmentController extends Controller
                             $value->value,
                     ])->values(),
             ],
+
+            'communications' => $communications,
 
             'timeline' =>
                 $appointment->events
@@ -365,6 +403,68 @@ class AppointmentController extends Controller
         ]);
     }
 
+
+
+    public function contact(
+        Request $request,
+        Appointment $appointment,
+        MetaWhatsAppService $meta
+    ) {
+        $data = $request->validate([
+            'channel' => ['required', 'in:whatsapp'],
+            'message' => ['required', 'string', 'min:1', 'max:4000'],
+        ]);
+
+        $appointment->load('patient');
+
+        if (! $appointment->patient?->phone) {
+            throw ValidationException::withMessages([
+                'message' => 'O paciente não possui telefone/WhatsApp cadastrado.',
+            ]);
+        }
+
+        try {
+            $message = $meta->sendTextMessage(
+                $appointment->patient->phone,
+                trim($data['message']),
+                $appointment->id,
+                $appointment->patient_id
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            throw ValidationException::withMessages([
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        AppointmentEvent::create([
+            'appointment_id' => $appointment->id,
+            'user_id' => auth()->id(),
+            'event_type' => 'patient_contact',
+            'title' => 'Contato enviado ao paciente',
+            'description' => 'Mensagem enviada pelo WhatsApp por '.auth()->user()->name.'.',
+            'metadata' => [
+                'channel' => 'whatsapp',
+                'wa_message_id' => $message->id,
+            ],
+            'occurred_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mensagem enviada com sucesso.',
+            'communication' => [
+                'id' => $message->id,
+                'direction' => $message->direction,
+                'type' => $message->message_type,
+                'status' => $message->status,
+                'body' => $message->body,
+                'recipient' => $message->recipient,
+                'date' => $message->created_at?->format('d/m/Y H:i'),
+            ],
+        ]);
+    }
 
     private function assertAvailable(
         int $professionalId,
