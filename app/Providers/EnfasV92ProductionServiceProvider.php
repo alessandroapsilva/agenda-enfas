@@ -65,8 +65,8 @@ class EnfasV92ProductionServiceProvider extends ServiceProvider
             'adminlte.layout_boxed'=>false,
             'adminlte.menu'=>[
                 [
-                    'text'=>'Hoje',
-                    'url'=>'hoje',
+                    'text'=>'Visão geral',
+                    'url'=>'dashboard',
                     'icon'=>'bi bi-grid-1x2',
                 ],
                 [
@@ -89,7 +89,12 @@ class EnfasV92ProductionServiceProvider extends ServiceProvider
                     'icon'=>'bi bi-whatsapp',
                     'submenu'=>[
                         [
-                            'text'=>'Mensagens',
+                            'text'=>'Central de Atendimento',
+                            'url'=>'whatsapp',
+                            'icon'=>'bi bi-headset',
+                        ],
+                        [
+                            'text'=>'Histórico de mensagens',
                             'url'=>'whatsapp/mensagens',
                             'icon'=>'bi bi-chat-left-text',
                         ],
@@ -104,7 +109,7 @@ class EnfasV92ProductionServiceProvider extends ServiceProvider
                             'icon'=>'bi bi-image',
                         ],
                         [
-                            'text'=>'Conexão WhatsApp',
+                            'text'=>'Configuração Meta',
                             'url'=>'whatsapp',
                             'icon'=>'bi bi-link-45deg',
                         ],
@@ -156,7 +161,7 @@ class EnfasV92ProductionServiceProvider extends ServiceProvider
                     'icon'=>'bi bi-sliders',
                     'submenu'=>[
                         [
-                            'text'=>'Equipe',
+                            'text'=>'Usuários e acessos',
                             'url'=>'usuarios',
                             'icon'=>'bi bi-people-fill',
                         ],
