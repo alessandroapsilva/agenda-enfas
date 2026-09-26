@@ -50,6 +50,54 @@
 @endif
 
 
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Profissional</label>
+                <select id="agendaFilterProfessional" class="form-select">
+                    <option value="">Todos</option>
+                    @foreach($professionals as $professional)
+                        <option value="{{ $professional->id }}">{{ $professional->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Serviço</label>
+                <select id="agendaFilterService" class="form-select">
+                    <option value="">Todos</option>
+                    @foreach($services as $service)
+                        <option value="{{ $service->id }}">{{ $service->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Status</label>
+                <select id="agendaFilterStatus" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="awaiting_confirmation">Aguardando confirmação</option>
+                    <option value="confirmed">Confirmado</option>
+                    <option value="completed">Concluído</option>
+                    <option value="cancelled">Cancelado</option>
+                    <option value="no_show">Falta</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6 d-flex gap-2">
+                <button id="agendaApplyFilters" type="button" class="btn btn-outline-primary flex-fill">
+                    <i class="bi bi-funnel me-1"></i>Filtrar
+                </button>
+                <button type="button" class="btn btn-primary flex-fill" data-bs-toggle="modal" data-bs-target="#bestSlotModal">
+                    <i class="bi bi-stars me-1"></i>Melhor horário
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card agenda-card">
 
     <div class="card-body">
@@ -332,8 +380,45 @@
                 @endif
 
 
+
                 <hr class="my-4">
 
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="recurrenceToggle">
+                    <label class="form-check-label fw-semibold" for="recurrenceToggle">
+                        Agendamento recorrente
+                    </label>
+                </div>
+
+                <div id="recurrenceFields" class="row g-3 mt-1 d-none">
+                    <div class="col-md-4">
+                        <label class="form-label">Frequência</label>
+                        <select class="form-select" id="recurrenceFrequency">
+                            <option value="weekly">Semanal</option>
+                            <option value="daily">Diário</option>
+                            <option value="monthly">Mensal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">A cada</label>
+                        <input type="number" min="1" max="52" value="1" class="form-control" id="recurrenceInterval">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Máx. ocorrências</label>
+                        <input type="number" min="1" max="365" value="12" class="form-control" id="recurrenceMax">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Data inicial</label>
+                        <input type="date" class="form-control" id="recurrenceStartDate">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Data final (opcional)</label>
+                        <input type="date" class="form-control" id="recurrenceEndDate">
+                    </div>
+                </div>
+
+
+                <hr class="my-4">
 
                 <div>
 
@@ -407,6 +492,60 @@
 
 </div>
 
+
+
+<div class="modal fade" id="bestSlotModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title">Encontrar melhor horário</h5>
+                    <small class="text-secondary">Busca disponibilidade real considerando agenda, pausas e bloqueios.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Profissional</label>
+                        <select id="bestSlotProfessional" class="form-select">
+                            <option value="">Selecione...</option>
+                            @foreach($professionals as $professional)
+                                <option value="{{ $professional->id }}">{{ $professional->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Serviço</label>
+                        <select id="bestSlotService" class="form-select">
+                            <option value="">Selecione...</option>
+                            @foreach($services as $service)
+                                <option value="{{ $service->id }}">{{ $service->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Período</label>
+                        <select id="bestSlotPeriod" class="form-select">
+                            <option value="">Qualquer</option>
+                            <option value="morning">Manhã</option>
+                            <option value="afternoon">Tarde</option>
+                            <option value="evening">Noite</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button" class="btn btn-primary" onclick="findBestSlots()">
+                        <i class="bi bi-search me-1"></i>Buscar horários
+                    </button>
+                </div>
+
+                <div id="bestSlotResults" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <button
     id="openAppointmentDetails"
@@ -676,7 +815,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 day: 'Dia'
             },
 
-            events: @json(route('agenda.events')),
+            events: function(info, successCallback, failureCallback) {
+                const params = new URLSearchParams({
+                    start: info.startStr,
+                    end: info.endStr
+                });
+
+                const professional = document.getElementById('agendaFilterProfessional')?.value;
+                const service = document.getElementById('agendaFilterService')?.value;
+                const status = document.getElementById('agendaFilterStatus')?.value;
+
+                if (professional) params.set('professional_id', professional);
+                if (service) params.set('service_id', service);
+                if (status) params.set('status', status);
+
+                fetch(@json(route('agenda.events')) + '?' + params.toString(), {
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(successCallback)
+                .catch(failureCallback);
+            },
 
             select: function(info) {
 
@@ -1044,6 +1203,115 @@ document.addEventListener('DOMContentLoaded', function () {
             );
         };
 
+
+
+    document.getElementById('agendaApplyFilters')?.addEventListener('click', function () {
+        calendar.refetchEvents();
+    });
+
+    ['agendaFilterProfessional','agendaFilterService','agendaFilterStatus'].forEach(function(id) {
+        document.getElementById(id)?.addEventListener('change', function () {
+            calendar.refetchEvents();
+        });
+    });
+
+    const recurrenceToggle = document.getElementById('recurrenceToggle');
+    recurrenceToggle?.addEventListener('change', function () {
+        document.getElementById('recurrenceFields')?.classList.toggle('d-none', !this.checked);
+        const form = document.querySelector('#appointmentModal form');
+        if (form) {
+            form.action = this.checked
+                ? @json(route('appointments.recurring.store'))
+                : @json(route('appointments.store'));
+        }
+    });
+
+    const appointmentStartInput = document.getElementById('appointmentStart');
+    appointmentStartInput?.addEventListener('change', function () {
+        if (! this.value) return;
+        const d = new Date(this.value);
+        const date = d.toISOString().slice(0,10);
+        const time = this.value.slice(11,16);
+        const startDate = document.getElementById('recurrenceStartDate');
+        if (startDate) startDate.value = date;
+
+        const form = document.querySelector('#appointmentModal form');
+        if (! form) return;
+
+        let hiddenTime = form.querySelector('input[name="time"]');
+        if (! hiddenTime) {
+            hiddenTime = document.createElement('input');
+            hiddenTime.type = 'hidden';
+            hiddenTime.name = 'time';
+            form.appendChild(hiddenTime);
+        }
+        hiddenTime.value = time;
+    });
+
+    window.findBestSlots = async function() {
+        const professional = document.getElementById('bestSlotProfessional').value;
+        const service = document.getElementById('bestSlotService').value;
+        const period = document.getElementById('bestSlotPeriod').value;
+        const results = document.getElementById('bestSlotResults');
+
+        if (!professional || !service) {
+            results.innerHTML = '<div class="alert alert-warning mb-0">Selecione profissional e serviço.</div>';
+            return;
+        }
+
+        results.innerHTML = '<div class="text-secondary"><span class="spinner-border spinner-border-sm me-2"></span>Buscando disponibilidade...</div>';
+
+        const params = new URLSearchParams({
+            professional_id: professional,
+            service_id: service,
+            limit: '8'
+        });
+
+        if (period) params.set('period', period);
+
+        try {
+            const response = await fetch(@json(route('agenda.best-slots')) + '?' + params.toString(), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Falha ao buscar horários.');
+            }
+
+            if (!data.slots.length) {
+                results.innerHTML = '<div class="alert alert-light border mb-0">Nenhum horário encontrado nesse período.</div>';
+                return;
+            }
+
+            results.innerHTML = '<div class="row g-2">' + data.slots.map(slot =>
+                '<div class="col-md-6">' +
+                    '<button type="button" class="btn btn-outline-primary w-100 text-start p-3" onclick="useBestSlot(\'' + slot.start + '\')">' +
+                        '<i class="bi bi-calendar2-check me-2"></i>' + escapeHtml(slot.label) +
+                    '</button>' +
+                '</div>'
+            ).join('') + '</div>';
+
+        } catch (error) {
+            results.innerHTML = '<div class="alert alert-danger mb-0">' + escapeHtml(error.message) + '</div>';
+        }
+    };
+
+    window.useBestSlot = function(start) {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('bestSlotModal'));
+        modal?.hide();
+
+        const value = start.replace(' ', 'T').slice(0,16);
+        document.getElementById('appointmentStart').value = value;
+        document.querySelector('select[name="professional_id"]').value =
+            document.getElementById('bestSlotProfessional').value;
+        document.querySelector('select[name="service_id"]').value =
+            document.getElementById('bestSlotService').value;
+
+        document.getElementById('newAppointmentBtn').click();
+        document.getElementById('appointmentStart').dispatchEvent(new Event('change'));
+    };
 
     window.openPatientContactComposer = function() {
         document.getElementById('patientContactComposer').classList.remove('d-none');
