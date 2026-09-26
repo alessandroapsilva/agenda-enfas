@@ -4,16 +4,163 @@ namespace App\Http\Controllers\Enfas;
 
 use App\Http\Controllers\Controller;
 use App\Models\MetaIntegration;
+use App\Models\WaConversation;
+use App\Models\WaMessage;
+use App\Services\Enfas\MetaWhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 
 class WhatsAppController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('enfas.whatsapp.central',['integration'=>MetaIntegration::first()]);
+        $integration = MetaIntegration::first();
+
+        $conversations = WaConversation::query()
+            ->with(['patient','appointment.service','appointment.professional','assignedUser'])
+            ->whereIn('status', ['active','completed'])
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $search = trim($request->string('q')->toString());
+                $q->where(function ($inner) use ($search) {
+                    $inner->where('phone', 'like', '%'.$search.'%')
+                        ->orWhereHas('patient', fn ($p) => $p->where('name', 'like', '%'.$search.'%'));
+                });
+            })
+            ->when($request->filled('mode'), fn ($q) => $q->where('mode', $request->string('mode')->toString()))
+            ->orderByDesc('last_message_at')
+            ->orderByDesc('id')
+            ->limit(100)
+            ->get();
+
+        $selected = null;
+        $messages = collect();
+
+        if ($request->filled('conversation')) {
+            $selected = WaConversation::with([
+                'patient',
+                'appointment.service',
+                'appointment.professional',
+                'assignedUser',
+            ])->find($request->integer('conversation'));
+
+            if ($selected) {
+                $messages = WaMessage::query()
+                    ->where(function ($q) use ($selected) {
+                        if ($selected->patient_id) {
+                            $q->where('patient_id', $selected->patient_id);
+                        } else {
+                            $q->where('recipient', $selected->phone);
+                        }
+                    })
+                    ->when($selected->appointment_id, fn ($q) =>
+                        $q->where(function ($inner) use ($selected) {
+                            $inner->where('appointment_id', $selected->appointment_id)
+                                ->orWhereNull('appointment_id');
+                        })
+                    )
+                    ->orderBy('id')
+                    ->limit(250)
+                    ->get();
+
+                $selected->update(['unread_count' => 0]);
+            }
+        }
+
+        $stats = [
+            'active' => WaConversation::where('status','active')->count(),
+            'human' => WaConversation::where('status','active')->where('mode','human')->count(),
+            'bot' => WaConversation::where('status','active')->where('mode','bot')->count(),
+            'unread' => WaConversation::where('status','active')->sum('unread_count'),
+        ];
+
+        return view('enfas.whatsapp.central', compact(
+            'integration',
+            'conversations',
+            'selected',
+            'messages',
+            'stats'
+        ));
+    }
+
+    public function thread(WaConversation $conversation)
+    {
+        return redirect()->route('enfas.whatsapp', [
+            'conversation' => $conversation->id,
+        ]);
+    }
+
+    public function takeover(WaConversation $conversation)
+    {
+        $conversation->update([
+            'mode' => 'human',
+            'assigned_user_id' => auth()->id(),
+            'human_taken_at' => now(),
+            'status' => 'active',
+        ]);
+
+        return back()->with('success', 'Atendimento assumido pela equipe.');
+    }
+
+    public function release(WaConversation $conversation)
+    {
+        $conversation->update([
+            'mode' => 'bot',
+            'assigned_user_id' => null,
+            'human_taken_at' => null,
+            'status' => 'active',
+        ]);
+
+        return back()->with('success', 'Conversa devolvida ao robô.');
+    }
+
+    public function close(WaConversation $conversation)
+    {
+        $conversation->update([
+            'status' => 'completed',
+            'closed_at' => now(),
+            'unread_count' => 0,
+        ]);
+
+        return back()->with('success', 'Conversa encerrada.');
+    }
+
+    public function sendConversationMessage(
+        Request $request,
+        WaConversation $conversation,
+        MetaWhatsAppService $meta
+    ) {
+        $data = $request->validate([
+            'message' => ['required','string','min:1','max:4000'],
+        ]);
+
+        try {
+            $message = $meta->sendTextMessage(
+                $conversation->phone,
+                trim($data['message']),
+                $conversation->appointment_id,
+                $conversation->patient_id
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            throw ValidationException::withMessages([
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        $conversation->update([
+            'mode' => 'human',
+            'assigned_user_id' => auth()->id(),
+            'human_taken_at' => $conversation->human_taken_at ?: now(),
+            'last_message_at' => now(),
+            'last_outbound_at' => now(),
+            'status' => 'active',
+        ]);
+
+        return back()->with('success', 'Mensagem enviada. Status: '.$message->status.'.');
     }
 
     public function save(Request $request)
