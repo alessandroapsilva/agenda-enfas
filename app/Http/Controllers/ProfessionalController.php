@@ -6,6 +6,7 @@ use App\Models\Professional;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class ProfessionalController extends Controller
@@ -92,24 +93,53 @@ class ProfessionalController extends Controller
                 ->where('professional_id', $professional->id)
                 ->delete();
 
+            $enabledDays = [];
+
             foreach ($rows as $day => $row) {
                 if (empty($row['enabled'])) {
                     continue;
                 }
 
-                DB::table('professional_availabilities')->insert([
+                $day = (int) $day;
+                $start = ($row['start_time'] ?? null) ?: $professional->work_start;
+                $end = ($row['end_time'] ?? null) ?: $professional->work_end;
+                $breakStart = ($row['break_start'] ?? null) ?: null;
+                $breakEnd = ($row['break_end'] ?? null) ?: null;
+
+                $payload = [
                     'professional_id' => $professional->id,
-                    'day_of_week' => (int) $day,
-                    'start_time' => $row['start_time'] ?: $professional->work_start,
-                    'end_time' => $row['end_time'] ?: $professional->work_end,
-                    'break_start' => $row['break_start'] ?: null,
-                    'break_end' => $row['break_end'] ?: null,
+                    'day_of_week' => $day,
+                    'start_time' => $start,
+                    'end_time' => $end,
+                    'break_start' => $breakStart,
+                    'break_end' => $breakEnd,
                     'location_id' => null,
                     'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+
+                // Compatibilidade temporária com o schema já existente em produção.
+                if (Schema::hasColumn('professional_availabilities', 'weekday')) {
+                    $payload['weekday'] = $day;
+                }
+                if (Schema::hasColumn('professional_availabilities', 'starts_at')) {
+                    $payload['starts_at'] = $start;
+                }
+                if (Schema::hasColumn('professional_availabilities', 'ends_at')) {
+                    $payload['ends_at'] = $end;
+                }
+                if (Schema::hasColumn('professional_availabilities', 'slot_minutes')) {
+                    $payload['slot_minutes'] = $professional->slot_interval ?: 30;
+                }
+
+                DB::table('professional_availabilities')->insert($payload);
+                $enabledDays[] = $day;
             }
+
+            $professional->update([
+                'active_days' => array_values(array_unique($enabledDays)),
+            ]);
         });
 
         return back()->with('success', 'Disponibilidade semanal atualizada.');
