@@ -19,6 +19,7 @@ class Professional extends Model
         'slot_interval',
         'color',
         'is_active',
+        'whatsapp_notifications_enabled',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Professional extends Model
         return [
             'active_days' => 'array',
             'is_active' => 'boolean',
+            'whatsapp_notifications_enabled' => 'boolean',
         ];
     }
 
@@ -37,5 +39,15 @@ class Professional extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(ProfessionalAvailability::class);
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 }
