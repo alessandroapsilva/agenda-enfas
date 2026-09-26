@@ -456,17 +456,55 @@
 
 
         <div class="enfas-detail-block">
-
             <small>Paciente</small>
+            <strong id="detailPatient">—</strong>
+            <span id="detailPhone">—</span>
+            <span id="detailEmail">—</span>
 
-            <strong id="detailPatient">
-                —
-            </strong>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a id="detailWhatsappLink" class="btn btn-success btn-sm d-none" target="_blank" rel="noopener">
+                    <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                </a>
 
-            <span id="detailPhone">
-                —
-            </span>
+                <a id="detailPhoneLink" class="btn btn-outline-primary btn-sm d-none">
+                    <i class="bi bi-telephone me-1"></i>Ligar
+                </a>
 
+                <a id="detailEmailLink" class="btn btn-outline-secondary btn-sm d-none">
+                    <i class="bi bi-envelope me-1"></i>E-mail
+                </a>
+
+                <button type="button" class="btn btn-primary btn-sm" onclick="openPatientContactComposer()">
+                    <i class="bi bi-chat-dots me-1"></i>Enviar mensagem
+                </button>
+            </div>
+        </div>
+
+        <div id="patientContactComposer" class="card border mt-3 d-none">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <strong>Contato com o paciente</strong>
+                    <button type="button" class="btn-close" onclick="closePatientContactComposer()"></button>
+                </div>
+
+                <div class="mb-2">
+                    <select id="patientContactPreset" class="form-select form-select-sm" onchange="applyPatientContactPreset()">
+                        <option value="">Mensagem personalizada</option>
+                        <option value="confirmation">Confirmar informações do agendamento</option>
+                        <option value="orientation">Enviar orientações</option>
+                        <option value="delay">Avisar atraso</option>
+                        <option value="callback">Solicitar retorno</option>
+                    </select>
+                </div>
+
+                <textarea id="patientContactMessage" class="form-control" rows="5" maxlength="4000" placeholder="Digite a mensagem para o paciente..."></textarea>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <button id="patientContactSendBtn" type="button" class="btn btn-success btn-sm" onclick="sendPatientContact()">
+                        <i class="bi bi-whatsapp me-1"></i>Enviar pelo WhatsApp
+                    </button>
+                </div>
+            </div>
         </div>
 
 
@@ -554,6 +592,14 @@
 
         <hr class="my-4">
 
+        <div class="d-flex align-items-center justify-content-between">
+            <h6 class="fw-semibold mb-0">Comunicação</h6>
+            <small class="text-secondary">Últimas interações</small>
+        </div>
+
+        <div id="detailCommunications" class="mt-3"></div>
+
+        <hr class="my-4">
 
         <h6 class="fw-semibold">
             Timeline
@@ -587,6 +633,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .getAttribute('content');
 
     window.currentAppointmentId = null;
+    window.currentAppointmentData = null;
 
 
     const calendar = new FullCalendar.Calendar(
@@ -763,6 +810,8 @@ document.addEventListener('DOMContentLoaded', function () {
             window.currentAppointmentId =
                 appointment.id;
 
+            window.currentAppointmentData = appointment;
+
 
             document.getElementById(
                 'detailCode'
@@ -788,10 +837,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 appointment.patient;
 
 
-            document.getElementById(
-                'detailPhone'
-            ).textContent =
-                appointment.phone;
+            document.getElementById('detailPhone').textContent =
+                appointment.phone || 'Sem telefone';
+
+            document.getElementById('detailEmail').textContent =
+                appointment.email || 'Sem e-mail';
+
+            const whatsappLink = document.getElementById('detailWhatsappLink');
+            const phoneLink = document.getElementById('detailPhoneLink');
+            const emailLink = document.getElementById('detailEmailLink');
+
+            whatsappLink.classList.toggle('d-none', ! appointment.whatsapp_link);
+            phoneLink.classList.toggle('d-none', ! appointment.tel_link);
+            emailLink.classList.toggle('d-none', ! appointment.email_link);
+
+            if (appointment.whatsapp_link) whatsappLink.href = appointment.whatsapp_link;
+            if (appointment.tel_link) phoneLink.href = appointment.tel_link;
+            if (appointment.email_link) emailLink.href = appointment.email_link;
 
 
             document.getElementById(
@@ -842,6 +904,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         customContainer
                             .appendChild(block);
                     });
+            }
+
+
+            const communications =
+                document.getElementById('detailCommunications');
+
+            communications.innerHTML = '';
+
+            if (!data.communications || data.communications.length === 0) {
+                communications.innerHTML =
+                    '<div class="text-secondary small">Nenhuma comunicação vinculada a este agendamento.</div>';
+            } else {
+                data.communications.forEach(message => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'border rounded-3 p-3 mb-2 bg-body-tertiary';
+
+                    const direction =
+                        message.direction === 'outbound'
+                            ? 'Enviado'
+                            : 'Recebido';
+
+                    wrapper.innerHTML =
+                        '<div class="d-flex justify-content-between gap-3">' +
+                            '<strong class="small">' + escapeHtml(direction) + '</strong>' +
+                            '<span class="badge text-bg-light border">' + escapeHtml(message.status || '-') + '</span>' +
+                        '</div>' +
+                        '<div class="small mt-2">' + escapeHtml(message.body || '') + '</div>' +
+                        '<div class="text-secondary mt-2" style="font-size:.72rem;">' + escapeHtml(message.date || '') + '</div>';
+
+                    communications.appendChild(wrapper);
+                });
             }
 
 
@@ -950,6 +1043,98 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.currentAppointmentId
             );
         };
+
+
+    window.openPatientContactComposer = function() {
+        document.getElementById('patientContactComposer').classList.remove('d-none');
+        document.getElementById('patientContactMessage').focus();
+    };
+
+    window.closePatientContactComposer = function() {
+        document.getElementById('patientContactComposer').classList.add('d-none');
+    };
+
+    window.applyPatientContactPreset = function() {
+        const preset = document.getElementById('patientContactPreset').value;
+        const a = window.currentAppointmentData;
+
+        if (!a) return;
+
+        const messages = {
+            confirmation:
+                'Olá, ' + a.patient + '! Estamos entrando em contato sobre seu agendamento de ' +
+                a.service + ' com ' + a.professional + ', em ' + a.start +
+                '. Caso tenha alguma dúvida, estamos à disposição.',
+            orientation:
+                'Olá, ' + a.patient + '! Seguem as orientações referentes ao seu atendimento de ' +
+                a.service + ' em ' + a.start + '. Em caso de dúvida, fale com nossa equipe.',
+            delay:
+                'Olá, ' + a.patient + '! Estamos entrando em contato para informar uma atualização no seu atendimento de hoje. Nossa equipe acompanha o seu agendamento e está à disposição.',
+            callback:
+                'Olá, ' + a.patient + '! Precisamos falar com você sobre o seu agendamento ' +
+                a.code + '. Quando puder, responda esta mensagem ou entre em contato com nossa equipe.'
+        };
+
+        document.getElementById('patientContactMessage').value =
+            messages[preset] || '';
+    };
+
+    window.sendPatientContact = async function() {
+        if (! window.currentAppointmentId) return;
+
+        const textarea = document.getElementById('patientContactMessage');
+        const button = document.getElementById('patientContactSendBtn');
+        const message = textarea.value.trim();
+
+        if (! message) {
+            alert('Digite uma mensagem para o paciente.');
+            return;
+        }
+
+        button.disabled = true;
+        const original = button.innerHTML;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando';
+
+        try {
+            const response = await fetch(
+                '/agendamentos/' + window.currentAppointmentId + '/contato',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify({
+                        channel: 'whatsapp',
+                        message: message
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (! response.ok) {
+                const error =
+                    data.message ||
+                    Object.values(data.errors || {}).flat()[0] ||
+                    'Não foi possível enviar a mensagem.';
+                alert(error);
+                return;
+            }
+
+            textarea.value = '';
+            document.getElementById('patientContactPreset').value = '';
+            closePatientContactComposer();
+            await loadAppointment(window.currentAppointmentId);
+
+        } catch (error) {
+            alert('Falha ao enviar a mensagem para o paciente.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = original;
+        }
+    };
 
 
     function escapeHtml(value) {
