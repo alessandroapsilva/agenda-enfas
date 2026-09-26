@@ -51,6 +51,16 @@ Route::middleware('throttle:60,1')->group(function () {
     )->name('patient-journey.show');
 
     Route::post(
+        '/jornada/{token}/confirmar',
+        [PatientJourneyController::class, 'confirm']
+    )->name('patient-journey.confirm');
+
+    Route::post(
+        '/jornada/{token}/cancelar',
+        [PatientJourneyController::class, 'cancel']
+    )->name('patient-journey.cancel');
+
+    Route::post(
         '/jornada/{token}/check-in',
         [PatientJourneyController::class, 'checkIn']
     )->name('patient-journey.check-in');
