@@ -103,7 +103,7 @@ class WhatsAppWebhookController extends Controller
 
                     foreach ($value['messages'] ?? [] as $incoming) {
                         $conversation->handle($incoming);
-                    }}
+                    }
                 }
             }
             $event->update(['processed'=>true]);
