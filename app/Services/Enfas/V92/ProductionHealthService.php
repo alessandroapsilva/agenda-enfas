@@ -86,18 +86,48 @@ class ProductionHealthService
         );
 
         foreach([
-            'v9.professionals.index',
-            'v9.patients.index',
-            'v9.services.index',
-            'v9.templates.index',
-            'v92.workspace',
-            'v92.health.dashboard',
+            'dashboard',
+            'agenda.index',
+            'agenda.best-slots',
+            'appointments.index',
+            'appointments.recurring.store',
+            'patients.index',
+            'patients.show',
+            'professionals.index',
+            'professionals.availability',
+            'services.index',
+            'users.index',
+            'enfas.whatsapp',
+            'enfas.whatsapp.thread.send',
+            'enfas.v6.templates',
+            'enfas.v6.automations',
         ] as $route) {
             $this->add(
                 $checks,
                 'route_'.$route,
                 Route::has($route),
                 'Rota '.$route
+            );
+        }
+
+        foreach([
+            'appointments',
+            'patients',
+            'professionals',
+            'services',
+            'professional_availabilities',
+            'professional_blocks',
+            'appointment_series',
+            'slot_reservations',
+            'wa_messages',
+            'wa_conversations',
+            'wa_webhook_events',
+        ] as $table) {
+            $this->add(
+                $checks,
+                'table_'.$table,
+                Schema::hasTable($table),
+                'Tabela '.$table
             );
         }
 
