@@ -28,11 +28,20 @@ class PremiumAvailabilityTest extends TestCase
 
         DB::table('professional_availabilities')->insert([
             'professional_id' => $professionalId,
+
+            // Colunas legadas ainda obrigatórias no schema de produção.
+            'weekday' => 1,
+            'starts_at' => '08:00:00',
+            'ends_at' => '12:00:00',
+            'slot_minutes' => 30,
+
+            // Colunas premium adicionadas pela migration de compatibilidade.
             'day_of_week' => 1,
             'start_time' => '08:00:00',
             'end_time' => '12:00:00',
             'break_start' => '10:00:00',
             'break_end' => '10:30:00',
+
             'location_id' => null,
             'is_active' => true,
             'created_at' => now(),
