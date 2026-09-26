@@ -7,27 +7,27 @@ use App\Http\Controllers\Enfas\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard',[HomeController::class,'index'])->name('dashboard');
+    Route::get('/dashboard',[HomeController::class,'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
-    Route::get('/locais',[ModuleController::class,'locations'])->name('enfas.locations');
-    Route::get('/alertas',[ModuleController::class,'alerts'])->name('enfas.alerts');
-    Route::get('/auditoria',[ModuleController::class,'audit'])->name('enfas.audit');
+    Route::get('/locais',[ModuleController::class,'locations'])->middleware('permission:professionals.view')->name('enfas.locations');
+    Route::get('/alertas',[ModuleController::class,'alerts'])->middleware('permission:reports.view')->name('enfas.alerts');
+    Route::get('/auditoria',[ModuleController::class,'audit'])->middleware('permission:audit.view')->name('enfas.audit');
 
-    Route::get('/whatsapp',[WhatsAppController::class,'index'])->name('enfas.whatsapp');
-    Route::get('/whatsapp/conversas/{conversation}',[WhatsAppController::class,'thread'])->name('enfas.whatsapp.thread');
-    Route::post('/whatsapp/conversas/{conversation}/mensagem',[WhatsAppController::class,'sendConversationMessage'])->name('enfas.whatsapp.thread.send');
-    Route::patch('/whatsapp/conversas/{conversation}/assumir',[WhatsAppController::class,'takeover'])->name('enfas.whatsapp.thread.takeover');
-    Route::patch('/whatsapp/conversas/{conversation}/robo',[WhatsAppController::class,'release'])->name('enfas.whatsapp.thread.release');
-    Route::patch('/whatsapp/conversas/{conversation}/encerrar',[WhatsAppController::class,'close'])->name('enfas.whatsapp.thread.close');
+    Route::get('/whatsapp',[WhatsAppController::class,'index'])->middleware('permission:whatsapp.view')->name('enfas.whatsapp');
+    Route::get('/whatsapp/conversas/{conversation}',[WhatsAppController::class,'thread'])->middleware('permission:whatsapp.view')->name('enfas.whatsapp.thread');
+    Route::post('/whatsapp/conversas/{conversation}/mensagem',[WhatsAppController::class,'sendConversationMessage'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.send');
+    Route::patch('/whatsapp/conversas/{conversation}/assumir',[WhatsAppController::class,'takeover'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.takeover');
+    Route::patch('/whatsapp/conversas/{conversation}/robo',[WhatsAppController::class,'release'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.release');
+    Route::patch('/whatsapp/conversas/{conversation}/encerrar',[WhatsAppController::class,'close'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.close');
 
-    Route::post('/whatsapp',[WhatsAppController::class,'save'])->name('enfas.whatsapp.save');
-    Route::post('/whatsapp/testar',[WhatsAppController::class,'test'])->name('enfas.whatsapp.test');
-    Route::get('/whatsapp/templates',[WhatsAppController::class,'templates'])->name('enfas.whatsapp.templates');
-    Route::get('/whatsapp/automacoes',[WhatsAppController::class,'automations'])->name('enfas.whatsapp.automations');
-    Route::get('/whatsapp/mensagens',[WhatsAppController::class,'messages'])->name('enfas.whatsapp.messages');
+    Route::post('/whatsapp',[WhatsAppController::class,'save'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.save');
+    Route::post('/whatsapp/testar',[WhatsAppController::class,'test'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.test');
+    Route::get('/whatsapp/templates',[WhatsAppController::class,'templates'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.templates');
+    Route::get('/whatsapp/automacoes',[WhatsAppController::class,'automations'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.automations');
+    Route::get('/whatsapp/mensagens',[WhatsAppController::class,'messages'])->middleware('permission:whatsapp.view')->name('enfas.whatsapp.messages');
 
-    Route::get('/configuracoes/aparencia',[SettingsController::class,'branding'])->name('enfas.branding');
-    Route::post('/configuracoes/aparencia',[SettingsController::class,'saveBranding'])->name('enfas.branding.save');
-    Route::get('/configuracoes/agenda',[SettingsController::class,'agenda'])->name('enfas.agenda-settings');
-    Route::post('/configuracoes/agenda',[SettingsController::class,'saveAgenda'])->name('enfas.agenda-settings.save');
+    Route::get('/configuracoes/aparencia',[SettingsController::class,'branding'])->middleware('permission:settings.manage')->name('enfas.branding');
+    Route::post('/configuracoes/aparencia',[SettingsController::class,'saveBranding'])->middleware('permission:settings.manage')->name('enfas.branding.save');
+    Route::get('/configuracoes/agenda',[SettingsController::class,'agenda'])->middleware('permission:settings.manage')->name('enfas.agenda-settings');
+    Route::post('/configuracoes/agenda',[SettingsController::class,'saveAgenda'])->middleware('permission:settings.manage')->name('enfas.agenda-settings.save');
 });
