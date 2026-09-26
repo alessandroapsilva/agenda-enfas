@@ -55,6 +55,7 @@ class PremiumWhatsAppInboxTest extends TestCase
             Mockery::mock(PatientNotificationService::class),
             Mockery::mock(ProfessionalNotificationService::class),
             Mockery::mock(WhatsAppAutomationEngine::class),
+            Mockery::mock(WaitlistService::class),
         );
 
         $incoming = [
