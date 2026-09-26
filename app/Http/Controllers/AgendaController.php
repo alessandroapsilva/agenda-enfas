@@ -178,7 +178,8 @@ class AgendaController extends Controller
 
     public function move(
         Request $request,
-        Appointment $appointment
+        Appointment $appointment,
+        AvailabilityService $availability
     ) {
         $data = $request->validate([
             'start' => [
@@ -217,12 +218,16 @@ class AgendaController extends Controller
                 $appointment->duration_minutes
             );
 
-        $this->assertAvailable(
+        if (! $availability->isBookable(
             $appointment->professional_id,
             $start,
             $end,
             $appointment->id
-        );
+        )) {
+            throw ValidationException::withMessages([
+                'appointment' => 'Esse horário está fora da disponibilidade do profissional ou já foi ocupado.',
+            ]);
+        }
 
         $appointment->update([
             'start_at' => $start,
@@ -266,45 +271,4 @@ class AgendaController extends Controller
     }
 
 
-    private function assertAvailable(
-        int $professionalId,
-        Carbon $start,
-        Carbon $end,
-        ?int $ignoreAppointment = null
-    ): void {
-        $query = Appointment::query()
-            ->where(
-                'professional_id',
-                $professionalId
-            )
-            ->whereNotIn(
-                'status',
-                ['cancelled']
-            )
-            ->where(
-                'start_at',
-                '<',
-                $end
-            )
-            ->where(
-                'end_at',
-                '>',
-                $start
-            );
-
-        if ($ignoreAppointment) {
-            $query->where(
-                'id',
-                '!=',
-                $ignoreAppointment
-            );
-        }
-
-        if ($query->exists()) {
-            throw ValidationException::withMessages([
-                'appointment' =>
-                    'Existe outro agendamento nesse horário.',
-            ]);
-        }
-    }
 }
