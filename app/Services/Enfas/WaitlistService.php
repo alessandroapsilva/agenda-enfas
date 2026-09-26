@@ -42,13 +42,14 @@ class WaitlistService
                     ->orWhereDate('latest_date', '>=', $start->toDateString());
             })
             ->orderBy('created_at')
-            ->first();
+            ->get()
+            ->first(function (WaitlistEntry $entry) use ($start) {
+                return $entry->patient?->phone
+                    && (! $entry->preferred_period
+                        || $this->matchesPeriod($start, $entry->preferred_period));
+            });
 
-        if (! $candidate || ! $candidate->patient?->phone) {
-            return null;
-        }
-
-        if ($candidate->preferred_period && ! $this->matchesPeriod($start, $candidate->preferred_period)) {
+        if (! $candidate) {
             return null;
         }
 
@@ -74,20 +75,31 @@ class WaitlistService
             ."🥼 *Profissional:* {$appointment->professional->name}\n"
             ."📅 *Data:* {$start->format('d/m/Y')}\n"
             ."⏰ *Horário:* {$start->format('H:i')}\n\n"
-            ."Esse horário fica reservado por alguns minutos. Deseja confirmar?";
+            ."Essa oferta fica disponível por 15 minutos e pode ser ocupada enquanto você decide. Deseja confirmar?";
 
-        $this->meta->sendInteractiveButtons(
-            $candidate->patient->phone,
-            $body,
-            [
-                ['id' => 'WAITLIST_ACCEPT:'.$candidate->id, 'title' => '✅ Aceitar horário'],
-                ['id' => 'WAITLIST_DECLINE:'.$candidate->id, 'title' => 'Agora não'],
-            ],
-            null,
-            $candidate->patient_id,
-            'waitlist-offer:'.$candidate->id.':'.$start->format('YmdHi'),
-            'Lista de espera · Enfermagem Alessandro Silva'
-        );
+        try {
+            $this->meta->sendInteractiveButtons(
+                $candidate->patient->phone,
+                $body,
+                [
+                    ['id' => 'WAITLIST_ACCEPT:'.$candidate->id, 'title' => '✅ Aceitar horário'],
+                    ['id' => 'WAITLIST_DECLINE:'.$candidate->id, 'title' => 'Agora não'],
+                ],
+                null,
+                $candidate->patient_id,
+                'waitlist-offer:'.$candidate->id.':'.$start->format('YmdHi'),
+                'Lista de espera · Enfermagem Alessandro Silva'
+            );
+        } catch (\Throwable $e) {
+            $candidate->update([
+                'status' => 'waiting',
+                'offered_start_at' => null,
+                'offered_end_at' => null,
+                'offer_expires_at' => null,
+            ]);
+
+            throw $e;
+        }
 
         return $candidate;
     }
