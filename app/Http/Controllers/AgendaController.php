@@ -8,6 +8,7 @@ use App\Models\CustomField;
 use App\Models\Patient;
 use App\Models\Professional;
 use App\Models\Service;
+use App\Services\Enfas\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -66,6 +67,15 @@ class AgendaController extends Controller
                 'professional',
                 'service',
             ])
+            ->when($request->filled('professional_id'), fn ($q) =>
+                $q->where('professional_id', $request->integer('professional_id'))
+            )
+            ->when($request->filled('service_id'), fn ($q) =>
+                $q->where('service_id', $request->integer('service_id'))
+            )
+            ->when($request->filled('status'), fn ($q) =>
+                $q->where('status', $request->string('status')->toString())
+            )
             ->where(
                 'start_at',
                 '<',
@@ -140,6 +150,31 @@ class AgendaController extends Controller
         );
     }
 
+
+
+    public function bestSlots(Request $request, AvailabilityService $availability)
+    {
+        $data = $request->validate([
+            'professional_id' => ['required','integer','exists:professionals,id'],
+            'service_id' => ['required','integer','exists:services,id'],
+            'period' => ['nullable','in:morning,afternoon,evening'],
+            'from' => ['nullable','date'],
+            'limit' => ['nullable','integer','min:1','max:12'],
+        ]);
+
+        $slots = $availability->nextSlots(
+            $data['professional_id'],
+            $data['service_id'],
+            isset($data['from']) ? Carbon::parse($data['from']) : now(),
+            $data['period'] ?? null,
+            $data['limit'] ?? 6
+        );
+
+        return response()->json([
+            'success' => true,
+            'slots' => $slots,
+        ]);
+    }
 
     public function move(
         Request $request,
