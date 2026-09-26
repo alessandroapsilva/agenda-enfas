@@ -82,6 +82,70 @@
     <div class="col-xl-8">
         <div class="card h-100">
             <div class="card-header">
+                <strong>Funil da jornada do paciente</strong>
+                <div class="small text-muted">Confirmação, check-in, conclusão e satisfação no período.</div>
+            </div>
+            <div class="card-body">
+                @php
+                    $journeyBase = max(1, $metrics['appointments']);
+                    $journeyStages = [
+                        ['Confirmados',$journey['confirmed'],'bi-check2-circle'],
+                        ['Check-ins',$journey['checkins'],'bi-qr-code-scan'],
+                        ['Concluídos',$journey['completed'],'bi-person-check'],
+                        ['Avaliações',$journey['responses'],'bi-chat-square-heart'],
+                    ];
+                @endphp
+
+                <div class="row g-3">
+                    @foreach($journeyStages as $stage)
+                        <div class="col-md-3">
+                            <div class="ea-week-metric">
+                                <i class="bi {{ $stage[2] }}"></i>
+                                <span>{{ $stage[0] }}</span>
+                                <strong>{{ $stage[1] }}</strong>
+                                <small>{{ number_format(($stage[1]/$journeyBase)*100,1,',','.') }}% dos agendamentos</small>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <strong>Satisfação do paciente</strong>
+                <div class="small text-muted">NPS e nota média das respostas recebidas.</div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="ea-mini-metric">
+                            <strong>{{ $journey['nps'] === null ? '—' : $journey['nps'] }}</strong>
+                            <span>NPS</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="ea-mini-metric">
+                            <strong>{{ $journey['average_score'] === null ? '—' : number_format($journey['average_score'],1,',','.') }}</strong>
+                            <span>Nota média</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="small text-muted mt-3">
+                    {{ $journey['responses'] }} resposta(s) no período selecionado.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="card h-100">
+            <div class="card-header">
                 <strong>Performance por profissional</strong>
                 <div class="small text-muted">Volume, confirmações, conclusão, cancelamento e faltas no período.</div>
             </div>
@@ -226,5 +290,28 @@
         </div>
     </div>
 </div>
+
+@if($cancellationReasons->isNotEmpty())
+<div class="card mt-4">
+    <div class="card-header">
+        <strong>Motivos de cancelamento</strong>
+        <div class="small text-muted">Principais motivos informados pelos pacientes no período.</div>
+    </div>
+    <div class="card-body">
+        @php $maxReason = max(1, (int) $cancellationReasons->max('total')); @endphp
+        @foreach($cancellationReasons as $reason)
+            <div class="mb-3">
+                <div class="d-flex justify-content-between gap-3 small mb-1">
+                    <span class="text-truncate">{{ $reason->cancellation_reason }}</span>
+                    <strong>{{ $reason->total }}</strong>
+                </div>
+                <div class="progress" style="height:7px;">
+                    <div class="progress-bar bg-secondary" style="width:{{ ($reason->total/$maxReason)*100 }}%"></div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
 
 @stop
