@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,6 +24,45 @@ return new class extends Migration
 
                 $table->index(['professional_id', 'day_of_week', 'is_active'], 'prof_availability_lookup');
             });
+        }
+
+        if (Schema::hasTable('professional_availabilities')) {
+            Schema::table('professional_availabilities', function (Blueprint $table) {
+                if (! Schema::hasColumn('professional_availabilities', 'day_of_week')) {
+                    $table->unsignedTinyInteger('day_of_week')->nullable();
+                }
+                if (! Schema::hasColumn('professional_availabilities', 'start_time')) {
+                    $table->time('start_time')->nullable();
+                }
+                if (! Schema::hasColumn('professional_availabilities', 'end_time')) {
+                    $table->time('end_time')->nullable();
+                }
+                if (! Schema::hasColumn('professional_availabilities', 'break_start')) {
+                    $table->time('break_start')->nullable();
+                }
+                if (! Schema::hasColumn('professional_availabilities', 'break_end')) {
+                    $table->time('break_end')->nullable();
+                }
+            });
+
+            if (
+                Schema::hasColumn('professional_availabilities', 'weekday')
+                && Schema::hasColumn('professional_availabilities', 'starts_at')
+                && Schema::hasColumn('professional_availabilities', 'ends_at')
+            ) {
+                DB::table('professional_availabilities')
+                    ->orderBy('id')
+                    ->get()
+                    ->each(function ($row) {
+                        DB::table('professional_availabilities')
+                            ->where('id', $row->id)
+                            ->update([
+                                'day_of_week' => $row->day_of_week ?? $row->weekday,
+                                'start_time' => $row->start_time ?? $row->starts_at,
+                                'end_time' => $row->end_time ?? $row->ends_at,
+                            ]);
+                    });
+            }
         }
 
         if (! Schema::hasTable('appointment_series')) {
