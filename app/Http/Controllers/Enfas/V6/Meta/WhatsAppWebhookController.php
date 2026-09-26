@@ -7,6 +7,7 @@ use App\Models\WaMessage;
 use App\Models\WaTemplate;
 use App\Models\WaWebhookEvent;
 use App\Services\Enfas\WhatsAppAutomationEngine;
+use App\Services\Enfas\WhatsAppConversationEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -26,7 +27,7 @@ class WhatsAppWebhookController extends Controller
         return response('Forbidden',403);
     }
 
-    public function receive(Request $request,WhatsAppAutomationEngine $automation)
+    public function receive(Request $request, WhatsAppAutomationEngine $automation, WhatsAppConversationEngine $conversation)
     {
         $i = MetaIntegration::first();
 
@@ -101,63 +102,8 @@ class WhatsAppWebhookController extends Controller
                     }
 
                     foreach ($value['messages'] ?? [] as $incoming) {
-                        $payload = data_get($incoming,'button.payload')
-                            ?? data_get($incoming,'interactive.button_reply.id');
-                        $text = data_get($incoming,'button.text')
-                            ?? data_get($incoming,'interactive.button_reply.title')
-                            ?? data_get($incoming,'text.body');
-
-                        WaMessage::create([
-                            'direction'=>'inbound',
-                            'message_type'=>$incoming['type'] ?? 'unknown',
-                            'meta_message_id'=>$incoming['id'] ?? null,
-                            'status'=>'received',
-                            'recipient'=>$incoming['from'] ?? null,
-                            'body'=>$text,
-                            'payload'=>$incoming,
-                        ]);
-
-                        if (! $payload || ! str_contains($payload,':')) continue;
-
-                        [$action,$code] = array_pad(explode(':',$payload,2),2,null);
-                        $a = DB::table('appointments')->where('code',$code)->first();
-                        if (! $a) continue;
-
-                        if ($action === 'CONFIRM') {
-                            DB::table('appointments')->where('id',$a->id)->update([
-                                'status'=>'confirmed','confirmation_status'=>'confirmed',
-                                'confirmed_at'=>now(),'updated_at'=>now()
-                            ]);
-                            $this->event($a->id,'whatsapp_confirmed','Paciente confirmou pelo WhatsApp','Confirmação recebida pela Meta.');
-                            $automation->trigger('appointment_confirmed',$a->id);
-                        }
-
-                        if ($action === 'CANCEL') {
-                            DB::table('appointments')->where('id',$a->id)->update([
-                                'status'=>'cancelled','cancelled_at'=>now(),'updated_at'=>now()
-                            ]);
-                            $this->event($a->id,'whatsapp_cancelled','Paciente cancelou pelo WhatsApp','Cancelamento recebido pela Meta.');
-                            $automation->trigger('appointment_cancelled',$a->id);
-                        }
-
-                        if ($action === 'RESCHEDULE') {
-                            $this->event($a->id,'whatsapp_reschedule_requested','Paciente solicitou reagendamento','Solicitação recebida pelo WhatsApp.');
-                            if (Schema::hasTable('system_alerts')) {
-                                DB::table('system_alerts')->insert([
-                                    'user_id'=>null,
-                                    'title'=>'Reagendamento solicitado',
-                                    'message'=>$a->code.' solicitou reagendamento pelo WhatsApp.',
-                                    'severity'=>'warning',
-                                    'source_type'=>'appointment',
-                                    'source_id'=>$a->id,
-                                    'is_read'=>false,
-                                    'read_at'=>null,
-                                    'created_at'=>now(),
-                                    'updated_at'=>now(),
-                                ]);
-                            }
-                        }
-                    }
+                        $conversation->handle($incoming);
+                    }}
                 }
             }
             $event->update(['processed'=>true]);
