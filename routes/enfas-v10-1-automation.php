@@ -7,5 +7,5 @@ Route::middleware('auth')->group(function () {
     Route::patch(
         '/whatsapp/automacoes/{automation}',
         [WhatsAppAutomationController::class,'update']
-    )->name('enfas.v10.automations.update');
+    )->middleware('permission:whatsapp.manage')->name('enfas.v10.automations.update');
 });
