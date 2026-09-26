@@ -7,15 +7,15 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/confirmacoes',
         [ConfirmationCenterController::class,'index']
-    )->name('v10.confirmations');
+    )->middleware('permission:agenda.view')->name('v10.confirmations');
 
     Route::patch(
         '/confirmacoes/{appointment}/status',
         [ConfirmationCenterController::class,'mark']
-    )->name('v10.confirmations.mark');
+    )->middleware('permission:agenda.manage')->name('v10.confirmations.mark');
 
     Route::get(
         '/comunicacoes',
         [ConfirmationCenterController::class,'history']
-    )->name('v10.communications');
+    )->middleware('permission:whatsapp.view')->name('v10.communications');
 });
