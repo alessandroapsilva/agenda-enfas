@@ -26,9 +26,6 @@ class HomeController extends Controller
 
     public function index()
     {
-        // V11_ENTRY_REDIRECT
-        return redirect()->route('v11.today');
-
         $start = now()->startOfDay();
         $end = now()->endOfDay();
 
@@ -65,6 +62,14 @@ class HomeController extends Controller
                     )
             ),
             'patients' => $this->count('patients'),
+            'professionals' => $this->count(
+                'professionals',
+                fn ($q) => $q->where('is_active', true)
+            ),
+            'services' => $this->count(
+                'services',
+                fn ($q) => $q->where('is_active', true)
+            ),
         ];
 
         $appointments = collect();
@@ -204,13 +209,61 @@ class HomeController extends Controller
                     ->count();
         }
 
+        $inbox = [
+            'active' => 0,
+            'human' => 0,
+            'unread' => 0,
+        ];
+
+        if (Schema::hasTable('wa_conversations')) {
+            $inbox['active'] = DB::table('wa_conversations')
+                ->where('status', 'active')
+                ->count();
+
+            $inbox['human'] = DB::table('wa_conversations')
+                ->where('status', 'active')
+                ->where('mode', 'human')
+                ->count();
+
+            $inbox['unread'] = (int) DB::table('wa_conversations')
+                ->where('status', 'active')
+                ->sum('unread_count');
+        }
+
+        $weekStart = now()->copy()->startOfWeek();
+        $weekEnd = now()->copy()->endOfWeek();
+
+        $week = [
+            'total' => $this->count(
+                'appointments',
+                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
+            ),
+            'confirmed' => $this->count(
+                'appointments',
+                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                    ->where('status', 'confirmed')
+            ),
+            'cancelled' => $this->count(
+                'appointments',
+                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                    ->where('status', 'cancelled')
+            ),
+            'no_show' => $this->count(
+                'appointments',
+                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                    ->where('status', 'no_show')
+            ),
+        ];
+
         return view(
             'enfas.home',
             compact(
                 'metrics',
                 'appointments',
                 'alerts',
-                'wa'
+                'wa',
+                'inbox',
+                'week'
             )
         );
     }
