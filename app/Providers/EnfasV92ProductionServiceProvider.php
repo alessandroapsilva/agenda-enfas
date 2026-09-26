@@ -85,6 +85,11 @@ class EnfasV92ProductionServiceProvider extends ServiceProvider
                     'icon'=>'bi bi-people',
                 ],
                 [
+                    'text'=>'Lista de espera',
+                    'url'=>'lista-de-espera',
+                    'icon'=>'bi bi-hourglass-split',
+                ],
+                [
                     'text'=>'WhatsApp',
                     'icon'=>'bi bi-whatsapp',
                     'submenu'=>[
