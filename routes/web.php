@@ -159,6 +159,26 @@ Route::middleware('auth')->group(function () {
         [ProfessionalController::class, 'store']
     )->name('professionals.store');
 
+    Route::patch(
+        '/profissionais/{professional}',
+        [ProfessionalController::class, 'update']
+    )->name('professionals.update');
+
+    Route::post(
+        '/profissionais/{professional}/disponibilidade',
+        [ProfessionalController::class, 'saveAvailability']
+    )->name('professionals.availability');
+
+    Route::post(
+        '/profissionais/{professional}/bloqueios',
+        [ProfessionalController::class, 'addBlock']
+    )->name('professionals.blocks.store');
+
+    Route::delete(
+        '/profissionais/{professional}/bloqueios/{block}',
+        [ProfessionalController::class, 'deleteBlock']
+    )->name('professionals.blocks.destroy');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -175,6 +195,16 @@ Route::middleware('auth')->group(function () {
         '/servicos',
         [ServiceController::class, 'store']
     )->name('services.store');
+
+    Route::patch(
+        '/servicos/{service}',
+        [ServiceController::class, 'update']
+    )->name('services.update');
+
+    Route::patch(
+        '/servicos/{service}/status',
+        [ServiceController::class, 'toggle']
+    )->name('services.status');
 
 
     /*
