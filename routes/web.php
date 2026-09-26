@@ -73,6 +73,11 @@ Route::middleware('auth')->group(function () {
         [AgendaController::class, 'events']
     )->name('agenda.events');
 
+    Route::get(
+        '/agenda/melhores-horarios',
+        [AgendaController::class, 'bestSlots']
+    )->name('agenda.best-slots');
+
     Route::patch(
         '/agenda/agendamentos/{appointment}/mover',
         [AgendaController::class, 'move']
@@ -94,6 +99,11 @@ Route::middleware('auth')->group(function () {
         '/agendamentos',
         [AppointmentController::class, 'store']
     )->name('appointments.store');
+
+    Route::post(
+        '/agendamentos/recorrentes',
+        [AppointmentController::class, 'storeRecurring']
+    )->name('appointments.recurring.store');
 
     Route::get(
         '/agendamentos/{appointment}',
