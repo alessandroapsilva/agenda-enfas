@@ -63,6 +63,28 @@ class PremiumAccessManagementTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_attendant_cannot_open_administration_modules(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'atendente.limitado',
+            'role' => 'attendant',
+            'is_active' => true,
+            'force_password_change' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('users.index'))
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->get(route('v92.settings'))
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->get(route('agenda.index'))
+            ->assertOk();
+    }
+
     public function test_admin_can_create_individual_user_account(): void
     {
         $admin = User::factory()->create([
