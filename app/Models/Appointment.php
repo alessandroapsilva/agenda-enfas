@@ -31,6 +31,12 @@ class Appointment extends Model
         'source',
         'notes',
         'whatsapp_message_id',
+        'check_in_completed_at',
+        'satisfaction_score',
+        'satisfaction_comment',
+        'satisfaction_at',
+        'return_due_at',
+        'telehealth_url',
         'created_by',
         'updated_by',
     ];
@@ -43,6 +49,9 @@ class Appointment extends Model
             'confirmation_requested_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'check_in_completed_at' => 'datetime',
+            'satisfaction_at' => 'datetime',
+            'return_due_at' => 'date',
         ];
     }
 
