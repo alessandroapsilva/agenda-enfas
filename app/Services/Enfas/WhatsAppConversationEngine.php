@@ -2,6 +2,7 @@
 
 namespace App\Services\Enfas;
 
+use App\Models\Appointment;
 use App\Models\WaConversation;
 use App\Models\WaMessage;
 use Carbon\Carbon;
@@ -16,6 +17,7 @@ class WhatsAppConversationEngine
         private PatientNotificationService $patientNotifications,
         private ProfessionalNotificationService $professionalNotifications,
         private WhatsAppAutomationEngine $automation,
+        private WaitlistService $waitlist,
     ) {
     }
 
@@ -99,6 +101,46 @@ class WhatsAppConversationEngine
 
         $parts = explode(':', $payload);
         $action = strtoupper((string) ($parts[0] ?? ''));
+
+        if ($action === 'WAITLIST_ACCEPT') {
+            $entryId = (int) ($parts[1] ?? 0);
+
+            if ($entryId <= 0) {
+                return;
+            }
+
+            $appointmentModel = $this->waitlist->accept($entryId);
+
+            $message->update([
+                'appointment_id' => $appointmentModel->id,
+                'patient_id' => $appointmentModel->patient_id,
+            ]);
+
+            $conversation->update([
+                'appointment_id' => $appointmentModel->id,
+                'patient_id' => $appointmentModel->patient_id,
+                'state' => 'IDLE',
+                'status' => 'completed',
+                'last_message_at' => now(),
+                'closed_at' => now(),
+            ]);
+
+            $this->patientNotifications->confirmed($appointmentModel->id, $phone);
+            $this->professionalNotifications->appointmentChanged($appointmentModel->id, 'confirmed');
+
+            return;
+        }
+
+        if ($action === 'WAITLIST_DECLINE') {
+            $entryId = (int) ($parts[1] ?? 0);
+
+            if ($entryId > 0) {
+                $this->waitlist->decline($entryId);
+            }
+
+            return;
+        }
+
         $code = (string) end($parts);
         $appointment = DB::table('appointments')->where('code', $code)->first();
 
@@ -157,6 +199,17 @@ class WhatsAppConversationEngine
         $this->automation->trigger('appointment_cancelled', $appointment->id);
         $this->patientNotifications->cancelled($appointment->id, $phone);
         $this->professionalNotifications->appointmentChanged($appointment->id, 'cancelled');
+
+        $cancelled = Appointment::find($appointment->id);
+
+        if ($cancelled) {
+            try {
+                $this->waitlist->offerFreedSlot($cancelled);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
         $this->closeConversation($phone, $appointment->id);
     }
 
