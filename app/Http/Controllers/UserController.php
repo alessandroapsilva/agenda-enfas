@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Professional;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -53,7 +55,7 @@ class UserController extends Controller
             'password' => ['required','confirmed',Password::min(10)->letters()->numbers()],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => trim($validated['name']),
             'username' => Str::lower(trim($validated['username'])),
             'email' => $validated['email'] ?: null,
@@ -66,6 +68,8 @@ class UserController extends Controller
             'is_active' => true,
             'force_password_change' => true,
         ]);
+
+        $this->audit('create', $user, 'Usuário criado');
 
         return back()->with('success', 'Usuário criado com sucesso.');
     }
@@ -95,6 +99,8 @@ class UserController extends Controller
             ]);
         }
 
+        $beforeRole = $user->role;
+
         $user->update([
             'name' => trim($validated['name']),
             'email' => $validated['email'] ?: null,
@@ -104,6 +110,14 @@ class UserController extends Controller
             'professional_id' => $validated['role'] === 'professional' ? ($validated['professional_id'] ?? null) : null,
             'permissions' => $validated['permissions'] ?? null,
         ]);
+
+        $this->audit(
+            'update',
+            $user,
+            $beforeRole !== $user->role
+                ? "Perfil alterado de {$beforeRole} para {$user->role}"
+                : 'Usuário atualizado'
+        );
 
         return back()->with('success', 'Usuário atualizado com sucesso.');
     }
@@ -128,6 +142,12 @@ class UserController extends Controller
 
         $user->update(['is_active' => ! $user->is_active]);
 
+        $this->audit(
+            $user->is_active ? 'activate' : 'deactivate',
+            $user,
+            $user->is_active ? 'Usuário ativado' : 'Usuário desativado'
+        );
+
         return back()->with('success', $user->is_active ? 'Usuário ativado com sucesso.' : 'Usuário desativado com sucesso.');
     }
 
@@ -144,6 +164,26 @@ class UserController extends Controller
             'force_password_change' => true,
         ]);
 
+        $this->audit('password_reset', $user, 'Senha redefinida por administrador');
+
         return back()->with('success', "Senha de {$user->name} alterada com sucesso.");
+    }
+
+    private function audit(string $action, User $user, string $description): void
+    {
+        if (! Schema::hasTable('audit_logs')) {
+            return;
+        }
+
+        DB::table('audit_logs')->insert([
+            'user_id' => auth()->id(),
+            'module' => 'users',
+            'action' => $action,
+            'description' => $description.' · '.$user->name.' (@'.$user->username.')',
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
