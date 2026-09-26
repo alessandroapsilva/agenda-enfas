@@ -124,6 +124,43 @@ class AvailabilityService
         return true;
     }
 
+    public function isBookable(
+        int $professionalId,
+        Carbon $start,
+        Carbon $end,
+        ?int $excludeAppointmentId = null
+    ): bool {
+        $professional = DB::table('professionals')
+            ->where('id', $professionalId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $professional || $end->lte($start)) {
+            return false;
+        }
+
+        $insideWorkingWindow = false;
+
+        foreach ($this->windowsFor($professional, $start->copy()->startOfDay()) as $window) {
+            $windowStart = $this->combine($start, $window['start']);
+            $windowEnd = $this->combine($start, $window['end']);
+            $breakStart = $window['break_start'] ? $this->combine($start, $window['break_start']) : null;
+            $breakEnd = $window['break_end'] ? $this->combine($start, $window['break_end']) : null;
+
+            if ($start->gte($windowStart) && $end->lte($windowEnd)) {
+                if ($breakStart && $breakEnd && $start->lt($breakEnd) && $end->gt($breakStart)) {
+                    continue;
+                }
+
+                $insideWorkingWindow = true;
+                break;
+            }
+        }
+
+        return $insideWorkingWindow
+            && $this->isAvailable($professionalId, $start, $end, $excludeAppointmentId);
+    }
+
     public function hold(
         int $professionalId,
         Carbon $start,
@@ -162,19 +199,31 @@ class AvailabilityService
     private function windowsFor(object $professional, Carbon $date): array
     {
         if (Schema::hasTable('professional_availabilities')) {
+            $dayColumn = Schema::hasColumn('professional_availabilities', 'day_of_week')
+                ? 'day_of_week'
+                : 'weekday';
+
+            $startColumn = Schema::hasColumn('professional_availabilities', 'start_time')
+                ? 'start_time'
+                : 'starts_at';
+
+            $endColumn = Schema::hasColumn('professional_availabilities', 'end_time')
+                ? 'end_time'
+                : 'ends_at';
+
             $rows = DB::table('professional_availabilities')
                 ->where('professional_id', $professional->id)
-                ->where('day_of_week', $date->dayOfWeek)
+                ->where($dayColumn, $date->dayOfWeek)
                 ->where('is_active', true)
-                ->orderBy('start_time')
+                ->orderBy($startColumn)
                 ->get();
 
             if ($rows->isNotEmpty()) {
                 return $rows->map(fn ($row) => [
-                    'start' => $row->start_time,
-                    'end' => $row->end_time,
-                    'break_start' => $row->break_start,
-                    'break_end' => $row->break_end,
+                    'start' => $row->{$startColumn},
+                    'end' => $row->{$endColumn},
+                    'break_start' => $row->break_start ?? null,
+                    'break_end' => $row->break_end ?? null,
                 ])->all();
             }
         }
