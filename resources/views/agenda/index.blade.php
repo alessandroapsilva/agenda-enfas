@@ -393,7 +393,7 @@
                 <div id="recurrenceFields" class="row g-3 mt-1 d-none">
                     <div class="col-md-4">
                         <label class="form-label">Frequência</label>
-                        <select class="form-select" id="recurrenceFrequency">
+                        <select class="form-select" id="recurrenceFrequency" name="frequency">
                             <option value="weekly">Semanal</option>
                             <option value="daily">Diário</option>
                             <option value="monthly">Mensal</option>
@@ -401,19 +401,19 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">A cada</label>
-                        <input type="number" min="1" max="52" value="1" class="form-control" id="recurrenceInterval">
+                        <input type="number" min="1" max="52" value="1" class="form-control" id="recurrenceInterval" name="interval">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Máx. ocorrências</label>
-                        <input type="number" min="1" max="365" value="12" class="form-control" id="recurrenceMax">
+                        <input type="number" min="1" max="365" value="12" class="form-control" id="recurrenceMax" name="max_occurrences">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Data inicial</label>
-                        <input type="date" class="form-control" id="recurrenceStartDate">
+                        <input type="date" class="form-control" id="recurrenceStartDate" name="starts_on">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Data final (opcional)</label>
-                        <input type="date" class="form-control" id="recurrenceEndDate">
+                        <input type="date" class="form-control" id="recurrenceEndDate" name="ends_on">
                     </div>
                 </div>
 
@@ -1229,8 +1229,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const appointmentStartInput = document.getElementById('appointmentStart');
     appointmentStartInput?.addEventListener('change', function () {
         if (! this.value) return;
-        const d = new Date(this.value);
-        const date = d.toISOString().slice(0,10);
+        const date = this.value.slice(0,10);
         const time = this.value.slice(11,16);
         const startDate = document.getElementById('recurrenceStartDate');
         if (startDate) startDate.value = date;
