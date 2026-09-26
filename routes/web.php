@@ -4,7 +4,6 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ServiceController;
@@ -49,12 +48,6 @@ Route::middleware('auth')->group(function () {
         '/',
         fn () => redirect()->route('dashboard')
     );
-
-
-    Route::get(
-        '/dashboard',
-        [DashboardController::class, 'index']
-    )->name('dashboard');
 
 
     /*
@@ -237,49 +230,6 @@ Route::middleware('auth')->group(function () {
         '/campos-personalizados/{field}/status',
         [CustomFieldController::class, 'toggle']
     )->name('custom-fields.status');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | FUTUROS MÓDULOS
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/whatsapp',
-        'modules.placeholder',
-        [
-            'module' => 'WhatsApp',
-            'icon' => 'bi-whatsapp',
-        ]
-    )->name('whatsapp.index');
-
-    Route::view(
-        '/automacoes',
-        'modules.placeholder',
-        [
-            'module' => 'Automações',
-            'icon' => 'bi-lightning-charge',
-        ]
-    )->name('automations.index');
-
-    Route::view(
-        '/relatorios',
-        'modules.placeholder',
-        [
-            'module' => 'Relatórios',
-            'icon' => 'bi-bar-chart',
-        ]
-    )->name('reports.index');
-
-    Route::view(
-        '/configuracoes',
-        'modules.placeholder',
-        [
-            'module' => 'Configurações',
-            'icon' => 'bi-sliders',
-        ]
-    )->name('settings.index');
 
 
     /*
