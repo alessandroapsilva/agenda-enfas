@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\AppointmentEvent;
+use App\Services\Enfas\WaitlistService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -23,6 +24,78 @@ class PatientJourneyController extends Controller
         $appointment = $this->appointment($token);
 
         return view('patient-journey.show', compact('appointment'));
+    }
+
+
+    public function confirm(string $token)
+    {
+        $appointment = $this->appointment($token);
+
+        abort_if(
+            in_array($appointment->status, ['completed','cancelled','no_show'], true),
+            422,
+            'Este agendamento não pode mais ser confirmado.'
+        );
+
+        if ($appointment->status !== 'confirmed') {
+            $appointment->forceFill([
+                'status' => 'confirmed',
+                'confirmation_status' => 'confirmed',
+                'confirmation_channel' => 'patient_journey',
+                'confirmed_at' => now(),
+            ])->save();
+
+            AppointmentEvent::create([
+                'appointment_id' => $appointment->id,
+                'event_type' => 'patient_confirmed',
+                'title' => 'Presença confirmada',
+                'description' => 'Paciente confirmou a presença pela Jornada ENFAS.',
+                'occurred_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Presença confirmada. Até breve!');
+    }
+
+    public function cancel(Request $request, string $token, WaitlistService $waitlist)
+    {
+        $appointment = $this->appointment($token);
+
+        abort_if(
+            in_array($appointment->status, ['completed','cancelled','no_show'], true),
+            422,
+            'Este agendamento não pode mais ser cancelado.'
+        );
+
+        $data = $request->validate([
+            'reason' => ['nullable','string','max:1000'],
+        ]);
+
+        $appointment->forceFill([
+            'status' => 'cancelled',
+            'confirmation_status' => 'cancelled',
+            'confirmation_channel' => 'patient_journey',
+            'cancelled_at' => now(),
+            'cancellation_reason' => $data['reason'] ?? null,
+        ])->save();
+
+        AppointmentEvent::create([
+            'appointment_id' => $appointment->id,
+            'event_type' => 'patient_cancelled',
+            'title' => 'Agendamento cancelado pelo paciente',
+            'description' => filled($data['reason'] ?? null)
+                ? 'Motivo: '.$data['reason']
+                : 'Cancelamento realizado pela Jornada ENFAS.',
+            'occurred_at' => now(),
+        ]);
+
+        try {
+            $waitlist->offerFreedSlot($appointment->fresh(['service','professional']));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return back()->with('success', 'Agendamento cancelado. Se precisar, você poderá reagendar com nossa equipe.');
     }
 
     public function checkIn(Request $request, string $token)
