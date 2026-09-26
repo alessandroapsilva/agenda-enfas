@@ -13,6 +13,7 @@
 
     @vite([
         'resources/css/adminlte.css',
+        'resources/css/enfas-agenda.css',
         'resources/js/adminlte.js'
     ])
 </head>
