@@ -127,6 +127,21 @@ Route::middleware('auth')->group(function () {
         [PatientController::class, 'store']
     )->name('patients.store');
 
+    Route::get(
+        '/pacientes/{patient}',
+        [PatientController::class, 'show']
+    )->name('patients.show');
+
+    Route::patch(
+        '/pacientes/{patient}',
+        [PatientController::class, 'update']
+    )->name('patients.update');
+
+    Route::post(
+        '/pacientes/{patient}/contato',
+        [PatientController::class, 'contact']
+    )->name('patients.contact');
+
 
     /*
     |--------------------------------------------------------------------------
