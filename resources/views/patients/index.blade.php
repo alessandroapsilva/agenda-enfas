@@ -71,6 +71,7 @@
                 <th>E-mail</th>
                 <th>CPF</th>
                 <th class="text-end">Agendamentos</th>
+                <th class="text-end">Ações</th>
             </tr>
             </thead>
 
@@ -95,7 +96,13 @@
                     </td>
 
                     <td class="text-end">
-                        {{ $patient->appointments()->count() }}
+                        {{ $patient->appointments_count }}
+                    </td>
+
+                    <td class="text-end">
+                        <a href="{{ route('patients.show', $patient) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-person-lines-fill me-1"></i>Ver ficha
+                        </a>
                     </td>
 
                 </tr>
@@ -103,7 +110,7 @@
             @empty
 
                 <tr>
-                    <td colspan="5"
+                    <td colspan="6"
                         class="text-center py-5 text-secondary">
 
                         Nenhum paciente cadastrado.
