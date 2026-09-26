@@ -101,7 +101,7 @@ class ProductionHealthService
             'users.index',
             'enfas.whatsapp',
             'enfas.whatsapp.thread.send',
-            'enfas.v6.templates',
+            'v9.templates.index',
             'enfas.v6.automations',
         ] as $route) {
             $this->add(
