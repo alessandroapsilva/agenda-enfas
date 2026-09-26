@@ -9,13 +9,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard',[HomeController::class,'index'])->name('dashboard');
 
-    Route::get('/pacientes',[ModuleController::class,'patients'])->name('enfas.patients');
-    Route::get('/profissionais',[ModuleController::class,'professionals'])->name('enfas.professionals');
-    Route::get('/servicos',[ModuleController::class,'services'])->name('enfas.services');
-    Route::get('/agendamentos',[ModuleController::class,'appointments'])->name('enfas.appointments');
     Route::get('/locais',[ModuleController::class,'locations'])->name('enfas.locations');
     Route::get('/disponibilidade',[ModuleController::class,'availability'])->name('enfas.availability');
-    Route::get('/campos-personalizados',[ModuleController::class,'customFields'])->name('enfas.custom-fields');
     Route::get('/relatorios',[ModuleController::class,'reports'])->name('enfas.reports');
     Route::get('/alertas',[ModuleController::class,'alerts'])->name('enfas.alerts');
     Route::get('/auditoria',[ModuleController::class,'audit'])->name('enfas.audit');
