@@ -10,6 +10,7 @@ use App\Models\Patient;
 use App\Models\Professional;
 use App\Models\Service;
 use App\Models\WaMessage;
+use App\Services\Enfas\AvailabilityService;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\RecurringAppointmentService;
 use App\Services\Enfas\WaitlistService;
@@ -37,7 +38,7 @@ class AppointmentController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(Request $request, AvailabilityService $availability)
     {
         $fields = CustomField::query()
             ->where('entity_type', 'appointment')
@@ -121,11 +122,11 @@ class AppointmentController extends Controller
                 $service->duration_minutes
             );
 
-        $this->assertAvailable(
-            $professional->id,
-            $start,
-            $end
-        );
+        if (! $availability->isBookable($professional->id, $start, $end)) {
+            throw ValidationException::withMessages([
+                'start_at' => 'Esse horário está fora da disponibilidade do profissional ou já foi ocupado.',
+            ]);
+        }
 
         $appointment = Appointment::create([
             'patient_id' => $patient->id,
@@ -511,45 +512,4 @@ class AppointmentController extends Controller
         ]);
     }
 
-    private function assertAvailable(
-        int $professionalId,
-        Carbon $start,
-        Carbon $end,
-        ?int $ignoreAppointment = null
-    ): void {
-        $query = Appointment::query()
-            ->where(
-                'professional_id',
-                $professionalId
-            )
-            ->whereNotIn(
-                'status',
-                ['cancelled']
-            )
-            ->where(
-                'start_at',
-                '<',
-                $end
-            )
-            ->where(
-                'end_at',
-                '>',
-                $start
-            );
-
-        if ($ignoreAppointment) {
-            $query->where(
-                'id',
-                '!=',
-                $ignoreAppointment
-            );
-        }
-
-        if ($query->exists()) {
-            throw ValidationException::withMessages([
-                'start_at' =>
-                    'Este profissional já possui um agendamento nesse horário.',
-            ]);
-        }
-    }
 }
