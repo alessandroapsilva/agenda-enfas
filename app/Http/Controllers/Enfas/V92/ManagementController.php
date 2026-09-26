@@ -217,6 +217,55 @@ class ManagementController extends Controller
             }
         }
 
+        $journey = [
+            'confirmed' => $metrics['confirmed'],
+            'checkins' => 0,
+            'completed' => $metrics['completed'],
+            'responses' => 0,
+            'average_score' => null,
+            'nps' => null,
+        ];
+
+        if (Schema::hasColumn('appointments', 'check_in_completed_at')) {
+            $journey['checkins'] = (clone $base)
+                ->whereNotNull('check_in_completed_at')
+                ->count();
+        }
+
+        if (Schema::hasColumn('appointments', 'satisfaction_score')) {
+            $scores = (clone $base)
+                ->whereNotNull('satisfaction_score')
+                ->pluck('satisfaction_score')
+                ->map(fn ($score) => (int) $score);
+
+            $journey['responses'] = $scores->count();
+
+            if ($scores->isNotEmpty()) {
+                $journey['average_score'] = round($scores->avg(), 1);
+                $promoters = $scores->filter(fn ($score) => $score >= 9)->count();
+                $detractors = $scores->filter(fn ($score) => $score <= 6)->count();
+
+                $journey['nps'] = (int) round(
+                    (($promoters / $scores->count()) * 100)
+                    - (($detractors / $scores->count()) * 100)
+                );
+            }
+        }
+
+        $cancellationReasons = collect();
+
+        if (Schema::hasColumn('appointments', 'cancellation_reason')) {
+            $cancellationReasons = (clone $base)
+                ->where('status', 'cancelled')
+                ->whereNotNull('cancellation_reason')
+                ->where('cancellation_reason', '<>', '')
+                ->select('cancellation_reason', DB::raw('COUNT(*) as total'))
+                ->groupBy('cancellation_reason')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->get();
+        }
+
         return view('enfas.v92.reports', compact(
             'metrics',
             'rates',
@@ -225,6 +274,8 @@ class ManagementController extends Controller
             'daily',
             'communication',
             'waitlist',
+            'journey',
+            'cancellationReasons',
             'from',
             'to'
         ));
@@ -254,6 +305,9 @@ class ManagementController extends Controller
                 'a.end_at',
                 'a.status',
                 'a.confirmation_status',
+                'a.check_in_completed_at',
+                'a.satisfaction_score',
+                'a.satisfaction_comment',
                 'p.name as patient_name',
                 'pro.name as professional_name',
                 's.name as service_name',
@@ -276,6 +330,9 @@ class ManagementController extends Controller
                 'Serviço',
                 'Status',
                 'Confirmação',
+                'Check-in',
+                'Satisfação',
+                'Comentário',
             ], ';');
 
             foreach ($rows as $row) {
@@ -292,6 +349,9 @@ class ManagementController extends Controller
                     $row->service_name,
                     $row->status,
                     $row->confirmation_status,
+                    $row->check_in_completed_at ? 'Sim' : 'Não',
+                    $row->satisfaction_score,
+                    $row->satisfaction_comment,
                 ], ';');
             }
 
