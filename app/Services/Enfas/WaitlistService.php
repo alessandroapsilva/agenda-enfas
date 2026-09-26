@@ -1,0 +1,184 @@
+<?php
+
+namespace App\Services\Enfas;
+
+use App\Models\Appointment;
+use App\Models\WaitlistEntry;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
+
+class WaitlistService
+{
+    public function __construct(
+        private AvailabilityService $availability,
+        private MetaWhatsAppService $meta
+    ) {
+    }
+
+    public function offerFreedSlot(Appointment $appointment): ?WaitlistEntry
+    {
+        $appointment->loadMissing(['service', 'professional']);
+
+        $start = $appointment->start_at->copy();
+        $end = $appointment->end_at->copy();
+
+        $this->expireOldOffers();
+
+        $candidate = WaitlistEntry::query()
+            ->with('patient')
+            ->where('status', 'waiting')
+            ->where('service_id', $appointment->service_id)
+            ->where(function ($q) use ($appointment) {
+                $q->whereNull('professional_id')
+                    ->orWhere('professional_id', $appointment->professional_id);
+            })
+            ->where(function ($q) use ($start) {
+                $q->whereNull('earliest_date')
+                    ->orWhereDate('earliest_date', '<=', $start->toDateString());
+            })
+            ->where(function ($q) use ($start) {
+                $q->whereNull('latest_date')
+                    ->orWhereDate('latest_date', '>=', $start->toDateString());
+            })
+            ->orderBy('created_at')
+            ->first();
+
+        if (! $candidate || ! $candidate->patient?->phone) {
+            return null;
+        }
+
+        if ($candidate->preferred_period && ! $this->matchesPeriod($start, $candidate->preferred_period)) {
+            return null;
+        }
+
+        if (! $this->availability->isAvailable(
+            $appointment->professional_id,
+            $start,
+            $end,
+            $appointment->id
+        )) {
+            return null;
+        }
+
+        $candidate->update([
+            'status' => 'offered',
+            'offered_start_at' => $start,
+            'offered_end_at' => $end,
+            'offer_expires_at' => now()->addMinutes(15),
+        ]);
+
+        $body = "✨ *Surgiu um horário para você!*\n\n"
+            ."📋 *Atendimento:* {$appointment->service->name}\n"
+            ."🥼 *Profissional:* {$appointment->professional->name}\n"
+            ."📅 *Data:* {$start->format('d/m/Y')}\n"
+            ."⏰ *Horário:* {$start->format('H:i')}\n\n"
+            ."Esse horário fica reservado por alguns minutos. Deseja confirmar?";
+
+        $this->meta->sendInteractiveButtons(
+            $candidate->patient->phone,
+            $body,
+            [
+                ['id' => 'WAITLIST_ACCEPT:'.$candidate->id, 'title' => '✅ Aceitar horário'],
+                ['id' => 'WAITLIST_DECLINE:'.$candidate->id, 'title' => 'Agora não'],
+            ],
+            null,
+            $candidate->patient_id,
+            'waitlist-offer:'.$candidate->id.':'.$start->format('YmdHi'),
+            'Lista de espera · Enfermagem Alessandro Silva'
+        );
+
+        return $candidate;
+    }
+
+    public function accept(int $entryId): Appointment
+    {
+        return DB::transaction(function () use ($entryId) {
+            /** @var WaitlistEntry $entry */
+            $entry = WaitlistEntry::query()
+                ->with(['patient','service','professional'])
+                ->lockForUpdate()
+                ->findOrFail($entryId);
+
+            if ($entry->status !== 'offered'
+                || ! $entry->offer_expires_at
+                || $entry->offer_expires_at->isPast()
+            ) {
+                throw new RuntimeException('Essa oferta não está mais disponível.');
+            }
+
+            $professionalId = $entry->professional_id;
+
+            if (! $professionalId) {
+                throw new RuntimeException('A oferta perdeu o profissional vinculado.');
+            }
+
+            $start = $entry->offered_start_at->copy();
+            $end = $entry->offered_end_at->copy();
+
+            if (! $this->availability->isAvailable($professionalId, $start, $end)) {
+                throw new RuntimeException('Esse horário acabou de ser ocupado.');
+            }
+
+            $appointment = Appointment::create([
+                'patient_id' => $entry->patient_id,
+                'professional_id' => $professionalId,
+                'service_id' => $entry->service_id,
+                'start_at' => $start,
+                'end_at' => $end,
+                'duration_minutes' => $start->diffInMinutes($end),
+                'status' => 'confirmed',
+                'confirmation_status' => 'confirmed',
+                'confirmation_channel' => 'whatsapp_waitlist',
+                'confirmed_at' => now(),
+                'source' => 'waitlist',
+            ]);
+
+            $entry->update([
+                'status' => 'accepted',
+                'appointment_id' => $appointment->id,
+            ]);
+
+            return $appointment;
+        });
+    }
+
+    public function decline(int $entryId): void
+    {
+        WaitlistEntry::query()
+            ->where('id', $entryId)
+            ->where('status', 'offered')
+            ->update([
+                'status' => 'waiting',
+                'offered_start_at' => null,
+                'offered_end_at' => null,
+                'offer_expires_at' => null,
+                'updated_at' => now(),
+            ]);
+    }
+
+    public function expireOldOffers(): void
+    {
+        WaitlistEntry::query()
+            ->where('status', 'offered')
+            ->whereNotNull('offer_expires_at')
+            ->where('offer_expires_at', '<=', now())
+            ->update([
+                'status' => 'waiting',
+                'offered_start_at' => null,
+                'offered_end_at' => null,
+                'offer_expires_at' => null,
+                'updated_at' => now(),
+            ]);
+    }
+
+    private function matchesPeriod(Carbon $time, string $period): bool
+    {
+        return match ($period) {
+            'morning' => $time->hour >= 6 && $time->hour < 12,
+            'afternoon' => $time->hour >= 12 && $time->hour < 18,
+            'evening' => $time->hour >= 18 && $time->hour < 23,
+            default => true,
+        };
+    }
+}
