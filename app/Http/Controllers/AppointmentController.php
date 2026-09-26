@@ -11,6 +11,7 @@ use App\Models\Professional;
 use App\Models\Service;
 use App\Models\WaMessage;
 use App\Services\Enfas\MetaWhatsAppService;
+use App\Services\Enfas\RecurringAppointmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -205,6 +206,40 @@ class AppointmentController extends Controller
             );
     }
 
+
+
+    public function storeRecurring(
+        Request $request,
+        RecurringAppointmentService $recurring
+    ) {
+        $data = $request->validate([
+            'patient_id' => ['required','integer','exists:patients,id'],
+            'professional_id' => ['required','integer','exists:professionals,id'],
+            'service_id' => ['required','integer','exists:services,id'],
+            'frequency' => ['required','in:daily,weekly,monthly'],
+            'interval' => ['required','integer','min:1','max:52'],
+            'starts_on' => ['required','date'],
+            'time' => ['required','date_format:H:i'],
+            'ends_on' => ['nullable','date','after_or_equal:starts_on'],
+            'max_occurrences' => ['nullable','integer','min:1','max:365'],
+            'week_days' => ['nullable','array'],
+            'week_days.*' => ['integer','between:0,6'],
+        ]);
+
+        $service = Service::findOrFail($data['service_id']);
+
+        if (! $service->allow_recurrence) {
+            throw ValidationException::withMessages([
+                'frequency' => 'Este serviço não permite agendamento recorrente.',
+            ]);
+        }
+
+        $series = $recurring->create($data);
+
+        return redirect()
+            ->route('agenda.index')
+            ->with('success', 'Série recorrente criada com sucesso. Código interno #'.$series->id.'.');
+    }
 
     public function show(Appointment $appointment)
     {
