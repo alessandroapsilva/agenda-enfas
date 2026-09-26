@@ -6,6 +6,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/adminlte.css',
+                'resources/css/enfas-agenda.css',
                 'resources/js/adminlte.js',
             ],
             refresh: true,
