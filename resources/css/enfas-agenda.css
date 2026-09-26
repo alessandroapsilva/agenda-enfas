@@ -1296,3 +1296,132 @@ body.enfas-shell,
         border-radius:15px!important;
     }
 }
+
+
+.ea-mini-metric,
+.ea-week-metric {
+    height:100%;
+    border:1px solid #e7edf5;
+    border-radius:14px;
+    background:#fbfdff;
+}
+
+.ea-mini-metric {
+    min-height:82px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:.7rem .45rem;
+    text-align:center;
+}
+
+.ea-mini-metric strong {
+    color:#0f172a;
+    font-size:1.35rem;
+    font-weight:800;
+    line-height:1;
+}
+
+.ea-mini-metric span {
+    margin-top:.35rem;
+    color:#8491a4;
+    font-size:.68rem;
+}
+
+.ea-week-metric {
+    min-height:138px;
+    display:flex;
+    flex-direction:column;
+    padding:1rem;
+}
+
+.ea-week-metric i {
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    margin-bottom:.7rem;
+    border-radius:10px;
+    color:#2563eb;
+    background:#eff6ff;
+}
+
+.ea-week-metric span {
+    color:#64748b;
+    font-size:.72rem;
+    font-weight:700;
+}
+
+.ea-week-metric strong {
+    margin-top:.18rem;
+    color:#0f172a;
+    font-size:1.7rem;
+    font-weight:800;
+    letter-spacing:-.04em;
+}
+
+.ea-week-metric small {
+    margin-top:auto;
+    color:#94a3b8;
+    font-size:.68rem;
+}
+
+.ea-status-pill {
+    display:inline-flex;
+    align-items:center;
+    gap:.4rem;
+    padding:.35rem .55rem;
+    border-radius:999px;
+    font-size:.68rem;
+    font-weight:800;
+}
+
+.ea-status-pill span {
+    width:7px;
+    height:7px;
+    border-radius:50%;
+}
+
+.ea-status-pill.is-online {
+    color:#15803d;
+    background:#f0fdf4;
+}
+
+.ea-status-pill.is-online span {
+    background:#22c55e;
+    box-shadow:0 0 0 4px rgba(34,197,94,.12);
+}
+
+.ea-status-pill.is-warning {
+    color:#b45309;
+    background:#fffbeb;
+}
+
+.ea-status-pill.is-warning span {
+    background:#f59e0b;
+    box-shadow:0 0 0 4px rgba(245,158,11,.12);
+}
+
+.ea-wa-brand {
+    width:48px;
+    height:48px;
+    display:grid;
+    place-items:center;
+    flex:0 0 auto;
+    border-radius:14px;
+    color:#fff;
+    background:linear-gradient(135deg,#25d366,#16a34a);
+    box-shadow:0 10px 22px rgba(34,197,94,.18);
+    font-size:1.25rem;
+}
+
+.ea-alert-dot {
+    width:9px;
+    height:9px;
+    flex:0 0 auto;
+    margin-top:.35rem;
+    border-radius:50%;
+    background:#f59e0b;
+    box-shadow:0 0 0 4px rgba(245,158,11,.1);
+}
