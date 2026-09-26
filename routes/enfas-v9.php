@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     foreach ([
-        'profissionais'=>'professionals',
-        'pacientes'=>'patients',
-        'servicos'=>'services',
         'locais'=>'locations',
     ] as $path=>$entity) {
         Route::get(
