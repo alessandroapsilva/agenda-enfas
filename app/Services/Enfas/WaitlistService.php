@@ -62,6 +62,7 @@ class WaitlistService
         }
 
         $candidate->update([
+            'professional_id' => $appointment->professional_id,
             'status' => 'offered',
             'offered_start_at' => $start,
             'offered_end_at' => $end,
