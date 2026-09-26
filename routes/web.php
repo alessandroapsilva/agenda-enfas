@@ -113,22 +113,22 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/agenda',
         [AgendaController::class, 'index']
-    )->name('agenda.index');
+    )->middleware('permission:agenda.view')->name('agenda.index');
 
     Route::get(
         '/agenda/eventos',
         [AgendaController::class, 'events']
-    )->name('agenda.events');
+    )->middleware('permission:agenda.view')->name('agenda.events');
 
     Route::get(
         '/agenda/melhores-horarios',
         [AgendaController::class, 'bestSlots']
-    )->name('agenda.best-slots');
+    )->middleware('permission:agenda.view')->name('agenda.best-slots');
 
     Route::patch(
         '/agenda/agendamentos/{appointment}/mover',
         [AgendaController::class, 'move']
-    )->name('agenda.move');
+    )->middleware('permission:agenda.manage')->name('agenda.move');
 
 
     /*
@@ -140,32 +140,32 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/agendamentos',
         [AppointmentController::class, 'index']
-    )->name('appointments.index');
+    )->middleware('permission:agenda.view')->name('appointments.index');
 
     Route::post(
         '/agendamentos',
         [AppointmentController::class, 'store']
-    )->name('appointments.store');
+    )->middleware('permission:agenda.manage')->name('appointments.store');
 
     Route::post(
         '/agendamentos/recorrentes',
         [AppointmentController::class, 'storeRecurring']
-    )->name('appointments.recurring.store');
+    )->middleware('permission:agenda.manage')->name('appointments.recurring.store');
 
     Route::get(
         '/agendamentos/{appointment}',
         [AppointmentController::class, 'show']
-    )->name('appointments.show');
+    )->middleware('permission:agenda.view')->name('appointments.show');
 
     Route::patch(
         '/agendamentos/{appointment}/status',
         [AppointmentController::class, 'status']
-    )->name('appointments.status');
+    )->middleware('permission:agenda.manage')->name('appointments.status');
 
     Route::post(
         '/agendamentos/{appointment}/contato',
         [AppointmentController::class, 'contact']
-    )->name('appointments.contact');
+    )->middleware('permission:agenda.manage')->name('appointments.contact');
 
 
     /*
@@ -177,27 +177,27 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/pacientes',
         [PatientController::class, 'index']
-    )->name('patients.index');
+    )->middleware('permission:patients.view')->name('patients.index');
 
     Route::post(
         '/pacientes',
         [PatientController::class, 'store']
-    )->name('patients.store');
+    )->middleware('permission:patients.manage')->name('patients.store');
 
     Route::get(
         '/pacientes/{patient}',
         [PatientController::class, 'show']
-    )->name('patients.show');
+    )->middleware('permission:patients.view')->name('patients.show');
 
     Route::patch(
         '/pacientes/{patient}',
         [PatientController::class, 'update']
-    )->name('patients.update');
+    )->middleware('permission:patients.manage')->name('patients.update');
 
     Route::post(
         '/pacientes/{patient}/contato',
         [PatientController::class, 'contact']
-    )->name('patients.contact');
+    )->middleware('permission:patients.manage')->name('patients.contact');
 
 
     /*
@@ -209,32 +209,32 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/profissionais',
         [ProfessionalController::class, 'index']
-    )->name('professionals.index');
+    )->middleware('permission:professionals.view')->name('professionals.index');
 
     Route::post(
         '/profissionais',
         [ProfessionalController::class, 'store']
-    )->name('professionals.store');
+    )->middleware('permission:professionals.manage')->name('professionals.store');
 
     Route::patch(
         '/profissionais/{professional}',
         [ProfessionalController::class, 'update']
-    )->name('professionals.update');
+    )->middleware('permission:professionals.manage')->name('professionals.update');
 
     Route::post(
         '/profissionais/{professional}/disponibilidade',
         [ProfessionalController::class, 'saveAvailability']
-    )->name('professionals.availability');
+    )->middleware('permission:professionals.manage')->name('professionals.availability');
 
     Route::post(
         '/profissionais/{professional}/bloqueios',
         [ProfessionalController::class, 'addBlock']
-    )->name('professionals.blocks.store');
+    )->middleware('permission:professionals.manage')->name('professionals.blocks.store');
 
     Route::delete(
         '/profissionais/{professional}/bloqueios/{block}',
         [ProfessionalController::class, 'deleteBlock']
-    )->name('professionals.blocks.destroy');
+    )->middleware('permission:professionals.manage')->name('professionals.blocks.destroy');
 
 
     /*
@@ -246,22 +246,22 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/servicos',
         [ServiceController::class, 'index']
-    )->name('services.index');
+    )->middleware('permission:services.view')->name('services.index');
 
     Route::post(
         '/servicos',
         [ServiceController::class, 'store']
-    )->name('services.store');
+    )->middleware('permission:services.manage')->name('services.store');
 
     Route::patch(
         '/servicos/{service}',
         [ServiceController::class, 'update']
-    )->name('services.update');
+    )->middleware('permission:services.manage')->name('services.update');
 
     Route::patch(
         '/servicos/{service}/status',
         [ServiceController::class, 'toggle']
-    )->name('services.status');
+    )->middleware('permission:services.manage')->name('services.status');
 
 
     /*
@@ -273,17 +273,17 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/campos-personalizados',
         [CustomFieldController::class, 'index']
-    )->name('custom-fields.index');
+    )->middleware('permission:settings.manage')->name('custom-fields.index');
 
     Route::post(
         '/campos-personalizados',
         [CustomFieldController::class, 'store']
-    )->name('custom-fields.store');
+    )->middleware('permission:settings.manage')->name('custom-fields.store');
 
     Route::patch(
         '/campos-personalizados/{field}/status',
         [CustomFieldController::class, 'toggle']
-    )->name('custom-fields.status');
+    )->middleware('permission:settings.manage')->name('custom-fields.status');
 
 
 
@@ -297,17 +297,17 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/lista-de-espera',
         [WaitlistController::class, 'index']
-    )->name('waitlist.index');
+    )->middleware('permission:agenda.view')->name('waitlist.index');
 
     Route::post(
         '/lista-de-espera',
         [WaitlistController::class, 'store']
-    )->name('waitlist.store');
+    )->middleware('permission:agenda.manage')->name('waitlist.store');
 
     Route::patch(
         '/lista-de-espera/{entry}/cancelar',
         [WaitlistController::class, 'cancel']
-    )->name('waitlist.cancel');
+    )->middleware('permission:agenda.manage')->name('waitlist.cancel');
 
     /*
     |--------------------------------------------------------------------------
@@ -318,27 +318,27 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/usuarios',
         [UserController::class, 'index']
-    )->name('users.index');
+    )->middleware('permission:users.manage')->name('users.index');
 
     Route::post(
         '/usuarios',
         [UserController::class, 'store']
-    )->name('users.store');
+    )->middleware('permission:users.manage')->name('users.store');
 
     Route::patch(
         '/usuarios/{user}',
         [UserController::class, 'update']
-    )->name('users.update');
+    )->middleware('permission:users.manage')->name('users.update');
 
     Route::patch(
         '/usuarios/{user}/status',
         [UserController::class, 'toggleStatus']
-    )->name('users.status');
+    )->middleware('permission:users.manage')->name('users.status');
 
     Route::patch(
         '/usuarios/{user}/senha',
         [UserController::class, 'updatePassword']
-    )->name('users.password');
+    )->middleware('permission:users.manage')->name('users.password');
 
 
     /*
