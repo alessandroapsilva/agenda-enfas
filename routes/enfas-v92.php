@@ -15,35 +15,18 @@ Route::middleware('auth')->group(function () {
         [WorkspaceController::class,'index']
     )->name('v92.workspace');
 
-    Route::get(
-        '/disponibilidade',
-        [ManagementController::class,'availability']
-    )->name('v92.availability');
-
-    Route::post(
-        '/disponibilidade',
-        [ManagementController::class,'storeAvailability']
-    )->name('v92.availability.store');
-
-    Route::delete(
-        '/disponibilidade/{id}',
-        [ManagementController::class,'deleteAvailability']
-    )->name('v92.availability.delete');
-
-    Route::post(
-        '/ausencias',
-        [ManagementController::class,'storeAbsence']
-    )->name('v92.absences.store');
-
-    Route::delete(
-        '/ausencias/{id}',
-        [ManagementController::class,'deleteAbsence']
-    )->name('v92.absences.delete');
+    Route::redirect('/disponibilidade','/profissionais')
+        ->name('v92.availability');
 
     Route::get(
         '/relatorios',
         [ManagementController::class,'reports']
     )->name('v92.reports');
+
+    Route::get(
+        '/relatorios/exportar',
+        [ManagementController::class,'exportReports']
+    )->name('v92.reports.export');
 
     Route::get(
         '/auditoria',
