@@ -5,6 +5,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\PatientJourneyController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
@@ -34,6 +35,35 @@ Route::middleware('guest')->group(function () {
     )
         ->middleware('throttle:5,1')
         ->name('login.submit');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| JORNADA PÚBLICA DO PACIENTE
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get(
+        '/jornada/{token}',
+        [PatientJourneyController::class, 'show']
+    )->name('patient-journey.show');
+
+    Route::post(
+        '/jornada/{token}/check-in',
+        [PatientJourneyController::class, 'checkIn']
+    )->name('patient-journey.check-in');
+
+    Route::post(
+        '/jornada/{token}/avaliacao',
+        [PatientJourneyController::class, 'satisfaction']
+    )->name('patient-journey.satisfaction');
+
+    Route::get(
+        '/jornada/{token}/calendario.ics',
+        [PatientJourneyController::class, 'calendar']
+    )->name('patient-journey.calendar');
 });
 
 
