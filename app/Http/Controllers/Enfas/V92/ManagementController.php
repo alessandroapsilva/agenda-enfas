@@ -101,78 +101,204 @@ class ManagementController extends Controller
 
     public function reports(Request $request)
     {
-        $from=$request->date('from')??now()->startOfMonth();
-        $to=$request->date('to')??now()->endOfMonth();
-        $dateColumn=$this->appointmentDateColumn();
+        $from = $request->date('from') ?? now()->startOfMonth();
+        $to = $request->date('to') ?? now()->endOfMonth();
 
-        $metrics=[
-            'appointments'=>0,
-            'confirmed'=>0,
-            'cancelled'=>0,
-            'attended'=>0,
-            'no_show'=>0,
-        ];
-
-        $topProfessionals=collect();
-        $topServices=collect();
-
-        if ($dateColumn) {
-            $base=DB::table('appointments')
-                ->whereBetween(
-                    $dateColumn,
-                    [$from->copy()->startOfDay(),$to->copy()->endOfDay()]
-                );
-
-            $metrics['appointments']=(clone $base)->count();
-
-            foreach([
-                'confirmed_at'=>'confirmed',
-                'cancelled_at'=>'cancelled',
-                'attended_at'=>'attended',
-                'no_show_at'=>'no_show',
-            ] as $column=>$key) {
-                if (Schema::hasColumn('appointments',$column)) {
-                    $metrics[$key]=(clone $base)
-                        ->whereNotNull($column)
-                        ->count();
-                }
-            }
-
-            $topProfessionals=DB::table('appointments as a')
-                ->join('professionals as p','p.id','=','a.professional_id')
-                ->whereBetween(
-                    'a.'.$dateColumn,
-                    [$from->copy()->startOfDay(),$to->copy()->endOfDay()]
-                )
-                ->groupBy('p.id','p.name')
-                ->select('p.name',DB::raw('COUNT(*) total'))
-                ->orderByDesc('total')
-                ->limit(8)
-                ->get();
-
-            $topServices=DB::table('appointments as a')
-                ->join('services as s','s.id','=','a.service_id')
-                ->whereBetween(
-                    'a.'.$dateColumn,
-                    [$from->copy()->startOfDay(),$to->copy()->endOfDay()]
-                )
-                ->groupBy('s.id','s.name')
-                ->select('s.name',DB::raw('COUNT(*) total'))
-                ->orderByDesc('total')
-                ->limit(8)
-                ->get();
+        if ($from->gt($to)) {
+            [$from, $to] = [$to, $from];
         }
 
-        return view(
-            'enfas.v92.reports',
-            compact(
-                'metrics',
-                'topProfessionals',
-                'topServices',
-                'from',
-                'to'
-            )
-        );
+        $rangeStart = $from->copy()->startOfDay();
+        $rangeEnd = $to->copy()->endOfDay();
+
+        $base = DB::table('appointments')
+            ->whereBetween('start_at', [$rangeStart, $rangeEnd]);
+
+        $metrics = [
+            'appointments' => (clone $base)->count(),
+            'confirmed' => (clone $base)->where('status', 'confirmed')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
+            'no_show' => (clone $base)->where('status', 'no_show')->count(),
+            'awaiting' => (clone $base)->whereIn('status', ['scheduled','awaiting_confirmation'])->count(),
+        ];
+
+        $denominator = max(1, $metrics['appointments']);
+
+        $rates = [
+            'confirmation' => round(($metrics['confirmed'] / $denominator) * 100, 1),
+            'completion' => round(($metrics['completed'] / $denominator) * 100, 1),
+            'cancellation' => round(($metrics['cancelled'] / $denominator) * 100, 1),
+            'no_show' => round(($metrics['no_show'] / $denominator) * 100, 1),
+        ];
+
+        $professionals = DB::table('appointments as a')
+            ->join('professionals as p', 'p.id', '=', 'a.professional_id')
+            ->whereBetween('a.start_at', [$rangeStart, $rangeEnd])
+            ->groupBy('p.id', 'p.name')
+            ->select([
+                'p.id',
+                'p.name',
+                DB::raw('COUNT(*) as total'),
+                DB::raw("SUM(CASE WHEN a.status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                DB::raw("SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("SUM(CASE WHEN a.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled"),
+                DB::raw("SUM(CASE WHEN a.status = 'no_show' THEN 1 ELSE 0 END) as no_show"),
+                DB::raw('COALESCE(SUM(a.duration_minutes),0) as scheduled_minutes'),
+            ])
+            ->orderByDesc('total')
+            ->get()
+            ->map(function ($row) {
+                $total = max(1, (int) $row->total);
+                $row->confirmation_rate = round(((int) $row->confirmed / $total) * 100, 1);
+                $row->no_show_rate = round(((int) $row->no_show / $total) * 100, 1);
+
+                return $row;
+            });
+
+        $services = DB::table('appointments as a')
+            ->join('services as s', 's.id', '=', 'a.service_id')
+            ->whereBetween('a.start_at', [$rangeStart, $rangeEnd])
+            ->groupBy('s.id', 's.name')
+            ->select([
+                's.id',
+                's.name',
+                DB::raw('COUNT(*) as total'),
+                DB::raw("SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("SUM(CASE WHEN a.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled"),
+                DB::raw("SUM(CASE WHEN a.status = 'no_show' THEN 1 ELSE 0 END) as no_show"),
+            ])
+            ->orderByDesc('total')
+            ->limit(12)
+            ->get();
+
+        $daily = DB::table('appointments')
+            ->whereBetween('start_at', [$rangeStart, $rangeEnd])
+            ->selectRaw('DATE(start_at) as day')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed")
+            ->selectRaw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed")
+            ->selectRaw("SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled")
+            ->selectRaw("SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) as no_show")
+            ->groupByRaw('DATE(start_at)')
+            ->orderBy('day')
+            ->get();
+
+        $communication = [
+            'sent' => 0,
+            'delivered' => 0,
+            'read' => 0,
+            'failed' => 0,
+            'received' => 0,
+        ];
+
+        if (Schema::hasTable('wa_messages')) {
+            $waBase = DB::table('wa_messages')
+                ->whereBetween('created_at', [$rangeStart, $rangeEnd]);
+
+            foreach (array_keys($communication) as $status) {
+                $communication[$status] = (clone $waBase)
+                    ->where('status', $status)
+                    ->count();
+            }
+        }
+
+        $waitlist = [
+            'waiting' => 0,
+            'offered' => 0,
+            'accepted' => 0,
+        ];
+
+        if (Schema::hasTable('waitlist_entries')) {
+            foreach (array_keys($waitlist) as $status) {
+                $waitlist[$status] = DB::table('waitlist_entries')
+                    ->where('status', $status)
+                    ->count();
+            }
+        }
+
+        return view('enfas.v92.reports', compact(
+            'metrics',
+            'rates',
+            'professionals',
+            'services',
+            'daily',
+            'communication',
+            'waitlist',
+            'from',
+            'to'
+        ));
+    }
+
+    public function exportReports(Request $request)
+    {
+        $from = $request->date('from') ?? now()->startOfMonth();
+        $to = $request->date('to') ?? now()->endOfMonth();
+
+        if ($from->gt($to)) {
+            [$from, $to] = [$to, $from];
+        }
+
+        $rows = DB::table('appointments as a')
+            ->leftJoin('patients as p', 'p.id', '=', 'a.patient_id')
+            ->leftJoin('professionals as pro', 'pro.id', '=', 'a.professional_id')
+            ->leftJoin('services as s', 's.id', '=', 'a.service_id')
+            ->whereBetween('a.start_at', [
+                $from->copy()->startOfDay(),
+                $to->copy()->endOfDay(),
+            ])
+            ->orderBy('a.start_at')
+            ->get([
+                'a.code',
+                'a.start_at',
+                'a.end_at',
+                'a.status',
+                'a.confirmation_status',
+                'p.name as patient_name',
+                'pro.name as professional_name',
+                's.name as service_name',
+            ]);
+
+        $filename = 'agenda-enfas-'.$from->format('Ymd').'-'.$to->format('Ymd').'.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+
+            fwrite($out, "\xEF\xBB\xBF");
+
+            fputcsv($out, [
+                'Código',
+                'Data',
+                'Início',
+                'Fim',
+                'Paciente',
+                'Profissional',
+                'Serviço',
+                'Status',
+                'Confirmação',
+            ], ';');
+
+            foreach ($rows as $row) {
+                $start = Carbon::parse($row->start_at);
+                $end = Carbon::parse($row->end_at);
+
+                fputcsv($out, [
+                    $row->code,
+                    $start->format('d/m/Y'),
+                    $start->format('H:i'),
+                    $end->format('H:i'),
+                    $row->patient_name,
+                    $row->professional_name,
+                    $row->service_name,
+                    $row->status,
+                    $row->confirmation_status,
+                ], ';');
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     public function audit(Request $request)
