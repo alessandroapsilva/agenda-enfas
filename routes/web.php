@@ -8,6 +8,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
 /* ENFAS Agenda V11.1 */
@@ -231,6 +232,29 @@ Route::middleware('auth')->group(function () {
         [CustomFieldController::class, 'toggle']
     )->name('custom-fields.status');
 
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LISTA DE ESPERA
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/lista-de-espera',
+        [WaitlistController::class, 'index']
+    )->name('waitlist.index');
+
+    Route::post(
+        '/lista-de-espera',
+        [WaitlistController::class, 'store']
+    )->name('waitlist.store');
+
+    Route::patch(
+        '/lista-de-espera/{entry}/cancelar',
+        [WaitlistController::class, 'cancel']
+    )->name('waitlist.cancel');
 
     /*
     |--------------------------------------------------------------------------
