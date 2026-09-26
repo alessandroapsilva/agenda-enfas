@@ -47,7 +47,7 @@ class UserController extends Controller
             'phone' => ['nullable','string','max:30'],
             'job_title' => ['nullable','string','max:120'],
             'role' => ['required',Rule::in(['admin','supervisor','professional','attendant'])],
-            'professional_id' => ['nullable','integer','exists:professionals,id'],
+            'professional_id' => ['nullable','integer','exists:professionals,id',Rule::requiredIf(fn () => $request->input('role') === 'professional')],
             'permissions' => ['nullable','array'],
             'permissions.*' => ['string', Rule::in(array_keys(config('enfas_permissions.catalog', [])))],
             'password' => ['required','confirmed',Password::min(10)->letters()->numbers()],
@@ -80,10 +80,20 @@ class UserController extends Controller
             'phone' => ['nullable','string','max:30'],
             'job_title' => ['nullable','string','max:120'],
             'role' => ['required',Rule::in(['admin','supervisor','professional','attendant'])],
-            'professional_id' => ['nullable','integer','exists:professionals,id'],
+            'professional_id' => ['nullable','integer','exists:professionals,id',Rule::requiredIf(fn () => $request->input('role') === 'professional')],
             'permissions' => ['nullable','array'],
             'permissions.*' => ['string', Rule::in(array_keys(config('enfas_permissions.catalog', [])))],
         ]);
+
+        if (
+            $user->role === 'admin'
+            && $validated['role'] !== 'admin'
+            && User::query()->where('role', 'admin')->where('is_active', true)->count() <= 1
+        ) {
+            return back()->withErrors([
+                'role' => 'Não é possível remover o último administrador ativo do sistema.',
+            ]);
+        }
 
         $user->update([
             'name' => trim($validated['name']),
@@ -104,6 +114,16 @@ class UserController extends Controller
 
         if ($user->id === auth()->id()) {
             return back()->withErrors(['user' => 'Você não pode desativar seu próprio usuário.']);
+        }
+
+        if (
+            $user->role === 'admin'
+            && $user->is_active
+            && User::query()->where('role', 'admin')->where('is_active', true)->count() <= 1
+        ) {
+            return back()->withErrors([
+                'user' => 'Não é possível desativar o último administrador ativo do sistema.',
+            ]);
         }
 
         $user->update(['is_active' => ! $user->is_active]);
