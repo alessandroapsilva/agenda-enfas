@@ -744,4 +744,156 @@ class MetaWhatsAppService
 
         return $message;
     }
+
+    public function sendTextMessage(
+        string $phone,
+        string $text,
+        ?int $appointmentId = null,
+        ?int $patientId = null,
+        ?string $dedupeKey = null
+    ): WaMessage {
+        $integration = $this->integration();
+        $to = $this->normalizeWhatsAppPhone($phone);
+
+        if (blank($to)) {
+            throw new RuntimeException('Número de WhatsApp inválido.');
+        }
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+            'type' => 'text',
+            'text' => [
+                'preview_url' => false,
+                'body' => $text,
+            ],
+        ];
+
+        return $this->sendRawMessage(
+            $integration,
+            $to,
+            'text',
+            $text,
+            $payload,
+            $appointmentId,
+            $patientId,
+            $dedupeKey
+        );
+    }
+
+    public function sendInteractiveButtons(
+        string $phone,
+        string $body,
+        array $buttons,
+        ?int $appointmentId = null,
+        ?int $patientId = null,
+        ?string $dedupeKey = null,
+        ?string $footer = null
+    ): WaMessage {
+        $integration = $this->integration();
+        $to = $this->normalizeWhatsAppPhone($phone);
+
+        if (blank($to)) {
+            throw new RuntimeException('Número de WhatsApp inválido.');
+        }
+
+        $actions = collect($buttons)
+            ->take(3)
+            ->values()
+            ->map(fn (array $button) => [
+                'type' => 'reply',
+                'reply' => [
+                    'id' => (string) $button['id'],
+                    'title' => mb_substr((string) $button['title'], 0, 20),
+                ],
+            ])
+            ->all();
+
+        $interactive = [
+            'type' => 'button',
+            'body' => ['text' => $body],
+            'action' => ['buttons' => $actions],
+        ];
+
+        if (filled($footer)) {
+            $interactive['footer'] = ['text' => $footer];
+        }
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+            'type' => 'interactive',
+            'interactive' => $interactive,
+        ];
+
+        return $this->sendRawMessage(
+            $integration,
+            $to,
+            'interactive',
+            $body,
+            $payload,
+            $appointmentId,
+            $patientId,
+            $dedupeKey
+        );
+    }
+
+    private function sendRawMessage(
+        MetaIntegration $integration,
+        string $to,
+        string $type,
+        string $body,
+        array $payload,
+        ?int $appointmentId,
+        ?int $patientId,
+        ?string $dedupeKey
+    ): WaMessage {
+        if ($dedupeKey) {
+            $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        $message = WaMessage::create([
+            'appointment_id' => $appointmentId,
+            'patient_id' => $patientId,
+            'direction' => 'outbound',
+            'message_type' => $type,
+            'status' => 'sending',
+            'recipient' => $to,
+            'body' => $body,
+            'payload' => $payload,
+            'dedupe_key' => $dedupeKey,
+        ]);
+
+        $response = $this->client($integration)->post(
+            $this->base($integration).'/'.$integration->phone_number_id.'/messages',
+            $payload
+        );
+
+        if (! $response->successful()) {
+            $error = $this->apiException($response, 'A Meta recusou o envio.')->getMessage();
+
+            $message->update([
+                'status' => 'failed',
+                'failed_at' => now(),
+                'error_message' => $error,
+            ]);
+
+            throw new RuntimeException($error);
+        }
+
+        $message->update([
+            'status' => 'sent',
+            'meta_message_id' => $response->json('messages.0.id'),
+            'sent_at' => now(),
+        ]);
+
+        return $message;
+    }
+
 }
