@@ -15,10 +15,16 @@ class WaConversation extends Model
         'phone',
         'state',
         'status',
+        'mode',
+        'unread_count',
         'context',
         'assigned_user_id',
+        'human_taken_at',
         'last_message_at',
+        'last_inbound_at',
+        'last_outbound_at',
         'expires_at',
+        'closed_at',
     ];
 
     protected function casts(): array
@@ -26,7 +32,11 @@ class WaConversation extends Model
         return [
             'context' => 'array',
             'last_message_at' => 'datetime',
+            'last_inbound_at' => 'datetime',
+            'last_outbound_at' => 'datetime',
+            'human_taken_at' => 'datetime',
             'expires_at' => 'datetime',
+            'closed_at' => 'datetime',
         ];
     }
 
@@ -38,5 +48,10 @@ class WaConversation extends Model
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
     }
 }
