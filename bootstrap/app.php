@@ -12,6 +12,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        /*
+         * ENFAS Agenda V11
+         *
+         * Webhook Meta/WhatsApp é uma chamada externa
+         * server-to-server e não utiliza sessão/CSRF.
+         *
+         * A autenticidade continua protegida por
+         * X-Hub-Signature-256 no controller.
+         */
+        $middleware->validateCsrfTokens(
+            except: [
+                'webhooks/meta/whatsapp',
+            ],
+        );
+
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {

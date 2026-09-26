@@ -1,0 +1,613 @@
+:root {
+    --enfas-primary: #2563eb;
+    --enfas-primary-soft: #eff6ff;
+    --enfas-sidebar: #0f172a;
+    --enfas-sidebar-2: #111c32;
+    --enfas-bg: #f5f7fb;
+    --enfas-border: #e8edf4;
+    --enfas-text: #172033;
+    --enfas-muted: #718096;
+}
+
+body {
+    letter-spacing: -.005em;
+}
+
+.app-main {
+    background:
+        radial-gradient(circle at 100% 0, rgba(37,99,235,.045), transparent 23rem),
+        var(--enfas-bg);
+}
+
+.app-header {
+    border-bottom: 1px solid var(--enfas-border) !important;
+    box-shadow: 0 1px 8px rgba(15,23,42,.025);
+    backdrop-filter: blur(14px);
+}
+
+.app-sidebar {
+    background:
+        radial-gradient(circle at 10% 0, rgba(59,130,246,.14), transparent 18rem),
+        linear-gradient(180deg, var(--enfas-sidebar), var(--enfas-sidebar-2)) !important;
+}
+
+.sidebar-brand {
+    border-bottom: 1px solid rgba(255,255,255,.065) !important;
+}
+
+.brand-link {
+    font-size: .97rem;
+    letter-spacing: -.02em;
+}
+
+.brand-image {
+    border-radius: 10px;
+    box-shadow: 0 5px 18px rgba(37,99,235,.22);
+}
+
+.sidebar-menu .nav-header {
+    margin-top: 1.15rem;
+    padding-left: 1rem;
+    color: #64748b !important;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .11em;
+}
+
+.sidebar-menu .nav-link {
+    min-height: 43px;
+    display: flex;
+    align-items: center;
+    margin: 2px 7px;
+    border-radius: 10px;
+    color: #aeb9ca;
+    font-size: .875rem;
+    transition: all .15s ease;
+}
+
+.sidebar-menu .nav-link:hover {
+    color: white;
+    background: rgba(255,255,255,.065);
+}
+
+.sidebar-menu .nav-link.active {
+    color: white !important;
+    background: linear-gradient(
+        135deg,
+        rgba(37,99,235,.98),
+        rgba(59,130,246,.82)
+    ) !important;
+    box-shadow: 0 5px 18px rgba(37,99,235,.18);
+}
+
+.sidebar-menu .nav-icon {
+    font-size: 1rem;
+}
+
+.app-content-header {
+    padding-top: 1.6rem;
+}
+
+.enfas-page-title {
+    margin: 0;
+    color: var(--enfas-text);
+    font-weight: 700;
+    letter-spacing: -.035em;
+}
+
+.enfas-page-subtitle {
+    margin: .3rem 0 0;
+    color: var(--enfas-muted);
+    font-size: .89rem;
+}
+
+.card {
+    border: 1px solid var(--enfas-border);
+    border-radius: 15px;
+    box-shadow:
+        0 1px 2px rgba(16,24,40,.02),
+        0 8px 22px rgba(16,24,40,.035);
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom-color: var(--enfas-border);
+    background: rgba(255,255,255,.7);
+}
+
+.btn {
+    border-radius: 9px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    box-shadow: 0 4px 10px rgba(37,99,235,.14);
+}
+
+.enfas-stat {
+    height: 100%;
+    padding: 1.25rem;
+    border: 1px solid var(--enfas-border);
+    border-radius: 15px;
+    background: white;
+    box-shadow:
+        0 1px 2px rgba(16,24,40,.02),
+        0 8px 22px rgba(16,24,40,.03);
+}
+
+.enfas-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.enfas-stat-label {
+    color: var(--enfas-muted);
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.enfas-stat-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    color: var(--enfas-primary);
+    background: var(--enfas-primary-soft);
+}
+
+.enfas-stat-number {
+    margin-top: .55rem;
+    color: var(--enfas-text);
+    font-size: 1.8rem;
+    font-weight: 750;
+    letter-spacing: -.05em;
+}
+
+.enfas-stat-foot {
+    margin-top: .15rem;
+    color: #98a2b3;
+    font-size: .72rem;
+}
+
+.enfas-empty {
+    min-height: 290px;
+    display: grid;
+    place-content: center;
+    text-align: center;
+}
+
+.enfas-empty-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    margin: auto auto 1rem;
+    border-radius: 15px;
+    color: var(--enfas-primary);
+    background: var(--enfas-primary-soft);
+    font-size: 1.35rem;
+}
+
+.enfas-empty h5 {
+    margin-bottom: .35rem;
+    font-weight: 650;
+}
+
+.enfas-empty p {
+    max-width: 340px;
+    margin: 0 auto;
+    color: var(--enfas-muted);
+    font-size: .82rem;
+}
+
+/* LOGIN */
+
+.enfas-login-page {
+    min-height: 100vh;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(37,99,235,.10), transparent 25rem),
+        radial-gradient(circle at 90% 90%, rgba(59,130,246,.08), transparent 24rem),
+        #f4f7fb;
+}
+
+.enfas-login-wrap {
+    width: min(100%, 430px);
+}
+
+.enfas-login-brand {
+    margin-bottom: 1.4rem;
+    text-align: center;
+}
+
+.enfas-login-logo {
+    width: 68px;
+    height: 68px;
+    margin: auto auto 1rem;
+    border-radius: 18px;
+    box-shadow: 0 14px 35px rgba(37,99,235,.20);
+}
+
+.enfas-login-brand h1 {
+    margin: 0;
+    color: var(--enfas-text);
+    font-size: 1.5rem;
+    font-weight: 750;
+    letter-spacing: -.045em;
+}
+
+.enfas-login-brand p {
+    margin: .3rem 0 0;
+    color: var(--enfas-muted);
+    font-size: .84rem;
+}
+
+.enfas-login-card {
+    border: 1px solid rgba(226,232,240,.9);
+    border-radius: 20px;
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 25px 70px rgba(15,23,42,.09);
+    backdrop-filter: blur(18px);
+}
+
+.enfas-login-card .card-body {
+    padding: 2rem;
+}
+
+.enfas-login-card .form-label {
+    margin-bottom: .4rem;
+    color: #364153;
+    font-size: .78rem;
+    font-weight: 650;
+}
+
+.enfas-login-card .form-control {
+    min-height: 48px;
+    border-color: #dce3ec;
+    border-radius: 10px;
+}
+
+.enfas-login-card .form-control:focus {
+    border-color: #93b4f7;
+    box-shadow: 0 0 0 .2rem rgba(37,99,235,.09);
+}
+
+.enfas-login-card .input-group-text {
+    border-color: #dce3ec;
+    color: #8491a5;
+    background: #fafbfd;
+}
+
+.enfas-security-note {
+    margin-top: 1.3rem;
+    text-align: center;
+    color: #98a2b3;
+    font-size: .72rem;
+}
+
+.dropdown-menu {
+    border: 1px solid var(--enfas-border);
+    border-radius: 12px;
+    box-shadow: 0 15px 45px rgba(15,23,42,.10);
+}
+
+@media (max-width: 768px) {
+    .app-content-header {
+        padding-top: 1rem;
+    }
+
+    .enfas-login-card .card-body {
+        padding: 1.5rem;
+    }
+}
+
+
+/* ==========================================================
+   ENFAS AGENDA V3
+   ========================================================== */
+
+.enfas-upcoming-row {
+    min-height: 72px;
+    padding: .85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--enfas-border);
+}
+
+.enfas-upcoming-row:last-child {
+    border-bottom: 0;
+}
+
+.enfas-time {
+    min-width: 55px;
+    font-weight: 750;
+    color: var(--enfas-primary);
+    font-size: .95rem;
+}
+
+.enfas-service-color {
+    width: 6px;
+    min-height: 56px;
+    border-radius: 999px;
+}
+
+.enfas-prof-avatar {
+    --prof-color: #2563eb;
+
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 14px;
+
+    color: white;
+    background: var(--prof-color);
+
+    font-weight: 750;
+}
+
+
+/* CALENDÁRIO */
+
+.agenda-card .card-body {
+    padding: 1rem;
+}
+
+#calendar {
+    min-height: 700px;
+}
+
+.fc {
+    --fc-border-color: #edf0f5;
+    --fc-page-bg-color: #fff;
+    --fc-neutral-bg-color: #f8fafc;
+    --fc-today-bg-color: rgba(37,99,235,.045);
+    --fc-now-indicator-color: #ef4444;
+
+    font-size: .84rem;
+}
+
+.fc .fc-toolbar {
+    gap: .75rem;
+    margin-bottom: 1.3rem;
+}
+
+.fc .fc-toolbar-title {
+    color: var(--enfas-text);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -.025em;
+}
+
+.fc .fc-button-primary {
+    border: 1px solid #dbe2ea !important;
+    border-radius: 8px !important;
+
+    color: #475569 !important;
+    background: white !important;
+
+    box-shadow: none !important;
+
+    font-size: .77rem !important;
+    font-weight: 600 !important;
+}
+
+.fc .fc-button-primary:hover {
+    color: #1e293b !important;
+    background: #f8fafc !important;
+}
+
+.fc .fc-button-active {
+    border-color: #2563eb !important;
+
+    color: white !important;
+    background: #2563eb !important;
+}
+
+.fc .fc-col-header-cell {
+    padding: .65rem .2rem;
+
+    color: #64748b;
+    background: #fbfcfe;
+
+    font-size: .72rem;
+    font-weight: 650;
+
+    text-transform: uppercase;
+}
+
+.fc .fc-timegrid-slot-label {
+    color: #94a3b8;
+    font-size: .69rem;
+}
+
+.fc .fc-timegrid-slot {
+    height: 2.65rem;
+}
+
+.fc .fc-event {
+    border: 0 !important;
+    border-radius: 8px !important;
+
+    box-shadow: 0 4px 10px rgba(15,23,42,.08);
+
+    cursor: pointer;
+
+    overflow: hidden;
+}
+
+.fc .fc-event-main {
+    padding: .22rem .4rem;
+}
+
+.fc .fc-event-time {
+    font-weight: 700;
+}
+
+
+/* DRAWER */
+
+.enfas-appointment-drawer {
+    width: min(520px, 100vw) !important;
+}
+
+.enfas-appointment-drawer .offcanvas-header {
+    padding: 1.4rem 1.5rem;
+
+    border-bottom: 1px solid var(--enfas-border);
+}
+
+.enfas-appointment-drawer .offcanvas-body {
+    padding: 1.5rem;
+}
+
+.enfas-detail-block {
+    display: grid;
+    gap: .18rem;
+
+    padding: .8rem .9rem;
+
+    border: 1px solid var(--enfas-border);
+    border-radius: 11px;
+
+    background: #fbfcfe;
+}
+
+.enfas-detail-block small {
+    color: #8b98aa;
+    font-size: .68rem;
+}
+
+.enfas-detail-block strong {
+    color: var(--enfas-text);
+    font-size: .88rem;
+}
+
+.enfas-detail-block span {
+    color: var(--enfas-muted);
+    font-size: .76rem;
+}
+
+
+/* TIMELINE */
+
+.enfas-timeline {
+    position: relative;
+}
+
+.enfas-timeline-item {
+    position: relative;
+
+    min-height: 67px;
+
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: .75rem;
+}
+
+.enfas-timeline-item::before {
+    content: "";
+
+    position: absolute;
+
+    top: 16px;
+    bottom: -6px;
+    left: 6px;
+
+    width: 1px;
+
+    background: #dbe3ed;
+}
+
+.enfas-timeline-item:last-child::before {
+    display: none;
+}
+
+.enfas-timeline-dot {
+    position: relative;
+    z-index: 2;
+
+    width: 13px;
+    height: 13px;
+
+    margin-top: 3px;
+
+    border: 3px solid #dbeafe;
+    border-radius: 50%;
+
+    background: #2563eb;
+}
+
+.enfas-timeline-item strong {
+    color: var(--enfas-text);
+    font-size: .8rem;
+}
+
+.enfas-timeline-meta {
+    margin-top: .25rem;
+
+    color: #9aa5b5;
+    font-size: .67rem;
+}
+
+
+/* CONFIRMAÇÃO */
+
+.enfas-confirm-preview {
+    padding: .9rem 1rem;
+
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+
+    background: #f0fdf4;
+}
+
+.enfas-confirm-preview-icon {
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 11px;
+
+    color: #16a34a;
+    background: white;
+
+    font-size: 1.15rem;
+}
+
+
+@media (max-width: 768px) {
+
+    #calendar {
+        min-height: 600px;
+    }
+
+    .fc .fc-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+}

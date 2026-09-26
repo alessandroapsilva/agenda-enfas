@@ -1,7 +1,8 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-
 return [
-    AppServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\EnfasProductionServiceProvider::class,
+    App\Providers\WhatsAppServiceProvider::class,
+    App\Providers\EnfasV92ProductionServiceProvider::class,
 ];

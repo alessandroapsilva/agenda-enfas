@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Providers;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+
+class EnfasAgendaServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        Gate::define(
+            'manage-users',
+            fn (User $user) => $user->isAdmin()
+        );
+
+        config([
+            'adminlte.title' => 'ENFAS Agenda',
+            'adminlte.title_prefix' => '',
+            'adminlte.title_postfix' => '',
+
+            'adminlte.logo' =>
+                '<strong>ENFAS</strong> <span class="fw-light">Agenda</span>',
+
+            'adminlte.logo_img' =>
+                'assets/brand/enfas-agenda.svg',
+
+            'adminlte.logo_img_alt' =>
+                'ENFAS Agenda',
+
+            'adminlte.logo_img_class' =>
+                'brand-image',
+
+            'adminlte.layout_fixed_sidebar' => true,
+            'adminlte.layout_fixed_navbar' => true,
+
+            'adminlte.primary_color' => '#2563eb',
+            'adminlte.sidebar_color' => '#0f172a',
+            'adminlte.navbar_color' => '#ffffff',
+            'adminlte.footer_color' => '#ffffff',
+
+            'adminlte.sidebar_theme' => 'dark',
+
+            'adminlte.color_mode_toggle' => true,
+
+            'adminlte.usermenu_enabled' => true,
+            'adminlte.usermenu_header' => false,
+            'adminlte.usermenu_image' => false,
+            'adminlte.usermenu_desc' => false,
+            'adminlte.usermenu_profile_url' => false,
+
+            'adminlte.demo' => false,
+
+            'adminlte.footer_left' =>
+                '<strong>ENFAS Agenda</strong>',
+
+            'adminlte.footer_right' =>
+                'Central de Agendamentos',
+
+            'adminlte.menu' => [
+
+                ['header' => 'OPERAÇÃO'],
+
+                [
+                    'text' => 'Visão geral',
+                    'route' => 'dashboard',
+                    'icon' => 'bi bi-grid-1x2',
+                ],
+
+                [
+                    'text' => 'Agenda',
+                    'route' => 'agenda.index',
+                    'icon' => 'bi bi-calendar3',
+                ],
+
+                [
+                    'text' => 'Agendamentos',
+                    'route' => 'appointments.index',
+                    'icon' => 'bi bi-calendar2-check',
+                ],
+
+                [
+                    'text' => 'Pacientes',
+                    'route' => 'patients.index',
+                    'icon' => 'bi bi-people',
+                ],
+
+                ['header' => 'COMUNICAÇÃO'],
+
+                [
+                    'text' => 'WhatsApp',
+                    'route' => 'whatsapp.index',
+                    'icon' => 'bi bi-whatsapp',
+                    'label' => 'Meta',
+                    'label_color' => 'success',
+                ],
+
+                [
+                    'text' => 'Automações',
+                    'route' => 'automations.index',
+                    'icon' => 'bi bi-lightning-charge',
+                ],
+
+                ['header' => 'CADASTROS'],
+
+                [
+                    'text' => 'Profissionais',
+                    'route' => 'professionals.index',
+                    'icon' => 'bi bi-person-badge',
+                ],
+
+                [
+                    'text' => 'Serviços',
+                    'route' => 'services.index',
+                    'icon' => 'bi bi-grid',
+                ],
+
+                [
+                    'text' => 'Campos personalizados',
+                    'route' => 'custom-fields.index',
+                    'icon' => 'bi bi-ui-checks-grid',
+                ],
+
+                ['header' => 'GESTÃO'],
+
+                [
+                    'text' => 'Relatórios',
+                    'route' => 'reports.index',
+                    'icon' => 'bi bi-bar-chart',
+                ],
+
+                [
+                    'text' => 'Usuários',
+                    'route' => 'users.index',
+                    'icon' => 'bi bi-person-gear',
+                    'can' => 'manage-users',
+                ],
+
+                [
+                    'text' => 'Configurações',
+                    'route' => 'settings.index',
+                    'icon' => 'bi bi-sliders',
+                    'can' => 'manage-users',
+                ],
+            ],
+        ]);
+    }
+}
