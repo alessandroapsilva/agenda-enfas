@@ -17,6 +17,7 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('appointments.recurring.store'));
         $this->assertTrue(Route::has('patients.show'));
         $this->assertTrue(Route::has('professionals.availability'));
+        $this->assertTrue(Route::has('waitlist.index'));
         $this->assertTrue(Route::has('enfas.whatsapp'));
         $this->assertTrue(Route::has('enfas.whatsapp.thread.send'));
 
