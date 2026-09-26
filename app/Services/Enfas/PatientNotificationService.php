@@ -26,7 +26,10 @@ class PatientNotificationService
             ."• Compareça com ".((int)($a->arrival_minutes ?: 15))." minutos de antecedência.\n"
             .($a->required_documents ? "• {$a->required_documents}\n" : "• Leve documento com foto.\n")
             .($a->preparation_instructions ? "• {$a->preparation_instructions}\n" : '')
-            ."\nQualquer dúvida, nossa equipe está à disposição. 💙\n"
+            ."\n🔗 *Sua jornada ENFAS:*\n"
+            .route('patient-journey.show', $a->public_token)."\n\n"
+            ."Nesse link você pode consultar orientações, adicionar ao calendário e fazer check-in.\n\n"
+            ."Qualquer dúvida, nossa equipe está à disposição. 💙\n"
             ."*Enfermagem Alessandro Silva*";
 
         $this->meta->sendTextMessage(
@@ -122,7 +125,9 @@ class PatientNotificationService
             ."🥼 {$a->professional_name}\n"
             ."📅 ".Carbon::parse($a->start_at)->format('d/m/Y')."\n"
             ."⏰ ".Carbon::parse($a->start_at)->format('H:i')."\n\n"
-            ."Seu novo horário já está reservado. O profissional também foi avisado. 💙",
+            ."Seu novo horário já está reservado. O profissional também foi avisado. 💙\n\n"
+            ."🔗 Acompanhe sua jornada:\n"
+            .route('patient-journey.show', $a->public_token),
             $appointmentId,
             $a->patient_id
         );
