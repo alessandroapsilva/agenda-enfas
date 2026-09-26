@@ -34,6 +34,10 @@ class WhatsAppConversationEngine
             ?? data_get($incoming, 'interactive.button_reply.title')
             ?? data_get($incoming, 'text.body');
 
+        if ($phone === '') {
+            return;
+        }
+
         $conversation = WaConversation::query()
             ->where('phone', $phone)
             ->where('status', 'active')
@@ -41,8 +45,19 @@ class WhatsAppConversationEngine
             ->first();
 
         if (! $conversation) {
+            $lastKnown = WaMessage::query()
+                ->where('recipient', $phone)
+                ->where(function ($q) {
+                    $q->whereNotNull('patient_id')
+                        ->orWhereNotNull('appointment_id');
+                })
+                ->latest('id')
+                ->first();
+
             $conversation = WaConversation::create([
                 'phone' => $phone,
+                'patient_id' => $lastKnown?->patient_id,
+                'appointment_id' => $lastKnown?->appointment_id,
                 'state' => 'IDLE',
                 'status' => 'active',
                 'mode' => 'bot',
@@ -50,18 +65,20 @@ class WhatsAppConversationEngine
                 'context' => [],
                 'last_message_at' => now(),
                 'last_inbound_at' => now(),
-                'unread_count' => ((int) $conversation->unread_count) + 1,
                 'expires_at' => now()->addHours(24),
             ]);
         } else {
             $conversation->update([
                 'last_message_at' => now(),
                 'last_inbound_at' => now(),
+                'unread_count' => ((int) $conversation->unread_count) + 1,
                 'expires_at' => now()->addHours(24),
             ]);
         }
 
         $message = WaMessage::create([
+            'appointment_id' => $conversation->appointment_id,
+            'patient_id' => $conversation->patient_id,
             'direction' => 'inbound',
             'message_type' => $incoming['type'] ?? 'unknown',
             'meta_message_id' => $metaId,
@@ -70,6 +87,11 @@ class WhatsAppConversationEngine
             'body' => $text,
             'payload' => $incoming,
         ]);
+
+        // Atendimento humano sempre tem prioridade sobre o robô.
+        if ($conversation->mode === 'human') {
+            return;
+        }
 
         if (! $payload || ! str_contains($payload, ':')) {
             return;
