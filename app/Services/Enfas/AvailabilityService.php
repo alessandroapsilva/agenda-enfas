@@ -96,6 +96,18 @@ class AvailabilityService
             return false;
         }
 
+        if (Schema::hasTable('professional_blocks')) {
+            $blocked = DB::table('professional_blocks')
+                ->where('professional_id', $professionalId)
+                ->where('starts_at', '<', $end)
+                ->where('ends_at', '>', $start)
+                ->exists();
+
+            if ($blocked) {
+                return false;
+            }
+        }
+
         if (Schema::hasTable('slot_reservations')) {
             $holds = DB::table('slot_reservations')
                 ->where('professional_id', $professionalId)
