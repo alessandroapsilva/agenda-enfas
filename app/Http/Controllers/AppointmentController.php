@@ -12,6 +12,7 @@ use App\Models\Service;
 use App\Models\WaMessage;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\RecurringAppointmentService;
+use App\Services\Enfas\WaitlistService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -373,7 +374,8 @@ class AppointmentController extends Controller
 
     public function status(
         Request $request,
-        Appointment $appointment
+        Appointment $appointment,
+        WaitlistService $waitlist
     ) {
         $data = $request->validate([
             'status' => [
@@ -423,6 +425,14 @@ class AppointmentController extends Controller
 
             'occurred_at' => now(),
         ]);
+
+        if ($data['status'] === 'cancelled') {
+            try {
+                $waitlist->offerFreedSlot($appointment->fresh(['service','professional']));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         return response()->json([
             'success' => true,
