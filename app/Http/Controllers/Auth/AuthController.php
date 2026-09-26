@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -48,6 +50,38 @@ class AuthController extends Controller
         ])->save();
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    public function showPasswordChange()
+    {
+        return view('auth.change-password');
+    }
+
+    public function updateOwnPassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => ['required','current_password'],
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(10)->letters()->numbers(),
+            ],
+        ]);
+
+        $user = $request->user();
+
+        abort_unless($user && $user->is_active, 403);
+
+        $user->forceFill([
+            'password' => Hash::make($data['password']),
+            'force_password_change' => false,
+        ])->save();
+
+        $request->session()->regenerate();
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Senha atualizada com segurança.');
     }
 
     public function logout(Request $request)
