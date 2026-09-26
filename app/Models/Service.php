@@ -13,6 +13,12 @@ class Service extends Model
         'code',
         'duration_minutes',
         'description',
+        'arrival_minutes',
+        'required_documents',
+        'preparation_instructions',
+        'aftercare_instructions',
+        'allow_online_reschedule',
+        'allow_recurrence',
         'color',
         'is_active',
     ];
@@ -21,6 +27,8 @@ class Service extends Model
     {
         return [
             'is_active' => 'boolean',
+            'allow_online_reschedule' => 'boolean',
+            'allow_recurrence' => 'boolean',
         ];
     }
 
