@@ -317,6 +317,9 @@ class AppointmentController extends Controller
                         ? 'mailto:' . $appointment->patient->email
                         : null,
 
+                'journey_url' =>
+                    route('patient-journey.show', $appointment->public_token),
+
                 'service' =>
                     $appointment->service->name,
 
