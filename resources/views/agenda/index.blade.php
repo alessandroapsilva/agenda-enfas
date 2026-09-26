@@ -613,6 +613,14 @@
                     <i class="bi bi-envelope me-1"></i>E-mail
                 </a>
 
+                <a id="detailJourneyLink" class="btn btn-outline-primary btn-sm d-none" target="_blank" rel="noopener">
+                    <i class="bi bi-person-walking me-1"></i>Jornada
+                </a>
+
+                <button id="detailJourneyCopy" type="button" class="btn btn-outline-secondary btn-sm d-none" onclick="copyJourneyLink()">
+                    <i class="bi bi-copy me-1"></i>Copiar link
+                </button>
+
                 <button type="button" class="btn btn-primary btn-sm" onclick="openPatientContactComposer()">
                     <i class="bi bi-chat-dots me-1"></i>Enviar mensagem
                 </button>
@@ -1005,14 +1013,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const whatsappLink = document.getElementById('detailWhatsappLink');
             const phoneLink = document.getElementById('detailPhoneLink');
             const emailLink = document.getElementById('detailEmailLink');
+            const journeyLink = document.getElementById('detailJourneyLink');
+            const journeyCopy = document.getElementById('detailJourneyCopy');
 
             whatsappLink.classList.toggle('d-none', ! appointment.whatsapp_link);
             phoneLink.classList.toggle('d-none', ! appointment.tel_link);
             emailLink.classList.toggle('d-none', ! appointment.email_link);
+            journeyLink.classList.toggle('d-none', ! appointment.journey_url);
+            journeyCopy.classList.toggle('d-none', ! appointment.journey_url);
 
             if (appointment.whatsapp_link) whatsappLink.href = appointment.whatsapp_link;
             if (appointment.tel_link) phoneLink.href = appointment.tel_link;
             if (appointment.email_link) emailLink.href = appointment.email_link;
+            if (appointment.journey_url) journeyLink.href = appointment.journey_url;
 
 
             document.getElementById(
@@ -1404,7 +1417,22 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
 
-    function escapeHtml(value) {
+    function copyJourneyLink() {
+    const url = window.currentAppointmentData?.journey_url;
+
+    if (!url) return;
+
+    navigator.clipboard.writeText(url)
+        .then(() => {
+            const button = document.getElementById('detailJourneyCopy');
+            const original = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check2 me-1"></i>Copiado';
+            setTimeout(() => button.innerHTML = original, 1600);
+        });
+}
+
+
+function escapeHtml(value) {
 
         return String(value ?? '')
             .replaceAll('&', '&amp;')
