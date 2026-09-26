@@ -13,50 +13,51 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/inicio',
         [WorkspaceController::class,'index']
-    )->name('v92.workspace');
+    )->middleware('permission:dashboard.view')->name('v92.workspace');
 
     Route::redirect('/disponibilidade','/profissionais')
+        ->middleware('permission:professionals.view')
         ->name('v92.availability');
 
     Route::get(
         '/relatorios',
         [ManagementController::class,'reports']
-    )->name('v92.reports');
+    )->middleware('permission:reports.view')->name('v92.reports');
 
     Route::get(
         '/relatorios/exportar',
         [ManagementController::class,'exportReports']
-    )->name('v92.reports.export');
+    )->middleware('permission:reports.view')->name('v92.reports.export');
 
     Route::get(
         '/auditoria',
         [ManagementController::class,'audit']
-    )->name('v92.audit');
+    )->middleware('permission:audit.view')->name('v92.audit');
 
     Route::get(
         '/alertas',
         [ManagementController::class,'alerts']
-    )->name('v92.alerts');
+    )->middleware('permission:reports.view')->name('v92.alerts');
 
     Route::post(
         '/alertas/{id}/resolver',
         [ManagementController::class,'resolveAlert']
-    )->name('v92.alerts.resolve');
+    )->middleware('permission:settings.manage')->name('v92.alerts.resolve');
 
     Route::get(
         '/configuracoes',
         [ManagementController::class,'settings']
-    )->name('v92.settings');
+    )->middleware('permission:settings.manage')->name('v92.settings');
 
     Route::post(
         '/configuracoes',
         [ManagementController::class,'saveSettings']
-    )->name('v92.settings.save');
+    )->middleware('permission:settings.manage')->name('v92.settings.save');
 
     Route::get(
         '/sistema/saude',
         [ManagementController::class,'health']
-    )->name('v92.health.dashboard');
+    )->middleware('permission:settings.manage')->name('v92.health.dashboard');
 
     Route::redirect('/premium','/inicio');
 });
