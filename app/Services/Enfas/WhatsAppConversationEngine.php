@@ -162,15 +162,6 @@ class WhatsAppConversationEngine
         );
 
         DB::transaction(function () use ($appointment, $start, $end, $hold) {
-            if (! $this->availability->isAvailable(
-                $appointment->professional_id,
-                $start,
-                $end,
-                $appointment->id
-            )) {
-                throw new RuntimeException('O horário não está mais disponível.');
-            }
-
             DB::table('appointments')->where('id', $appointment->id)->update([
                 'start_at' => $start,
                 'end_at' => $end,
