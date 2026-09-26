@@ -239,6 +239,11 @@ Route::middleware('auth')->group(function () {
     )->name('users.store');
 
     Route::patch(
+        '/usuarios/{user}',
+        [UserController::class, 'update']
+    )->name('users.update');
+
+    Route::patch(
         '/usuarios/{user}/status',
         [UserController::class, 'toggleStatus']
     )->name('users.status');
