@@ -21,6 +21,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/auditoria',[ModuleController::class,'audit'])->name('enfas.audit');
 
     Route::get('/whatsapp',[WhatsAppController::class,'index'])->name('enfas.whatsapp');
+    Route::get('/whatsapp/conversas/{conversation}',[WhatsAppController::class,'thread'])->name('enfas.whatsapp.thread');
+    Route::post('/whatsapp/conversas/{conversation}/mensagem',[WhatsAppController::class,'sendConversationMessage'])->name('enfas.whatsapp.thread.send');
+    Route::patch('/whatsapp/conversas/{conversation}/assumir',[WhatsAppController::class,'takeover'])->name('enfas.whatsapp.thread.takeover');
+    Route::patch('/whatsapp/conversas/{conversation}/robo',[WhatsAppController::class,'release'])->name('enfas.whatsapp.thread.release');
+    Route::patch('/whatsapp/conversas/{conversation}/encerrar',[WhatsAppController::class,'close'])->name('enfas.whatsapp.thread.close');
+
     Route::post('/whatsapp',[WhatsAppController::class,'save'])->name('enfas.whatsapp.save');
     Route::post('/whatsapp/testar',[WhatsAppController::class,'test'])->name('enfas.whatsapp.test');
     Route::get('/whatsapp/templates',[WhatsAppController::class,'templates'])->name('enfas.whatsapp.templates');
