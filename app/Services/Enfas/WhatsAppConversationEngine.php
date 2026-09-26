@@ -34,6 +34,32 @@ class WhatsAppConversationEngine
             ?? data_get($incoming, 'interactive.button_reply.title')
             ?? data_get($incoming, 'text.body');
 
+        $conversation = WaConversation::query()
+            ->where('phone', $phone)
+            ->where('status', 'active')
+            ->latest('id')
+            ->first();
+
+        if (! $conversation) {
+            $conversation = WaConversation::create([
+                'phone' => $phone,
+                'state' => 'IDLE',
+                'status' => 'active',
+                'mode' => 'bot',
+                'unread_count' => 1,
+                'context' => [],
+                'last_message_at' => now(),
+                'last_inbound_at' => now(),
+                'expires_at' => now()->addHours(24),
+            ]);
+        } else {
+            $conversation->update([
+                'last_message_at' => now(),
+                'last_inbound_at' => now(),
+                'expires_at' => now()->addHours(24),
+            ]);
+        }
+
         $message = WaMessage::create([
             'direction' => 'inbound',
             'message_type' => $incoming['type'] ?? 'unknown',
@@ -60,6 +86,14 @@ class WhatsAppConversationEngine
         $message->update([
             'appointment_id' => $appointment->id,
             'patient_id' => $appointment->patient_id,
+        ]);
+
+        $conversation->update([
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'last_message_at' => now(),
+            'last_inbound_at' => now(),
+            'unread_count' => ((int) $conversation->unread_count) + 1,
         ]);
 
         match ($action) {
