@@ -96,6 +96,7 @@ class ProductionHealthService
             'professionals.index',
             'professionals.availability',
             'services.index',
+            'waitlist.index',
             'users.index',
             'enfas.whatsapp',
             'enfas.whatsapp.thread.send',
@@ -122,6 +123,7 @@ class ProductionHealthService
             'wa_messages',
             'wa_conversations',
             'wa_webhook_events',
+            'waitlist_entries',
         ] as $table) {
             $this->add(
                 $checks,
