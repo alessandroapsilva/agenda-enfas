@@ -17,9 +17,9 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 4',
+    'title' => 'ENFAS Agenda',
     'title_prefix' => '',
-    'title_postfix' => '',
+    'title_postfix' => ' | Enfermagem Alessandro Silva',
 
     /*
     |--------------------------------------------------------------------------
@@ -54,10 +54,10 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image opacity-75 shadow',
-    'logo_img_alt' => 'AdminLTE Logo',
+    'logo' => '<strong>ENFAS</strong> <span class="opacity-75">Agenda</span>',
+    'logo_img' => 'assets/brand/enfas-agenda.svg',
+    'logo_img_class' => 'brand-image',
+    'logo_img_alt' => 'ENFAS Agenda',
 
     /*
     |--------------------------------------------------------------------------
@@ -124,8 +124,8 @@ return [
     |
     */
 
-    'footer_left' => 'Copyright &copy; 2014-'.date('Y').' <a href="https://adminlte.io" class="text-decoration-none">AdminLTE.io</a>. All rights reserved.',
-    'footer_right' => 'Anything you want',
+    'footer_left' => '&copy; '.date('Y').' Enfermagem Alessandro Silva · Agenda ENFAS',
+    'footer_right' => 'Ambiente interno seguro',
     'preloader' => false,
     'control_sidebar' => false,
     'control_sidebar_theme' => 'dark',
@@ -133,22 +133,22 @@ return [
     // Documentation URL used by the navbar "Documentation" link and the sidebar
     // "View documentation" CTA (false to hide the CTA). Defaults to the in-app
     // docs viewer served at /docs (see the `docs` keys below).
-    'sidebar_docs_url' => '/docs',
+    'sidebar_docs_url' => false,
 
     // Bundled demo/showcase pages (Dashboard v2/v3, Widgets, UI, Forms, Tables,
     // Layout Options, Theme Generate, auth variants, error pages). Set false to
     // skip registering their routes in production.
-    'demo' => true,
+    'demo' => false,
     'demo_middleware' => ['web', 'auth'],
 
     // In-app documentation viewer: renders this package's docs/*.md files at
     // /docs and /docs/{page}. Set 'docs' => false to disable the route.
-    'docs' => true,
+    'docs' => false,
     'docs_middleware' => ['web'],
 
     'sidebar_breakpoint' => 'lg',     // sidebar-expand-{breakpoint}
     'sidebar_mini' => true,           // .sidebar-mini
-    'sidebar_collapse' => false,      // start collapsed
+    'sidebar_collapse' => true,      // start collapsed
     'sidebar_collapse_auto_size' => false,
     'sidebar_scrollbar_theme' => 'os-theme-light',
     'sidebar_scrollbar_auto_hide' => 'leave',
@@ -174,10 +174,10 @@ return [
 
     'sidebar_theme' => 'dark',  // 'dark' | 'light'
 
-    'primary_color' => null,    // brand colour: links, .btn-primary, --bs-primary
-    'sidebar_color' => null,    // .app-sidebar background
-    'navbar_color' => null,     // .app-header background
-    'footer_color' => null,     // .app-footer background
+    'primary_color' => '#2563eb',    // brand colour: links, .btn-primary, --bs-primary
+    'sidebar_color' => '#0b1220',    // .app-sidebar background
+    'navbar_color' => '#ffffff',     // .app-header background
+    'footer_color' => '#ffffff',     // .app-footer background
 
     /*
     |--------------------------------------------------------------------------
@@ -185,15 +185,15 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'classes_body' => '',
-    'classes_brand' => '',
-    'classes_brand_text' => 'fw-light',
+    'classes_body' => 'enfas-shell',
+    'classes_brand' => 'enfas-brandbar',
+    'classes_brand_text' => 'fw-semibold',
     'classes_content_wrapper' => '',
     'classes_content_header' => '',
     'classes_content' => '',
-    'classes_sidebar' => 'bg-body-secondary shadow',
+    'classes_sidebar' => 'enfas-sidebar shadow',
     'classes_sidebar_nav' => '',
-    'classes_topnav' => 'navbar-expand bg-body',
+    'classes_topnav' => 'navbar-expand enfas-topbar',
     'classes_topnav_nav' => 'navbar',
     'classes_topnav_container' => 'container-fluid',
 
@@ -232,162 +232,34 @@ return [
     */
 
     'menu' => [
-        // ---- Sidebar: mirrors the AdminLTE 4 demo sidebar ----
-        [
-            'text' => 'Dashboard',
-            'icon' => 'bi bi-speedometer',
-            'submenu' => [
-                ['text' => 'Dashboard v1', 'url' => '/', 'icon' => 'bi bi-circle'],
-                ['text' => 'Dashboard v2', 'url' => 'demo/dashboard-v2', 'icon' => 'bi bi-circle'],
-                ['text' => 'Dashboard v3', 'url' => 'demo/dashboard-v3', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        [
-            'text' => 'Theme Generate',
-            'url' => 'demo/theme-generator',
-            'icon' => 'bi bi-palette',
-        ],
-        [
-            'text' => 'Widgets',
-            'icon' => 'bi bi-box-seam-fill',
-            'submenu' => [
-                ['text' => 'Small Box', 'url' => 'demo/widgets/small-box', 'icon' => 'bi bi-circle'],
-                ['text' => 'Info Box', 'url' => 'demo/widgets/info-box', 'icon' => 'bi bi-circle'],
-                ['text' => 'Cards', 'url' => 'demo/widgets/cards', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        [
-            'text' => 'Layout Options',
-            'url' => 'demo/layout-options',
-            'icon' => 'bi bi-clipboard-fill',
-        ],
-        [
-            'text' => 'UI Elements',
-            'icon' => 'bi bi-tree-fill',
-            'submenu' => [
-                ['text' => 'General', 'url' => 'demo/ui/general', 'icon' => 'bi bi-circle'],
-                ['text' => 'Icons', 'url' => 'demo/ui/icons', 'icon' => 'bi bi-circle'],
-                ['text' => 'Timeline', 'url' => 'demo/ui/timeline', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        [
-            'text' => 'Mailbox',
-            'icon' => 'bi bi-envelope',
-            'submenu' => [
-                ['text' => 'Inbox', 'url' => 'admin/mailbox', 'icon' => 'bi bi-circle'],
-                ['text' => 'Compose', 'url' => 'admin/mailbox/compose', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        [
-            'text' => 'Forms',
-            'icon' => 'bi bi-pencil-square',
-            'submenu' => [
-                ['text' => 'Elements', 'url' => 'demo/forms/elements', 'icon' => 'bi bi-circle'],
-                ['text' => 'Layout', 'url' => 'demo/forms/layout', 'icon' => 'bi bi-circle'],
-                ['text' => 'Validation', 'url' => 'demo/forms/validation', 'icon' => 'bi bi-circle'],
-                ['text' => 'Wizard', 'url' => 'demo/forms/wizard', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        [
-            'text' => 'Tables',
-            'icon' => 'bi bi-table',
-            'submenu' => [
-                ['text' => 'Simple Tables', 'url' => 'demo/tables/simple', 'icon' => 'bi bi-circle'],
-                ['text' => 'Data Tables', 'url' => 'demo/tables/data', 'icon' => 'bi bi-circle'],
-            ],
-        ],
+        ['header' => 'OPERAÇÃO'],
+        ['text' => 'Visão geral', 'route' => 'dashboard', 'icon' => 'bi bi-grid-1x2-fill'],
+        ['text' => 'Agenda', 'route' => 'agenda.index', 'icon' => 'bi bi-calendar3'],
+        ['text' => 'Agendamentos', 'route' => 'appointments.index', 'icon' => 'bi bi-calendar2-check'],
+        ['text' => 'Confirmações', 'route' => 'v10.confirmations', 'icon' => 'bi bi-patch-check'],
+        ['text' => 'Lista de espera', 'route' => 'waitlist.index', 'icon' => 'bi bi-hourglass-split'],
 
-        ['header' => 'PAGES'],
-        [
-            'text' => 'Pages',
-            'icon' => 'bi bi-file-earmark-text',
-            'submenu' => [
-                ['text' => 'Profile', 'url' => 'admin/profile', 'icon' => 'bi bi-circle'],
-                ['text' => 'Settings', 'url' => 'admin/settings', 'icon' => 'bi bi-circle'],
-                ['text' => 'Invoice', 'url' => 'admin/invoice', 'icon' => 'bi bi-circle'],
-                ['text' => 'Calendar', 'url' => 'admin/calendar', 'icon' => 'bi bi-circle'],
-                ['text' => 'Kanban', 'url' => 'admin/kanban', 'icon' => 'bi bi-circle'],
-                ['text' => 'Chat', 'url' => 'admin/chat', 'icon' => 'bi bi-circle'],
-                ['text' => 'File Manager', 'url' => 'admin/file-manager', 'icon' => 'bi bi-circle'],
-                ['text' => 'Projects', 'url' => 'admin/projects', 'icon' => 'bi bi-circle'],
-                ['text' => 'Pricing', 'url' => 'admin/pricing', 'icon' => 'bi bi-circle'],
-                ['text' => 'FAQ', 'url' => 'admin/faq', 'icon' => 'bi bi-circle'],
-                [
-                    'text' => 'Error',
-                    'icon' => 'bi bi-circle',
-                    'submenu' => [
-                        ['text' => '404', 'url' => 'demo/errors/404', 'icon' => 'bi bi-circle'],
-                        ['text' => '500', 'url' => 'demo/errors/500', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Maintenance', 'url' => 'demo/errors/maintenance', 'icon' => 'bi bi-circle'],
-                    ],
-                ],
-            ],
-        ],
+        ['header' => 'CADASTROS'],
+        ['text' => 'Pacientes', 'route' => 'patients.index', 'icon' => 'bi bi-people'],
+        ['text' => 'Profissionais', 'route' => 'professionals.index', 'icon' => 'bi bi-person-badge'],
+        ['text' => 'Serviços', 'route' => 'services.index', 'icon' => 'bi bi-grid'],
+        ['text' => 'Unidades', 'route' => 'enfas.locations', 'icon' => 'bi bi-geo-alt'],
+        ['text' => 'Campos personalizados', 'route' => 'custom-fields.index', 'icon' => 'bi bi-ui-checks-grid'],
 
-        ['header' => 'ADMINISTRATION'],
-        [
-            'text' => 'Users',
-            'url' => 'admin/users',
-            'icon' => 'bi bi-people',
-            'can' => 'manage-users',
-        ],
-        [
-            'text' => 'Roles',
-            'url' => 'admin/roles',
-            'icon' => 'bi bi-shield-lock',
-            'can' => 'manage-roles',
-        ],
+        ['header' => 'COMUNICAÇÃO'],
+        ['text' => 'Central WhatsApp', 'route' => 'enfas.whatsapp', 'icon' => 'bi bi-whatsapp'],
+        ['text' => 'Templates', 'route' => 'v9.templates.index', 'icon' => 'bi bi-chat-square-text'],
+        ['text' => 'Automações', 'route' => 'enfas.v6.automations', 'icon' => 'bi bi-lightning-charge'],
+        ['text' => 'Mensagens', 'route' => 'enfas.v6.messages', 'icon' => 'bi bi-send'],
+        ['text' => 'Mídia', 'route' => 'v9.media.index', 'icon' => 'bi bi-images'],
 
-        ['header' => 'EXAMPLES'],
-        [
-            'text' => 'Auth',
-            'icon' => 'bi bi-box-arrow-in-right',
-            'submenu' => [
-                [
-                    'text' => 'Version 1',
-                    'icon' => 'bi bi-box-arrow-in-right',
-                    'submenu' => [
-                        ['text' => 'Login', 'url' => 'login', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Register', 'url' => 'register', 'icon' => 'bi bi-circle'],
-                    ],
-                ],
-                [
-                    'text' => 'Version 2',
-                    'icon' => 'bi bi-box-arrow-in-right',
-                    'submenu' => [
-                        ['text' => 'Login', 'url' => 'demo/auth/login-v2', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Register', 'url' => 'demo/auth/register-v2', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Lockscreen', 'url' => 'demo/auth/lockscreen', 'icon' => 'bi bi-circle'],
-                    ],
-                ],
-            ],
-        ],
-
-        ['header' => 'MULTI LEVEL EXAMPLE'],
-        ['text' => 'Level 1', 'url' => '#', 'icon' => 'bi bi-circle-fill'],
-        [
-            'text' => 'Level 1',
-            'icon' => 'bi bi-circle-fill',
-            'submenu' => [
-                ['text' => 'Level 2', 'url' => '#', 'icon' => 'bi bi-circle'],
-                [
-                    'text' => 'Level 2',
-                    'icon' => 'bi bi-circle',
-                    'submenu' => [
-                        ['text' => 'Level 3', 'url' => '#', 'icon' => 'bi bi-record-circle-fill'],
-                        ['text' => 'Level 3', 'url' => '#', 'icon' => 'bi bi-record-circle-fill'],
-                        ['text' => 'Level 3', 'url' => '#', 'icon' => 'bi bi-record-circle-fill'],
-                    ],
-                ],
-                ['text' => 'Level 2', 'url' => '#', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        ['text' => 'Level 1', 'url' => '#', 'icon' => 'bi bi-circle-fill'],
-
-        ['header' => 'LABELS'],
-        ['text' => 'Important', 'url' => '#', 'icon' => 'bi bi-circle', 'icon_color' => 'danger'],
-        ['text' => 'Warning', 'url' => '#', 'icon' => 'bi bi-circle', 'icon_color' => 'warning'],
-        ['text' => 'Informational', 'url' => '#', 'icon' => 'bi bi-circle', 'icon_color' => 'info'],
+        ['header' => 'GESTÃO'],
+        ['text' => 'Relatórios', 'route' => 'v92.reports', 'icon' => 'bi bi-bar-chart'],
+        ['text' => 'Alertas', 'route' => 'v92.alerts', 'icon' => 'bi bi-bell'],
+        ['text' => 'Auditoria', 'route' => 'v92.audit', 'icon' => 'bi bi-shield-check'],
+        ['text' => 'Usuários', 'route' => 'users.index', 'icon' => 'bi bi-person-lock', 'can' => 'manage-users'],
+        ['text' => 'Configurações', 'route' => 'v92.settings', 'icon' => 'bi bi-sliders'],
+        ['text' => 'Saúde do sistema', 'route' => 'v92.health.dashboard', 'icon' => 'bi bi-heart-pulse'],
     ],
 
     /*
