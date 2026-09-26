@@ -134,26 +134,26 @@ class ProductionHealthService
             );
         }
 
-        $scheduler=$this->heartbeat('enfas.scheduler.heartbeat');
-        $queue=$this->heartbeat('enfas.queue.heartbeat');
-
-        $this->add(
-            $checks,
-            'scheduler_heartbeat',
-            $scheduler['fresh'],
-            'Scheduler heartbeat',
-            $scheduler['value']
-        );
-
-        $this->add(
-            $checks,
-            'queue_heartbeat',
-            $queue['fresh'],
-            'Queue heartbeat',
-            $queue['value']
-        );
-
         if ($deep) {
+            $scheduler=$this->heartbeat('enfas.scheduler.heartbeat');
+            $queue=$this->heartbeat('enfas.queue.heartbeat');
+
+            $this->add(
+                $checks,
+                'scheduler_heartbeat',
+                $scheduler['fresh'],
+                'Scheduler heartbeat',
+                $scheduler['value']
+            );
+
+            $this->add(
+                $checks,
+                'queue_heartbeat',
+                $queue['fresh'],
+                'Queue heartbeat',
+                $queue['value']
+            );
+
             $this->add(
                 $checks,
                 'queue_service',
