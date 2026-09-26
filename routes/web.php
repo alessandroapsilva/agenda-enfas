@@ -38,6 +38,19 @@ Route::middleware('guest')->group(function () {
 });
 
 
+Route::middleware('auth')->group(function () {
+    Route::get(
+        '/minha-conta/nova-senha',
+        [AuthController::class, 'showPasswordChange']
+    )->name('password.change');
+
+    Route::patch(
+        '/minha-conta/nova-senha',
+        [AuthController::class, 'updateOwnPassword']
+    )->name('password.update');
+});
+
+
 /*
 |--------------------------------------------------------------------------
 | JORNADA PÚBLICA DO PACIENTE
