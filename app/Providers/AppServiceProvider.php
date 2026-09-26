@@ -19,6 +19,13 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin() ? true : null;
         });
 
+        foreach (array_keys(config('enfas_permissions.catalog', [])) as $permission) {
+            Gate::define(
+                $permission,
+                fn (User $user) => $user->canAccess($permission)
+            );
+        }
+
         Gate::define('manage-users', fn (User $user) => $user->canAccess('users.manage'));
         Gate::define('manage-roles', fn (User $user) => $user->canAccess('users.manage'));
         Gate::define('manage-settings', fn (User $user) => $user->canAccess('settings.manage'));
