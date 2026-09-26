@@ -15,6 +15,9 @@ class Appointment extends Model
         'patient_id',
         'professional_id',
         'service_id',
+        'series_id',
+        'series_position',
+        'rescheduled_from_id',
         'start_at',
         'end_at',
         'duration_minutes',
@@ -90,6 +93,16 @@ class Appointment extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(AppointmentSeries::class, 'series_id');
+    }
+
+    public function rescheduledFrom(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'rescheduled_from_id');
     }
 
     public function creator(): BelongsTo
