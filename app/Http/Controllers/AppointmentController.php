@@ -391,6 +391,7 @@ class AppointmentController extends Controller
             ],
         ]);
 
+        $oldStatus = $appointment->status;
         $oldLabel = $appointment->statusLabel();
 
         $appointment->status = $data['status'];
@@ -427,7 +428,7 @@ class AppointmentController extends Controller
             'occurred_at' => now(),
         ]);
 
-        if ($data['status'] === 'cancelled') {
+        if ($oldStatus !== 'cancelled' && $data['status'] === 'cancelled') {
             try {
                 $waitlist->offerFreedSlot($appointment->fresh(['service','professional']));
             } catch (\Throwable $e) {
