@@ -105,6 +105,11 @@ Route::middleware('auth')->group(function () {
         [AppointmentController::class, 'status']
     )->name('appointments.status');
 
+    Route::post(
+        '/agendamentos/{appointment}/contato',
+        [AppointmentController::class, 'contact']
+    )->name('appointments.contact');
+
 
     /*
     |--------------------------------------------------------------------------
