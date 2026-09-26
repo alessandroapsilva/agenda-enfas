@@ -17,30 +17,42 @@ Route::post('/webhooks/meta/whatsapp',[WhatsAppWebhookController::class,'receive
 
 Route::middleware('auth')->group(function(){
     Route::post('/whatsapp/assinar-waba',[MetaSubscriptionController::class,'subscribe'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.meta.subscribe');
 
     Route::get('/whatsapp/templates',[WhatsAppTemplateController::class,'index'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.templates');
     Route::post('/whatsapp/templates',[WhatsAppTemplateController::class,'store'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.templates.store');
     Route::post('/whatsapp/templates/sincronizar',[WhatsAppTemplateController::class,'sync'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.templates.sync');
     Route::post('/whatsapp/templates/{template}/enviar-meta',[WhatsAppTemplateController::class,'submit'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.templates.submit');
     Route::delete('/whatsapp/templates/{template}',[WhatsAppTemplateController::class,'delete'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.templates.delete');
 
     Route::get('/whatsapp/automacoes',[WhatsAppAutomationController::class,'index'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.automations');
     Route::post('/whatsapp/automacoes',[WhatsAppAutomationController::class,'store'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.automations.store');
     Route::patch('/whatsapp/automacoes/{automation}/status',[WhatsAppAutomationController::class,'toggle'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.automations.toggle');
     Route::delete('/whatsapp/automacoes/{automation}',[WhatsAppAutomationController::class,'delete'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.automations.delete');
 
     Route::get('/whatsapp/mensagens',[WhatsAppMessageController::class,'index'])
+        ->middleware('permission:whatsapp.view')
         ->name('enfas.v6.messages');
     Route::post('/whatsapp/mensagens/enviar',[WhatsAppMessageController::class,'send'])
+        ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.messages.send');
 });
