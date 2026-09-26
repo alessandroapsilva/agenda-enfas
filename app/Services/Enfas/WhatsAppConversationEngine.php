@@ -50,6 +50,7 @@ class WhatsAppConversationEngine
                 'context' => [],
                 'last_message_at' => now(),
                 'last_inbound_at' => now(),
+                'unread_count' => ((int) $conversation->unread_count) + 1,
                 'expires_at' => now()->addHours(24),
             ]);
         } else {
@@ -93,7 +94,6 @@ class WhatsAppConversationEngine
             'patient_id' => $appointment->patient_id,
             'last_message_at' => now(),
             'last_inbound_at' => now(),
-            'unread_count' => ((int) $conversation->unread_count) + 1,
         ]);
 
         match ($action) {
