@@ -9,6 +9,7 @@ use App\Services\Enfas\PatientNotificationService;
 use App\Services\Enfas\ProfessionalNotificationService;
 use App\Services\Enfas\WhatsAppAutomationEngine;
 use App\Services\Enfas\WhatsAppConversationEngine;
+use App\Services\Enfas\WaitlistService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -24,6 +25,7 @@ class PremiumWhatsAppInboxTest extends TestCase
             Mockery::mock(PatientNotificationService::class),
             Mockery::mock(ProfessionalNotificationService::class),
             Mockery::mock(WhatsAppAutomationEngine::class),
+            Mockery::mock(WaitlistService::class),
         );
 
         $engine->handle([
