@@ -170,6 +170,23 @@
                 </div>
             </section>
 
+            @if($appointment->location)
+                <section class="pj-card">
+                    <div class="pj-card-body">
+                        <h2 class="pj-section-title"><i class="bi bi-geo-alt me-2 text-primary"></i>Onde será seu atendimento</h2>
+                        <div class="pj-value fs-6">{{ $appointment->location->name }}</div>
+
+                        @if($appointment->location->fullAddress())
+                            <div class="pj-muted mt-1">{{ $appointment->location->fullAddress() }}</div>
+                        @endif
+
+                        @if($appointment->location->patient_instructions)
+                            <div class="pj-note mt-3">{{ $appointment->location->patient_instructions }}</div>
+                        @endif
+                    </div>
+                </section>
+            @endif
+
             @if($appointment->appointment_type === 'medication_pickup')
                 <section class="pj-card">
                     <div class="pj-card-body">
