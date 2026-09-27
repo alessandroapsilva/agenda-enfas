@@ -736,7 +736,6 @@
             <small>Retirada de medicamento</small>
             <strong id="detailMedicationName">—</strong>
             <span id="detailMedicationQuantity">—</span>
-            <span id="detailPickupStatus">—</span>
             <div id="detailMedicationNotes" class="small text-secondary mt-2"></div>
         </div>
 
@@ -1119,23 +1118,11 @@ document.addEventListener('DOMContentLoaded', function () {
             medicationBlock.classList.toggle('d-none', ! isMedicationPickup);
 
             if (isMedicationPickup) {
-                const pickupLabels = {
-                    scheduled: 'Agendada',
-                    preparing: 'Em separação',
-                    ready: 'Pronta para retirada',
-                    collected: 'Retirada concluída',
-                    not_collected: 'Não retirada',
-                    cancelled: 'Cancelada'
-                };
-
                 document.getElementById('detailMedicationName').textContent =
                     appointment.medication_name || 'Medicamento não informado';
 
                 document.getElementById('detailMedicationQuantity').textContent =
                     appointment.medication_quantity || 'Quantidade não informada';
-
-                document.getElementById('detailPickupStatus').textContent =
-                    'Status: ' + (pickupLabels[appointment.pickup_status] || 'Em acompanhamento');
 
                 document.getElementById('detailMedicationNotes').textContent =
                     appointment.medication_notes || '';
