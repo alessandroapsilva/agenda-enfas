@@ -244,7 +244,7 @@ return [
         ['text' => 'Pacientes', 'route' => 'patients.index', 'icon' => 'bi bi-people', 'can' => 'patients.view'],
         ['text' => 'Profissionais', 'route' => 'professionals.index', 'icon' => 'bi bi-person-badge', 'can' => 'professionals.view'],
         ['text' => 'Serviços', 'route' => 'services.index', 'icon' => 'bi bi-grid', 'can' => 'services.view'],
-        ['text' => 'Unidades', 'route' => 'enfas.locations', 'icon' => 'bi bi-geo-alt', 'can' => 'professionals.view'],
+        ['text' => 'Unidades', 'route' => 'v9.locations.index', 'icon' => 'bi bi-buildings', 'can' => 'professionals.view'],
         ['text' => 'Campos personalizados', 'route' => 'custom-fields.index', 'icon' => 'bi bi-ui-checks-grid', 'can' => 'settings.manage'],
 
         ['header' => 'COMUNICAÇÃO'],
