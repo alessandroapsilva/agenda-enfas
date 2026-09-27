@@ -9,7 +9,7 @@
 
 <div class="row g-4">
     <div class="col-xl-4">
-        <div class="card h-100">
+        <div class="card h-100 ea-form-card">
             <div class="card-header">
                 <h5 class="mb-1">Novo usuário</h5>
                 <small class="text-muted">Crie um acesso individual com perfil e permissões.</small>
@@ -106,7 +106,7 @@
     </div>
 
     <div class="col-xl-8">
-        <div class="card">
+        <div class="card ea-team-card">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <div>
                     <h5 class="mb-1">Equipe com acesso</h5>
