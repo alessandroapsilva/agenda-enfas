@@ -209,7 +209,7 @@ Route::middleware('auth')->group(function () {
     Route::get(
         '/meu-painel',
         [ProfessionalWorkspaceController::class, 'index']
-    )->middleware('permission:agenda.view')->name('professional.workspace');
+    )->middleware('permission:professional.workspace')->name('professional.workspace');
 
 
     /*
