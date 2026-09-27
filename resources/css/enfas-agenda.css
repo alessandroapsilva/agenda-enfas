@@ -2740,3 +2740,69 @@ body.enfas-shell,
         min-width:0;
     }
 }
+
+
+/* Cleaner operational dashboard */
+.ea-dashboard-context{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    padding:1rem 1.1rem;
+    border:1px solid var(--ea-border);
+    border-radius:14px;
+    background:#fff;
+    box-shadow:var(--ea-shadow-sm);
+}
+
+.ea-dashboard-context>div:first-child{
+    min-width:0;
+}
+
+.ea-dashboard-context .ea-dashboard-date{
+    display:block;
+    margin-bottom:.15rem;
+    color:#6b778c;
+    font-size:.68rem;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.ea-dashboard-context strong{
+    display:block;
+    color:#182236;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.ea-dashboard-context small{
+    display:block;
+    margin-top:.1rem;
+    color:#8793a4;
+    font-size:.72rem;
+}
+
+[data-bs-theme="dark"] .ea-dashboard-context{
+    border-color:#263246;
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .ea-dashboard-context strong{
+    color:#eef4fb;
+}
+
+@media(max-width:767.98px){
+    .ea-dashboard-context{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .ea-dashboard-context>div:last-child{
+        width:100%;
+    }
+
+    .ea-dashboard-context .btn{
+        flex:1 1 auto;
+    }
+}
