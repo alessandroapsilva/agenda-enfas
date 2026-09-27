@@ -6,7 +6,7 @@
 @section('page_subtitle','Indicadores de agenda, atendimento, comunicação e lista de espera.')
 
 @section('page_actions')
-<a href="{{ route('v92.reports.export', ['from'=>$from->format('Y-m-d'),'to'=>$to->format('Y-m-d')]) }}" class="btn btn-outline-primary">
+<a href="{{ route('v92.reports.export', ['from'=>$from->format('Y-m-d'),'to'=>$to->format('Y-m-d'),'location_id'=>$locationId]) }}" class="btn btn-outline-primary">
     <i class="bi bi-download me-1"></i>Exportar CSV
 </a>
 @endsection
@@ -15,17 +15,28 @@
 
 <form class="card mb-4" method="GET">
     <div class="card-body row g-3 align-items-end">
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6">
             <label class="form-label">De</label>
             <input class="form-control" type="date" name="from" value="{{ $from->format('Y-m-d') }}">
         </div>
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6">
             <label class="form-label">Até</label>
             <input class="form-control" type="date" name="to" value="{{ $to->format('Y-m-d') }}">
         </div>
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-8">
+            <label class="form-label">Unidade</label>
+            <select class="form-select" name="location_id">
+                <option value="">Todas as unidades</option>
+                @foreach($locations as $location)
+                    <option value="{{ $location->id }}" @selected((int)$locationId === (int)$location->id)>
+                        {{ $location->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-4">
             <button class="btn btn-primary w-100">
-                <i class="bi bi-arrow-repeat me-1"></i>Atualizar período
+                <i class="bi bi-arrow-repeat me-1"></i>Atualizar
             </button>
         </div>
     </div>
