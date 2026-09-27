@@ -38,16 +38,22 @@
                 </div>
 
                 <div class="row g-2 mt-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="border rounded-3 p-3 h-100">
                             <small class="text-muted d-block mb-1">Reagendamento online</small>
                             <strong>{{ $service->allow_online_reschedule ? 'Permitido':'Bloqueado' }}</strong>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="border rounded-3 p-3 h-100">
                             <small class="text-muted d-block mb-1">Recorrência</small>
                             <strong>{{ $service->allow_recurrence ? 'Permitida':'Bloqueada' }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <small class="text-muted d-block mb-1">Retorno sugerido</small>
+                            <strong>{{ $service->return_after_days ? $service->return_after_days.' dias' : 'Sem regra' }}</strong>
                         </div>
                     </div>
                 </div>
@@ -66,7 +72,8 @@
                             <div class="col-12"><label class="form-label">Descrição</label><textarea name="description" class="form-control" rows="2">{{ $service->description }}</textarea></div>
                             <div class="col-md-6"><label class="form-label">Documentos necessários</label><textarea name="required_documents" class="form-control" rows="4">{{ $service->required_documents }}</textarea></div>
                             <div class="col-md-6"><label class="form-label">Preparo / orientações antes</label><textarea name="preparation_instructions" class="form-control" rows="4">{{ $service->preparation_instructions }}</textarea></div>
-                            <div class="col-12"><label class="form-label">Orientações pós-atendimento</label><textarea name="aftercare_instructions" class="form-control" rows="3">{{ $service->aftercare_instructions }}</textarea></div>
+                            <div class="col-md-8"><label class="form-label">Orientações pós-atendimento</label><textarea name="aftercare_instructions" class="form-control" rows="3">{{ $service->aftercare_instructions }}</textarea></div>
+                            <div class="col-md-4"><label class="form-label">Retorno sugerido</label><div class="input-group"><input type="number" name="return_after_days" min="1" max="3650" class="form-control" value="{{ $service->return_after_days }}"><span class="input-group-text">dias</span></div><div class="form-text">Opcional. Define quando o paciente deverá retornar.</div></div>
 
                             <div class="col-md-6">
                                 <input type="hidden" name="allow_online_reschedule" value="0">
@@ -104,7 +111,8 @@
                     <div class="col-12"><label class="form-label">Descrição</label><textarea name="description" rows="2" class="form-control"></textarea></div>
                     <div class="col-md-6"><label class="form-label">Documentos necessários</label><textarea name="required_documents" rows="4" class="form-control" placeholder="Documento com foto, exames anteriores..."></textarea></div>
                     <div class="col-md-6"><label class="form-label">Orientações antes</label><textarea name="preparation_instructions" rows="4" class="form-control" placeholder="Jejum, preparo, medicações..."></textarea></div>
-                    <div class="col-12"><label class="form-label">Orientações após o atendimento</label><textarea name="aftercare_instructions" rows="3" class="form-control"></textarea></div>
+                    <div class="col-md-8"><label class="form-label">Orientações após o atendimento</label><textarea name="aftercare_instructions" rows="3" class="form-control"></textarea></div>
+                    <div class="col-md-4"><label class="form-label">Retorno sugerido</label><div class="input-group"><input type="number" name="return_after_days" min="1" max="3650" class="form-control"><span class="input-group-text">dias</span></div><div class="form-text">Opcional.</div></div>
                     <div class="col-md-6"><input type="hidden" name="allow_online_reschedule" value="0"><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="allow_online_reschedule" value="1" checked><span class="form-check-label">Permitir reagendamento pelo WhatsApp</span></label></div>
                     <div class="col-md-6"><input type="hidden" name="allow_recurrence" value="0"><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="allow_recurrence" value="1" checked><span class="form-check-label">Permitir recorrência</span></label></div>
                 </div>
