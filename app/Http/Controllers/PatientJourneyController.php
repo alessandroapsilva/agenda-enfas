@@ -17,7 +17,7 @@ class PatientJourneyController extends Controller
     private function appointment(string $token): Appointment
     {
         return Appointment::query()
-            ->with(['patient','professional','service'])
+            ->with(['patient','professional','service','location'])
             ->where('public_token', $token)
             ->firstOrFail();
     }
@@ -286,11 +286,13 @@ class PatientJourneyController extends Controller
 
         $data = $request->validate([
             'score' => ['required','integer','between:0,10'],
+            'stars' => ['required','integer','between:1,5'],
             'comment' => ['nullable','string','max:2000'],
         ]);
 
         $appointment->forceFill([
             'satisfaction_score' => $data['score'],
+            'satisfaction_stars' => $data['stars'],
             'satisfaction_comment' => $data['comment'] ?? null,
             'satisfaction_at' => now(),
         ])->save();
@@ -299,7 +301,7 @@ class PatientJourneyController extends Controller
             'appointment_id' => $appointment->id,
             'event_type' => 'patient_satisfaction',
             'title' => 'Pesquisa de satisfação respondida',
-            'description' => 'Paciente avaliou o atendimento com nota '.$data['score'].'.',
+            'description' => 'Paciente avaliou com '.$data['stars'].' estrela(s) e NPS '.$data['score'].'.',
             'occurred_at' => now(),
         ]);
 
