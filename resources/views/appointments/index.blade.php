@@ -48,6 +48,7 @@
                 <th>Tipo</th>
                 <th>Serviço</th>
                 <th>Profissional</th>
+                <th>Unidade</th>
                 <th>Status</th>
             </tr>
 
@@ -88,6 +89,10 @@
                     </td>
 
                     <td>
+                        {{ $appointment->location?->name ?: '—' }}
+                    </td>
+
+                    <td>
 
                         <span class="badge text-bg-{{ $appointment->statusBadge() }}">
 
@@ -102,7 +107,7 @@
             @empty
 
                 <tr>
-                    <td colspan="7"
+                    <td colspan="8"
                         class="text-center py-5 text-secondary">
 
                         Nenhum agendamento cadastrado.
