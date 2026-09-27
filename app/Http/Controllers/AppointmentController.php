@@ -413,6 +413,16 @@ class AppointmentController extends Controller
                 $data['reason'] ?? null;
         }
 
+        if ($data['status'] === 'completed') {
+            $appointment->completed_at = now();
+
+            $returnAfterDays = (int) ($appointment->service?->return_after_days ?? 0);
+
+            if ($returnAfterDays > 0) {
+                $appointment->return_due_at = now()->addDays($returnAfterDays)->toDateString();
+            }
+        }
+
         $appointment->save();
 
         AppointmentEvent::create([
