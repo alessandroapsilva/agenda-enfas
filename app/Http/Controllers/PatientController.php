@@ -52,6 +52,12 @@ class PatientController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('rgea_number')) {
+            $request->merge([
+                'rgea_number' => strtoupper(trim((string) $request->input('rgea_number'))),
+            ]);
+        }
+
         $data = $this->validated($request);
 
         $data['name'] = trim($data['name']);
@@ -82,6 +88,12 @@ class PatientController extends Controller
 
     public function update(Request $request, Patient $patient)
     {
+        if ($request->filled('rgea_number')) {
+            $request->merge([
+                'rgea_number' => strtoupper(trim((string) $request->input('rgea_number'))),
+            ]);
+        }
+
         $data = $this->validated($request, $patient);
 
         $data['name'] = trim($data['name']);
