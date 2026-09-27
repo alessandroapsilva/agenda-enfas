@@ -11,6 +11,7 @@ class MedicationPickupController extends Controller
     public function index(Request $request)
     {
         $status = $request->string('status')->toString();
+        $search = trim($request->string('q')->toString());
 
         $query = Appointment::query()
             ->with(['patient','professional','service'])
@@ -18,6 +19,19 @@ class MedicationPickupController extends Controller
 
         if ($status !== '') {
             $query->where('pickup_status', $status);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query
+                    ->where('medication_name', 'like', "%{$search}%")
+                    ->orWhereHas('patient', function ($patient) use ($search) {
+                        $patient
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('preferred_name', 'like', "%{$search}%")
+                            ->orWhere('rgea_number', 'like', "%{$search}%");
+                    });
+            });
         }
 
         $pickups = $query
@@ -39,7 +53,7 @@ class MedicationPickupController extends Controller
                 ->count(),
         ];
 
-        return view('medication-pickups.index', compact('pickups','metrics','status'));
+        return view('medication-pickups.index', compact('pickups','metrics','status','search'));
     }
 
     public function updateStatus(Request $request, Appointment $appointment)
@@ -67,7 +81,22 @@ class MedicationPickupController extends Controller
             ]);
         }
 
-        $old = $appointment->pickup_status;
+        $old = $appointment->pickup_status ?: 'scheduled';
+
+        $allowedTransitions = [
+            'scheduled' => ['scheduled','preparing','cancelled'],
+            'preparing' => ['preparing','ready','cancelled'],
+            'ready' => ['ready','collected','not_collected','cancelled'],
+            'collected' => ['collected'],
+            'not_collected' => ['not_collected'],
+            'cancelled' => ['cancelled'],
+        ];
+
+        abort_unless(
+            in_array($data['pickup_status'], $allowedTransitions[$old] ?? [], true),
+            422,
+            'Transição de status inválida para esta retirada.'
+        );
 
         $appointment->pickup_status = $data['pickup_status'];
         $appointment->updated_by = auth()->id();
