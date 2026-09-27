@@ -1,39 +1,27 @@
 @extends('layouts.app')
 
 @section('title', 'Agendamentos')
+@section('page_kicker','OPERAÇÃO DA AGENDA')
+@section('page_title','Agendamentos')
+@section('page_subtitle','Histórico geral, status, unidade, serviço e jornada de cada agendamento.')
 
-@section('content_header')
-
-<div class="d-flex justify-content-between align-items-end">
-
-    <div>
-
-        <h3 class="enfas-page-title">
-            Agendamentos
-        </h3>
-
-        <p class="enfas-page-subtitle">
-            Histórico e acompanhamento geral.
-        </p>
-
-    </div>
-
-    <a href="{{ route('agenda.index') }}"
-       class="btn btn-primary">
-
-        <i class="bi bi-plus-lg me-1"></i>
-        Novo agendamento
-
-    </a>
-
-</div>
-
-@stop
+@section('page_actions')
+<a href="{{ route('agenda.index') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>
+    Novo agendamento
+</a>
+@endsection
 
 
 @section('content')
 
 <div class="card">
+    <div class="card-header">
+        <div>
+            <strong class="d-block">Histórico de agendamentos</strong>
+            <span class="small text-secondary">Visualize rapidamente paciente, tipo, unidade e situação.</span>
+        </div>
+    </div>
 
     <div class="table-responsive">
 
@@ -69,7 +57,10 @@
                     </td>
 
                     <td>
-                        {{ $appointment->patient->name }}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ea-avatar ea-avatar-sm">{{ strtoupper(substr($appointment->patient->name,0,1)) }}</span>
+                            <strong>{{ $appointment->patient->name }}</strong>
+                        </div>
                     </td>
 
                     <td>
