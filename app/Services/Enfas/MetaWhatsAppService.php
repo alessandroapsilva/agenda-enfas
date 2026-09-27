@@ -451,6 +451,7 @@ class MetaWhatsAppService
             'appointments.*',
             'patients.name as patient_name',
             'patients.phone as patient_phone',
+            'patients.rgea_number as patient_rgea',
             'professionals.name as professional_name',
             'services.name as service_name',
         ];
@@ -484,6 +485,15 @@ class MetaWhatsAppService
             'servico' => (string) $appointment->service_name,
             'codigo_agendamento' => (string) $appointment->code,
             'local' => (string) $appointment->location_name,
+            'rgea' => (string) ($appointment->patient_rgea ?? ''),
+            'medicamento' => (string) ($appointment->medication_name ?? ''),
+            'quantidade_medicamento' => (string) ($appointment->medication_quantity ?? ''),
+            'retorno_data' => filled($appointment->return_due_at ?? null)
+                ? \Carbon\Carbon::parse($appointment->return_due_at)->format('d/m/Y')
+                : '',
+            'jornada_url' => rtrim((string) config('app.url'), '/')
+                . '/jornada/'
+                . (string) $appointment->public_token,
             default => '',
         };
     }
@@ -728,10 +738,13 @@ class MetaWhatsAppService
             'sent_at' => now(),
         ]);
 
-        if (Schema::hasColumn(
-            'appointments',
-            'confirmation_requested_at'
-        )) {
+        if (
+            $template->purpose === 'confirmation'
+            && Schema::hasColumn(
+                'appointments',
+                'confirmation_requested_at'
+            )
+        ) {
             DB::table('appointments')
                 ->where('id', $appointmentId)
                 ->update([
