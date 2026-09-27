@@ -91,6 +91,36 @@ class MedicationPickupAndRgeaTest extends TestCase
         ]);
     }
 
+    public function test_rgea_is_generated_when_registration_is_blank(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin.rgea.auto',
+            'role' => 'admin',
+            'is_active' => true,
+            'force_password_change' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('patients.store'), [
+                'name' => 'Paciente Automático',
+                'phone' => '11999999993',
+                'preferred_contact_channel' => 'whatsapp',
+                'contact_consent' => 1,
+                'do_not_contact' => 0,
+            ])
+            ->assertRedirect();
+
+        $patient = DB::table('patients')
+            ->where('name', 'Paciente Automático')
+            ->first();
+
+        $this->assertNotNull($patient);
+        $this->assertSame(
+            'RGEA-'.str_pad((string) $patient->id, 6, '0', STR_PAD_LEFT),
+            $patient->rgea_number
+        );
+    }
+
     public function test_rgea_must_be_unique(): void
     {
         $admin = User::factory()->create([
