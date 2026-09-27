@@ -120,22 +120,36 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-6">
+                    <div class="col-4">
                         <div class="ea-mini-metric">
                             <strong>{{ $journey['nps'] === null ? '—' : $journey['nps'] }}</strong>
                             <span>NPS</span>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-4">
                         <div class="ea-mini-metric">
-                            <strong>{{ $journey['average_score'] === null ? '—' : number_format($journey['average_score'],1,',','.') }}</strong>
-                            <span>Nota média</span>
+                            <strong>{{ $journey['average_stars'] === null ? '—' : number_format($journey['average_stars'],1,',','.') }}</strong>
+                            <span>Estrelas / 5</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="ea-mini-metric">
+                            <strong>{{ $journey['responses'] }}</strong>
+                            <span>Respostas</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="small text-muted mt-3">
-                    {{ $journey['responses'] }} resposta(s) no período selecionado.
+                @if($journey['average_stars'] !== null)
+                    <div class="text-warning mt-3" aria-label="Média de estrelas">
+                        @for($star=1;$star<=5;$star++)
+                            <i class="bi {{ $star <= round($journey['average_stars']) ? 'bi-star-fill' : 'bi-star' }}"></i>
+                        @endfor
+                    </div>
+                @endif
+
+                <div class="small text-muted mt-2">
+                    Média da pergunta NPS: {{ $journey['average_score'] === null ? '—' : number_format($journey['average_score'],1,',','.') }}/10.
                 </div>
             </div>
         </div>
@@ -225,7 +239,7 @@
                 @forelse($daily as $row)
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>{{ CarbonCarbon::parse($row->day)->format('d/m') }}</span>
+                            <span>{{ \Carbon\Carbon::parse($row->day)->format('d/m') }}</span>
                             <strong>{{ $row->total }}</strong>
                         </div>
                         <div class="progress" style="height:8px;">
