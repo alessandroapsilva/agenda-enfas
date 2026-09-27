@@ -67,6 +67,31 @@ class AppointmentController extends Controller
                 'date',
             ],
 
+            'appointment_type' => [
+                'required',
+                'in:care,medication_pickup',
+            ],
+
+            'medication_name' => [
+                'nullable',
+                'required_if:appointment_type,medication_pickup',
+                'string',
+                'max:255',
+            ],
+
+            'medication_quantity' => [
+                'nullable',
+                'required_if:appointment_type,medication_pickup',
+                'string',
+                'max:120',
+            ],
+
+            'medication_notes' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
             'notes' => [
                 'nullable',
                 'string',
@@ -146,6 +171,14 @@ class AppointmentController extends Controller
                 'pending',
 
             'source' => 'internal',
+
+            'appointment_type' => $data['appointment_type'],
+            'medication_name' => $data['medication_name'] ?? null,
+            'medication_quantity' => $data['medication_quantity'] ?? null,
+            'medication_notes' => $data['medication_notes'] ?? null,
+            'pickup_status' => $data['appointment_type'] === 'medication_pickup'
+                ? 'scheduled'
+                : null,
 
             'notes' => $data['notes'] ?? null,
 
@@ -322,6 +355,29 @@ class AppointmentController extends Controller
 
                 'service' =>
                     $appointment->service->name,
+
+                'appointment_type' =>
+                    $appointment->appointment_type,
+
+                'appointment_type_label' =>
+                    $appointment->appointment_type === 'medication_pickup'
+                        ? 'Retirada de medicamento'
+                        : 'Atendimento',
+
+                'medication_name' =>
+                    $appointment->medication_name,
+
+                'medication_quantity' =>
+                    $appointment->medication_quantity,
+
+                'medication_notes' =>
+                    $appointment->medication_notes,
+
+                'pickup_status' =>
+                    $appointment->pickup_status,
+
+                'patient_rgea' =>
+                    $appointment->patient->rgea_number,
 
                 'professional' =>
                     $appointment->professional->name,
