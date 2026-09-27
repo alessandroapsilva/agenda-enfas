@@ -80,6 +80,11 @@ log "Executando suíte de testes"
 "$PHP_BIN" artisan optimize:clear
 "$PHP_BIN" artisan test --display-warnings
 
+log "Executando gates críticos de interface, CEP e lista de espera"
+"$PHP_BIN" artisan test --filter=PremiumVisualSmokeTest
+"$PHP_BIN" artisan test --filter=PremiumCepLookupTest
+"$PHP_BIN" artisan test --filter=PremiumWaitlistFlowTest
+
 log "Validando rotas e views no clone"
 "$PHP_BIN" artisan route:list >/dev/null
 "$PHP_BIN" artisan view:cache
