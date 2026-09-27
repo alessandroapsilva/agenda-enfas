@@ -127,8 +127,17 @@
                         <input name="cpf" class="form-control" value="{{ $patient->cpf }}">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">RGEA</label>
-                        <input name="rgea_number" class="form-control" value="{{ $patient->rgea_number }}" placeholder="Registro Enfermagem Alessandro Silva">
+                        <label class="form-label">
+                            RGEA <span class="text-danger">*</span>
+                        </label>
+                        <input
+                            name="rgea_number"
+                            class="form-control"
+                            value="{{ $patient->rgea_number }}"
+                            placeholder="Informe o RGEA"
+                            required
+                            autocomplete="off">
+                        <div class="form-text">Gerado no sistema de origem. O Agenda ENFAS apenas registra este número.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Nascimento</label>
