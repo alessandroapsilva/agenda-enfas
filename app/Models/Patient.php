@@ -19,6 +19,7 @@ class Patient extends Model
         'contact_consent_source',
         'do_not_contact',
         'cpf',
+        'rgea_number',
         'birth_date',
         'address_line',
         'address_number',
