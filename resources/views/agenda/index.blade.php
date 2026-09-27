@@ -275,7 +275,7 @@
                         <select name="location_id" class="form-select">
                             <option value="">Sem unidade definida</option>
                             @foreach($locations as $location)
-                                <option value="{{ $location->id }}">
+                                <option value="{{ $location->id }}" @selected($location->is_main)>
                                     {{ $location->name }}
                                     @if($location->code) · {{ $location->code }} @endif
                                 </option>
