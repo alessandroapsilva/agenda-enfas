@@ -85,14 +85,6 @@ class WaitlistController extends Controller
             ->where('patient_id', $data['patient_id'])
             ->where('service_id', $data['service_id'])
             ->whereIn('status', ['waiting','offered'])
-            ->when(
-                filled($data['professional_id'] ?? null),
-                fn ($q) => $q->where('professional_id', $data['professional_id'])
-            )
-            ->when(
-                filled($data['location_id'] ?? null),
-                fn ($q) => $q->where('location_id', $data['location_id'])
-            )
             ->exists();
 
         if ($duplicate) {
