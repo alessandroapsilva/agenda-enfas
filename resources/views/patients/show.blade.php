@@ -39,6 +39,7 @@
                     @if($patient->secondary_phone)<div><i class="bi bi-telephone me-2"></i>{{ $patient->secondary_phone }}</div>@endif
                     <div><i class="bi bi-envelope me-2"></i>{{ $patient->email ?: 'Sem e-mail' }}</div>
                     <div><i class="bi bi-person-vcard me-2"></i>{{ $patient->cpf ?: 'CPF não informado' }}</div>
+                    <div><i class="bi bi-upc-scan me-2 text-primary"></i><strong>RGEA:</strong> {{ $patient->rgea_number ?: 'Não informado' }}</div>
                     @if($patient->birth_date)<div><i class="bi bi-cake2 me-2"></i>{{ $patient->birth_date->format('d/m/Y') }}</div>@endif
                 </div>
 
@@ -120,6 +121,10 @@
                     <div class="col-md-6">
                         <label class="form-label">CPF</label>
                         <input name="cpf" class="form-control" value="{{ $patient->cpf }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">RGEA / Matrícula</label>
+                        <input name="rgea_number" class="form-control" value="{{ $patient->rgea_number }}" placeholder="Registro Enfermagem Alessandro Silva">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Nascimento</label>
@@ -209,6 +214,7 @@
                     <thead>
                         <tr>
                             <th>Data</th>
+                            <th>Tipo</th>
                             <th>Serviço</th>
                             <th>Profissional</th>
                             <th>Status</th>
@@ -219,13 +225,20 @@
                     @forelse($patient->appointments as $appointment)
                         <tr>
                             <td>{{ $appointment->start_at->format('d/m/Y H:i') }}</td>
+                            <td>
+                                @if($appointment->appointment_type === 'medication_pickup')
+                                    <span class="badge text-bg-primary">Retirada de medicamento</span>
+                                @else
+                                    <span class="badge text-bg-light border">Atendimento</span>
+                                @endif
+                            </td>
                             <td>{{ $appointment->service?->name }}</td>
                             <td>{{ $appointment->professional?->name }}</td>
                             <td><span class="badge text-bg-{{ $appointment->statusBadge() }}">{{ $appointment->statusLabel() }}</span></td>
                             <td><strong>{{ $appointment->code }}</strong></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center py-5 text-muted">Nenhum agendamento.</td></tr>
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Nenhum agendamento.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
