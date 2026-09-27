@@ -15,7 +15,7 @@
 
 <div class="row g-4">
     <div class="col-xl-4">
-        <div class="card mb-4">
+        <div class="card mb-4 ea-patient-profile">
             <div class="card-body">
                 <div class="d-flex gap-3 align-items-center">
                     <div class="rounded-4 bg-primary-subtle text-primary fw-bold d-grid" style="width:64px;height:64px;place-items:center;font-size:1.35rem;">
@@ -39,7 +39,11 @@
                     @if($patient->secondary_phone)<div><i class="bi bi-telephone me-2"></i>{{ $patient->secondary_phone }}</div>@endif
                     <div><i class="bi bi-envelope me-2"></i>{{ $patient->email ?: 'Sem e-mail' }}</div>
                     <div><i class="bi bi-person-vcard me-2"></i>{{ $patient->cpf ?: 'CPF não informado' }}</div>
-                    <div><i class="bi bi-upc-scan me-2 text-primary"></i><strong>RGEA:</strong> {{ $patient->rgea_number ?: 'Não informado' }}</div>
+                    <div class="ea-patient-rgea">
+                        <i class="bi bi-upc-scan"></i>
+                        <span>RGEA</span>
+                        <strong>{{ $patient->rgea_number ?: 'Não informado' }}</strong>
+                    </div>
                     @if($patient->birth_date)<div><i class="bi bi-cake2 me-2"></i>{{ $patient->birth_date->format('d/m/Y') }}</div>@endif
                 </div>
 
@@ -251,7 +255,7 @@
             </div>
             <div class="card-body">
                 @forelse($patient->messages as $message)
-                    <div class="border rounded-3 p-3 mb-2">
+                    <div class="ea-message-card mb-2">
                         <div class="d-flex justify-content-between gap-3">
                             <strong class="small">{{ $message->direction === 'outbound' ? 'Enviado' : 'Recebido' }}</strong>
                             <span class="badge text-bg-light border">{{ $message->status }}</span>
