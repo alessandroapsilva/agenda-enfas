@@ -43,6 +43,12 @@
         .pj-nps input{display:none}
         .pj-nps span{height:36px;display:grid;place-items:center;border:1px solid #dbe3ee;border-radius:9px;font-weight:700;font-size:.78rem;background:#fff}
         .pj-nps input:checked+span{color:#fff;background:#2563eb;border-color:#2563eb}
+        .pj-slot{cursor:pointer}
+        .pj-slot input{display:none}
+        .pj-slot span{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;border:1px solid #dbe3ee;border-radius:12px;background:#fff;transition:.15s ease}
+        .pj-slot span strong{font-size:.84rem}
+        .pj-slot span small{color:#64748b;font-weight:700}
+        .pj-slot input:checked+span{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
         @media(max-width:780px){.pj-grid{grid-template-columns:1fr}.pj-detail{grid-template-columns:1fr}.pj-hero{padding:23px}.pj-nps{grid-template-columns:repeat(6,1fr)}}
     </style>
 </head>
@@ -208,6 +214,35 @@
                             <a href="{{ route('patient-journey.calendar',$appointment->public_token) }}" class="btn btn-outline-primary">
                                 <i class="bi bi-calendar-plus"></i>Adicionar ao calendário
                             </a>
+
+                            @if($appointment->service?->allow_online_reschedule && count($rescheduleSlots))
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#rescheduleBox">
+                                    <i class="bi bi-arrow-repeat"></i>Reagendar atendimento
+                                </button>
+
+                                <div class="collapse" id="rescheduleBox">
+                                    <form method="POST" action="{{ route('patient-journey.reschedule',$appointment->public_token) }}" class="border rounded-4 p-3 bg-light">
+                                        @csrf
+                                        <div class="pj-label mb-2">Próximos horários disponíveis</div>
+
+                                        <div class="d-grid gap-2 mb-3">
+                                            @foreach($rescheduleSlots as $slot)
+                                                <label class="pj-slot">
+                                                    <input type="radio" name="start_at" value="{{ $slot['start'] }}" required>
+                                                    <span>
+                                                        <strong>{{ CarbonCarbon::parse($slot['start'])->translatedFormat('D, d/m') }}</strong>
+                                                        <small>{{ CarbonCarbon::parse($slot['start'])->format('H:i') }}</small>
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+
+                                        <button class="btn btn-primary w-100">
+                                            <i class="bi bi-check2"></i>Confirmar novo horário
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
 
                             @if($appointment->status === 'confirmed')
                                 @if($appointment->check_in_completed_at)
