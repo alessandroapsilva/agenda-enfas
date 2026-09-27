@@ -243,6 +243,47 @@ class HomeController extends Controller
         $weekStart = now()->copy()->startOfWeek();
         $weekEnd = now()->copy()->endOfWeek();
 
+        $experience = [
+            'responses' => 0,
+            'nps' => null,
+            'stars' => null,
+        ];
+
+        if (
+            Schema::hasTable('appointments')
+            && Schema::hasColumn('appointments', 'satisfaction_score')
+        ) {
+            $experienceBase = DB::table('appointments')
+                ->where('satisfaction_at', '>=', now()->subDays(30));
+
+            $scores = (clone $experienceBase)
+                ->whereNotNull('satisfaction_score')
+                ->pluck('satisfaction_score')
+                ->map(fn ($score) => (int) $score);
+
+            $experience['responses'] = $scores->count();
+
+            if ($scores->isNotEmpty()) {
+                $promoters = $scores->filter(fn ($score) => $score >= 9)->count();
+                $detractors = $scores->filter(fn ($score) => $score <= 6)->count();
+
+                $experience['nps'] = (int) round(
+                    (($promoters / $scores->count()) * 100)
+                    - (($detractors / $scores->count()) * 100)
+                );
+            }
+
+            if (Schema::hasColumn('appointments', 'satisfaction_stars')) {
+                $stars = (clone $experienceBase)
+                    ->whereNotNull('satisfaction_stars')
+                    ->avg('satisfaction_stars');
+
+                $experience['stars'] = $stars !== null
+                    ? round((float) $stars, 1)
+                    : null;
+            }
+        }
+
         $week = [
             'total' => $this->count(
                 'appointments',
@@ -273,7 +314,8 @@ class HomeController extends Controller
                 'alerts',
                 'wa',
                 'inbox',
-                'week'
+                'week',
+                'experience'
             )
         );
     }
