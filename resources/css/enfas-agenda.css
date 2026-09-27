@@ -2409,3 +2409,242 @@ body.enfas-shell,
     border-radius:12px;
     background:#fbfcfe;
 }
+
+
+/* ==========================================================
+   ENFAS DARK MODE — intentional, not inherited accidentally
+   ========================================================== */
+
+[data-bs-theme="dark"] .enfas-shell,
+[data-bs-theme="dark"] .enfas-shell .app-wrapper,
+[data-bs-theme="dark"] .enfas-shell .app-main{
+    color:#e5edf8;
+    background:#0e1522!important;
+}
+
+[data-bs-theme="dark"] .enfas-shell .app-main{
+    background:
+        radial-gradient(circle at 100% 0,rgba(37,99,235,.10),transparent 32rem),
+        #0e1522!important;
+}
+
+[data-bs-theme="dark"] .enfas-shell .app-header{
+    border-bottom-color:#243043!important;
+    background:rgba(15,23,36,.94)!important;
+}
+
+[data-bs-theme="dark"] .enfas-shell .app-header .nav-link{
+    color:#aebbd0;
+}
+
+[data-bs-theme="dark"] .ea-page-title,
+[data-bs-theme="dark"] .enfas-page-title{
+    color:#f4f7fb;
+}
+
+[data-bs-theme="dark"] .ea-page-subtitle,
+[data-bs-theme="dark"] .enfas-page-subtitle{
+    color:#8f9eb3;
+}
+
+[data-bs-theme="dark"] .enfas-shell .card,
+[data-bs-theme="dark"] .enfas-shell .enfas-stat,
+[data-bs-theme="dark"] .v92-side-card,
+[data-bs-theme="dark"] .v92-module,
+[data-bs-theme="dark"] .v92-stat{
+    border-color:#263246!important;
+    background:#151e2d!important;
+    box-shadow:0 12px 30px rgba(0,0,0,.14)!important;
+}
+
+[data-bs-theme="dark"] .enfas-shell .card-header,
+[data-bs-theme="dark"] .enfas-shell .card-footer{
+    border-color:#263246;
+    background:#172130;
+}
+
+[data-bs-theme="dark"] .enfas-shell .card-header h1,
+[data-bs-theme="dark"] .enfas-shell .card-header h2,
+[data-bs-theme="dark"] .enfas-shell .card-header h3,
+[data-bs-theme="dark"] .enfas-shell .card-header h4,
+[data-bs-theme="dark"] .enfas-shell .card-header h5,
+[data-bs-theme="dark"] .enfas-shell .card-header h6,
+[data-bs-theme="dark"] .enfas-shell .card-header strong{
+    color:#edf3fb;
+}
+
+[data-bs-theme="dark"] .enfas-shell .table{
+    color:#d9e2ef;
+}
+
+[data-bs-theme="dark"] .enfas-shell .table thead th{
+    border-color:#29364a;
+    color:#8998ad;
+    background:#111a28;
+}
+
+[data-bs-theme="dark"] .enfas-shell .table tbody td{
+    border-color:#253145;
+    color:#cbd6e5;
+}
+
+[data-bs-theme="dark"] .enfas-shell .table tbody tr:hover{
+    background:#182334;
+}
+
+[data-bs-theme="dark"] .enfas-shell .form-control,
+[data-bs-theme="dark"] .enfas-shell .form-select,
+[data-bs-theme="dark"] .enfas-shell .input-group-text{
+    border-color:#344157;
+    color:#e0e8f4;
+    background:#111a28;
+}
+
+[data-bs-theme="dark"] .enfas-shell .form-control::placeholder{
+    color:#64748b;
+}
+
+[data-bs-theme="dark"] .enfas-shell .form-label,
+[data-bs-theme="dark"] .enfas-shell .form-check-label{
+    color:#aebbd0;
+}
+
+[data-bs-theme="dark"] .enfas-shell .form-text,
+[data-bs-theme="dark"] .text-muted,
+[data-bs-theme="dark"] .text-secondary{
+    color:#7f8da3!important;
+}
+
+[data-bs-theme="dark"] .enfas-shell .btn-light{
+    border-color:#344157;
+    color:#dbe5f2;
+    background:#172130;
+}
+
+[data-bs-theme="dark"] .enfas-shell .btn-outline-secondary{
+    border-color:#3a4659;
+    color:#aebbd0;
+}
+
+[data-bs-theme="dark"] .enfas-shell .modal-content,
+[data-bs-theme="dark"] .enfas-shell .offcanvas{
+    border-color:#2c394d;
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .enfas-shell .modal-header,
+[data-bs-theme="dark"] .enfas-shell .modal-footer{
+    border-color:#29364a;
+    background:#172130;
+}
+
+[data-bs-theme="dark"] .ea-mini-metric,
+[data-bs-theme="dark"] .ea-week-metric,
+[data-bs-theme="dark"] .ea-summary-tile,
+[data-bs-theme="dark"] .ea-message-card{
+    border-color:#2b374a;
+    background:#111a28;
+}
+
+[data-bs-theme="dark"] .ea-mini-metric strong,
+[data-bs-theme="dark"] .ea-week-metric strong,
+[data-bs-theme="dark"] .ea-summary-tile strong{
+    color:#e5edf8;
+}
+
+[data-bs-theme="dark"] .ea-analysis-nav{
+    border-color:#2a364a;
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .ea-analysis-nav a{
+    color:#94a3b8;
+}
+
+[data-bs-theme="dark"] .ea-analysis-nav a:hover{
+    color:#bfdbfe;
+    background:#1d2a3d;
+}
+
+[data-bs-theme="dark"] .ea-gauge::before{
+    background:
+        conic-gradient(
+            from 270deg at 50% 100%,
+            #60a5fa calc(var(--value) * 1.8deg),
+            #29364a 0deg 180deg,
+            transparent 180deg 360deg
+        );
+}
+
+[data-bs-theme="dark"] .ea-gauge::after{
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .ea-gauge-inner strong{
+    color:#e5edf8;
+}
+
+[data-bs-theme="dark"] .ea-unit-context{
+    border-color:#344157;
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .ea-unit-context>i{
+    color:#8ea0b8;
+}
+
+[data-bs-theme="dark"] .ea-unit-context .form-select{
+    color:#dce6f2;
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .ea-registry-pill{
+    border-color:#344157;
+    color:#aabbd2;
+    background:#111a28;
+}
+
+[data-bs-theme="dark"] .ea-avatar{
+    border-color:#29436a;
+    color:#9fc3ff;
+    background:#152b4d;
+}
+
+[data-bs-theme="dark"] .ea-patient-rgea{
+    border-color:#29436a;
+    background:#132641;
+}
+
+[data-bs-theme="dark"] .ea-patient-rgea strong{
+    color:#a9c8ff;
+}
+
+[data-bs-theme="dark"] .enfas-shell .collapse > .border,
+[data-bs-theme="dark"] .enfas-shell .collapse .bg-body-tertiary{
+    border-color:#2b374a!important;
+    background:#111a28!important;
+}
+
+[data-bs-theme="dark"] .enfas-shell .list-group-item{
+    border-color:#283448;
+    color:#d3dce9;
+    background:#151e2d;
+}
+
+[data-bs-theme="dark"] .fc{
+    --fc-page-bg-color:#151e2d;
+    --fc-neutral-bg-color:#111a28;
+    --fc-border-color:#29364a;
+    --fc-today-bg-color:rgba(59,130,246,.09);
+}
+
+[data-bs-theme="dark"] .fc .fc-col-header-cell{
+    color:#91a0b5;
+    background:#111a28;
+}
+
+[data-bs-theme="dark"] .fc .fc-button-primary{
+    border-color:#344157!important;
+    color:#b9c6d8!important;
+    background:#172130!important;
+}
