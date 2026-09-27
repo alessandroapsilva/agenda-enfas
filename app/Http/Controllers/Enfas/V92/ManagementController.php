@@ -146,8 +146,24 @@ class ManagementController extends Controller
 
         $denominator = max(1, $metrics['appointments']);
 
+        $confirmedEver = Schema::hasColumn('appointments', 'confirmed_at')
+            ? (clone $base)->whereNotNull('confirmed_at')->count()
+            : $metrics['confirmed'];
+
+        $responded = Schema::hasColumn('appointments', 'confirmation_status')
+            ? (clone $base)
+                ->whereIn('confirmation_status', ['confirmed','cancelled'])
+                ->count()
+            : ($metrics['confirmed'] + $metrics['cancelled']);
+
+        $presenceOutcomes = $metrics['completed'] + $metrics['no_show'];
+
         $rates = [
-            'confirmation' => round(($metrics['confirmed'] / $denominator) * 100, 1),
+            'response' => round(($responded / $denominator) * 100, 1),
+            'confirmation' => round(($confirmedEver / $denominator) * 100, 1),
+            'presence' => $presenceOutcomes > 0
+                ? round(($metrics['completed'] / $presenceOutcomes) * 100, 1)
+                : 0.0,
             'completion' => round(($metrics['completed'] / $denominator) * 100, 1),
             'cancellation' => round(($metrics['cancelled'] / $denominator) * 100, 1),
             'no_show' => round(($metrics['no_show'] / $denominator) * 100, 1),
@@ -266,7 +282,7 @@ class ManagementController extends Controller
         }
 
         $journey = [
-            'confirmed' => $metrics['confirmed'],
+            'confirmed' => $confirmedEver,
             'checkins' => 0,
             'completed' => $metrics['completed'],
             'responses' => 0,
