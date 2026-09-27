@@ -17,6 +17,7 @@ class Service extends Model
         'required_documents',
         'preparation_instructions',
         'aftercare_instructions',
+        'return_after_days',
         'allow_online_reschedule',
         'allow_recurrence',
         'color',
