@@ -22,6 +22,7 @@ $triggers = [
     'appointment_cancelled' => 'Quando houver cancelamento',
     'appointment_completed' => 'Depois do atendimento',
     'appointment_return_due' => 'Na data prevista de retorno',
+    'medication_pickup_ready' => 'Quando o medicamento estiver pronto',
 ];
 
 $purposes = [
@@ -30,6 +31,8 @@ $purposes = [
     'reschedule' => 'Reagendamento',
     'cancellation' => 'Cancelamento',
     'post_service' => 'Após o atendimento',
+    'return' => 'Lembrete de retorno',
+    'medication_pickup' => 'Retirada de medicamento',
     'general' => 'Mensagem ao paciente',
 ];
 
