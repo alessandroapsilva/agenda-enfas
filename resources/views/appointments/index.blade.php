@@ -45,6 +45,7 @@
                 <th>Código</th>
                 <th>Data</th>
                 <th>Paciente</th>
+                <th>Tipo</th>
                 <th>Serviço</th>
                 <th>Profissional</th>
                 <th>Status</th>
@@ -71,6 +72,14 @@
                     </td>
 
                     <td>
+                        @if($appointment->appointment_type === 'medication_pickup')
+                            <span class="badge text-bg-primary"><i class="bi bi-capsule me-1"></i>Retirada</span>
+                        @else
+                            <span class="badge text-bg-light border">Atendimento</span>
+                        @endif
+                    </td>
+
+                    <td>
                         {{ $appointment->service->name }}
                     </td>
 
@@ -93,7 +102,7 @@
             @empty
 
                 <tr>
-                    <td colspan="6"
+                    <td colspan="7"
                         class="text-center py-5 text-secondary">
 
                         Nenhum agendamento cadastrado.
