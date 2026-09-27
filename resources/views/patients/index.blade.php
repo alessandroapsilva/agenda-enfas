@@ -229,8 +229,19 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">RGEA / Matrícula</label>
-                        <input name="rgea_number" class="form-control" placeholder="Ex.: RGEA-000123">
+                        <label class="form-label">
+                            RGEA <span class="text-danger">*</span>
+                        </label>
+                        <input
+                            name="rgea_number"
+                            class="form-control"
+                            value="{{ old('rgea_number') }}"
+                            required
+                            autocomplete="off"
+                            placeholder="Informe o RGEA">
+                        <div class="form-text">
+                            Identificador gerado no sistema de origem. O Agenda ENFAS não cria RGEA.
+                        </div>
                     </div>
 
                     <div class="col-md-3">
