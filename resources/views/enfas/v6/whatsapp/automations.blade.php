@@ -21,6 +21,7 @@ $triggers = [
     'appointment_rescheduled' => 'Quando houver reagendamento',
     'appointment_cancelled' => 'Quando houver cancelamento',
     'appointment_completed' => 'Depois do atendimento',
+    'appointment_return_due' => 'Na data prevista de retorno',
 ];
 
 $purposes = [
