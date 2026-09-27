@@ -56,6 +56,9 @@ class PatientController extends Controller
 
         $data['name'] = trim($data['name']);
         $data['phone'] = trim($data['phone']);
+        $data['rgea_number'] = filled($data['rgea_number'] ?? null)
+            ? strtoupper(trim($data['rgea_number']))
+            : null;
         $data['is_active'] = true;
 
         if (! empty($data['contact_consent'])) {
@@ -74,6 +77,9 @@ class PatientController extends Controller
 
         $data['name'] = trim($data['name']);
         $data['phone'] = trim($data['phone']);
+        $data['rgea_number'] = filled($data['rgea_number'] ?? null)
+            ? strtoupper(trim($data['rgea_number']))
+            : null;
 
         if (! empty($data['contact_consent']) && ! $patient->contact_consent_at) {
             $data['contact_consent_at'] = now();
