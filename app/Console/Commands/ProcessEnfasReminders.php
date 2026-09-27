@@ -182,12 +182,18 @@ class ProcessEnfasReminders extends Command
                 $now
             ),
 
-            /*
-             * Não usamos updated_at para reagendamento, pois qualquer edição
-             * poderia disparar mensagem indevida. Quando houver evento
-             * rescheduled_at/histórico confiável, este gatilho pode ser ligado.
-             */
-            'appointment_rescheduled' => null,
+            'appointment_rescheduled' => $this->timestampAppointments(
+                clone $base,
+                'rescheduled_at',
+                $since,
+                $now
+            ),
+
+            'appointment_return_due' => $this->returnDueAppointments(
+                clone $base,
+                $since,
+                $now
+            ),
 
             default => null,
         };
@@ -261,6 +267,15 @@ class ProcessEnfasReminders extends Command
         Carbon $since,
         Carbon $now
     ): \Illuminate\Support\Collection {
+        if (Schema::hasColumn('appointments', 'completed_at')) {
+            return $this->timestampAppointments(
+                $query,
+                'completed_at',
+                $since,
+                $now
+            );
+        }
+
         if (Schema::hasColumn('appointments', 'attended_at')) {
             return $this->timestampAppointments(
                 $query,
@@ -270,15 +285,24 @@ class ProcessEnfasReminders extends Command
             );
         }
 
-        $query->where('status', 'completed');
+        return collect();
+    }
 
-        if (Schema::hasColumn('appointments', 'updated_at')) {
-            $query
-                ->where('updated_at', '>', $since)
-                ->where('updated_at', '<=', $now);
+    private function returnDueAppointments(
+        Builder $query,
+        Carbon $since,
+        Carbon $now
+    ): \Illuminate\Support\Collection {
+        if (! Schema::hasColumn('appointments', 'return_due_at')) {
+            return collect();
         }
 
-        return $query->get();
+        return $query
+            ->where('status', 'completed')
+            ->whereNotNull('return_due_at')
+            ->whereDate('return_due_at', '>=', $since->toDateString())
+            ->whereDate('return_due_at', '<=', $now->toDateString())
+            ->get();
     }
 
     private function dedupeKey(
