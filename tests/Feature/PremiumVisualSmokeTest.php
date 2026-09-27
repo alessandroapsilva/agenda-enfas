@@ -23,6 +23,7 @@ class PremiumVisualSmokeTest extends TestCase
             'dashboard',
             'agenda.index',
             'appointments.index',
+            'waitlist.index',
             'patients.index',
             'professionals.index',
             'services.index',
