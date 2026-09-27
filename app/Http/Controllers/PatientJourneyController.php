@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\AppointmentEvent;
+use App\Services\Enfas\AvailabilityService;
 use App\Services\Enfas\WaitlistService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatientJourneyController extends Controller
@@ -19,11 +22,31 @@ class PatientJourneyController extends Controller
             ->firstOrFail();
     }
 
-    public function show(string $token)
+    public function show(string $token, AvailabilityService $availability)
     {
         $appointment = $this->appointment($token);
 
-        return view('patient-journey.show', compact('appointment'));
+        $rescheduleSlots = [];
+
+        if (
+            $appointment->service?->allow_online_reschedule
+            && ! in_array($appointment->status, ['completed','cancelled','no_show'], true)
+        ) {
+            $rescheduleSlots = $availability->nextSlots(
+                $appointment->professional_id,
+                $appointment->service_id,
+                now(),
+                null,
+                8,
+                $appointment->id,
+                30
+            );
+        }
+
+        return view(
+            'patient-journey.show',
+            compact('appointment', 'rescheduleSlots')
+        );
     }
 
 
@@ -98,6 +121,118 @@ class PatientJourneyController extends Controller
         return back()->with('success', 'Agendamento cancelado. Se precisar, você poderá reagendar com nossa equipe.');
     }
 
+    public function reschedule(
+        Request $request,
+        string $token,
+        AvailabilityService $availability
+    ) {
+        $appointment = $this->appointment($token);
+
+        abort_if(
+            ! $appointment->service?->allow_online_reschedule,
+            422,
+            'Este serviço não permite reagendamento online.'
+        );
+
+        abort_if(
+            in_array($appointment->status, ['completed','cancelled','no_show'], true),
+            422,
+            'Este agendamento não pode mais ser reagendado.'
+        );
+
+        $data = $request->validate([
+            'start_at' => ['required','date','after:now'],
+        ]);
+
+        $start = Carbon::parse($data['start_at']);
+        $end = $start->copy()->addMinutes($appointment->duration_minutes);
+
+        if (! $availability->isBookable(
+            $appointment->professional_id,
+            $start,
+            $end,
+            $appointment->id
+        )) {
+            throw ValidationException::withMessages([
+                'start_at' => 'Esse horário acabou de ficar indisponível. Escolha outra opção.',
+            ]);
+        }
+
+        $hold = $availability->hold(
+            $appointment->professional_id,
+            $start,
+            $end,
+            $appointment->id,
+            5
+        );
+
+        try {
+            DB::transaction(function () use ($appointment, $availability, $start, $end, $hold) {
+                $locked = Appointment::query()
+                    ->whereKey($appointment->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if (! $availability->isBookable(
+                    $locked->professional_id,
+                    $start,
+                    $end,
+                    $locked->id
+                )) {
+                    throw ValidationException::withMessages([
+                        'start_at' => 'Esse horário acabou de ficar indisponível. Escolha outra opção.',
+                    ]);
+                }
+
+                $oldStart = $locked->start_at->copy();
+                $oldEnd = $locked->end_at->copy();
+
+                $locked->forceFill([
+                    'start_at' => $start,
+                    'end_at' => $end,
+                    'status' => 'awaiting_confirmation',
+                    'confirmation_status' => 'pending',
+                    'confirmation_channel' => 'patient_journey',
+                    'confirmed_at' => null,
+                    'cancelled_at' => null,
+                ])->save();
+
+                DB::table('slot_reservations')
+                    ->where('id', $hold->id)
+                    ->update([
+                        'status' => 'consumed',
+                        'updated_at' => now(),
+                    ]);
+
+                AppointmentEvent::create([
+                    'appointment_id' => $locked->id,
+                    'event_type' => 'patient_rescheduled',
+                    'title' => 'Reagendamento realizado pelo paciente',
+                    'description' =>
+                        $oldStart->format('d/m/Y H:i').'–'.$oldEnd->format('H:i')
+                        .' → '.$start->format('d/m/Y H:i').'–'.$end->format('H:i'),
+                    'occurred_at' => now(),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            DB::table('slot_reservations')
+                ->where('id', $hold->id)
+                ->where('status', 'held')
+                ->update([
+                    'status' => 'released',
+                    'updated_at' => now(),
+                ]);
+
+            throw $e;
+        }
+
+        return back()->with(
+            'success',
+            'Novo horário reservado. Confirme sua presença para concluir a jornada.'
+        );
+    }
+
+
     public function checkIn(Request $request, string $token)
     {
         $appointment = $this->appointment($token);
@@ -106,6 +241,15 @@ class PatientJourneyController extends Controller
             ! in_array($appointment->status, ['confirmed','awaiting_confirmation'], true),
             422,
             'Este agendamento não permite check-in.'
+        );
+
+        $windowStart = $appointment->start_at->copy()->subMinutes(120);
+        $windowEnd = $appointment->end_at->copy()->addHours(4);
+
+        abort_if(
+            now()->lt($windowStart) || now()->gt($windowEnd),
+            422,
+            'O check-in fica disponível a partir de 2 horas antes do atendimento.'
         );
 
         if (! $appointment->check_in_completed_at) {
@@ -128,6 +272,12 @@ class PatientJourneyController extends Controller
     public function satisfaction(Request $request, string $token)
     {
         $appointment = $this->appointment($token);
+
+        abort_unless(
+            $appointment->status === 'completed',
+            422,
+            'A avaliação fica disponível após a conclusão do atendimento.'
+        );
 
         $data = $request->validate([
             'score' => ['required','integer','between:0,10'],
