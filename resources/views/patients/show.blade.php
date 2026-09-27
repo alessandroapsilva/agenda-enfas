@@ -127,7 +127,7 @@
                         <input name="cpf" class="form-control" value="{{ $patient->cpf }}">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">RGEA / Matrícula</label>
+                        <label class="form-label">RGEA</label>
                         <input name="rgea_number" class="form-control" value="{{ $patient->rgea_number }}" placeholder="Registro Enfermagem Alessandro Silva">
                     </div>
                     <div class="col-md-6">
