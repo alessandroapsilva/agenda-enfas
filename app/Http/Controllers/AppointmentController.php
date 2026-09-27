@@ -176,9 +176,6 @@ class AppointmentController extends Controller
             'medication_name' => $data['medication_name'] ?? null,
             'medication_quantity' => $data['medication_quantity'] ?? null,
             'medication_notes' => $data['medication_notes'] ?? null,
-            'pickup_status' => $data['appointment_type'] === 'medication_pickup'
-                ? 'scheduled'
-                : null,
 
             'notes' => $data['notes'] ?? null,
 
@@ -372,9 +369,6 @@ class AppointmentController extends Controller
 
                 'medication_notes' =>
                     $appointment->medication_notes,
-
-                'pickup_status' =>
-                    $appointment->pickup_status,
 
                 'patient_rgea' =>
                     $appointment->patient->rgea_number,
