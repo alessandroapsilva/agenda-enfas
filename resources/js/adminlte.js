@@ -183,6 +183,112 @@ function initEditors() {
   })
 }
 
+
+
+// --- ENFAS CEP autofill ------------------------------------------------------
+function initCepAutofill() {
+  const fields = document.querySelectorAll('[data-cep-autofill]')
+
+  fields.forEach((cepInput) => {
+    if (cepInput.dataset.cepReady) return
+
+    const form = cepInput.closest('form')
+    if (!form) return
+
+    let timer = null
+    let lastCep = ''
+
+    const status = document.createElement('div')
+    status.className = 'form-text ea-cep-status'
+    cepInput.insertAdjacentElement('afterend', status)
+
+    const setStatus = (message, state = '') => {
+      status.textContent = message
+      status.dataset.state = state
+    }
+
+    const find = (name) => form.querySelector(`[name="${name}"]`)
+
+    const apply = (data) => {
+      const mapping = [
+        ['address_line', data.address],
+        ['address', data.address],
+        ['neighborhood', data.neighborhood],
+        ['city', data.city],
+        ['state', data.state],
+        ['postal_code', data.postal_code],
+      ]
+
+      mapping.forEach(([name, value]) => {
+        const input = find(name)
+        if (input && value) {
+          input.value = value
+          input.dispatchEvent(new Event('change', { bubbles: true }))
+        }
+      })
+
+      const number = find('address_number')
+      if (number) {
+        setTimeout(() => number.focus(), 60)
+      }
+    }
+
+    const lookup = async () => {
+      const cep = String(cepInput.value || '').replace(/\D/g, '')
+
+      if (cep.length !== 8 || cep === lastCep) {
+        if (cep.length > 0 && cep.length !== 8) {
+          setStatus('Digite os 8 números do CEP.', 'warning')
+        }
+        return
+      }
+
+      lastCep = cep
+      setStatus('Consultando CEP…', 'loading')
+      cepInput.classList.add('ea-cep-loading')
+
+      try {
+        const response = await fetch('/cep/' + cep, {
+          headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+        })
+
+        const payload = await response.json()
+
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.message || 'CEP não encontrado.')
+        }
+
+        apply(payload.data || {})
+        setStatus('Endereço preenchido automaticamente.', 'success')
+      } catch (error) {
+        setStatus(error.message || 'Não foi possível consultar o CEP. Preencha manualmente.', 'danger')
+      } finally {
+        cepInput.classList.remove('ea-cep-loading')
+      }
+    }
+
+    cepInput.addEventListener('input', () => {
+      clearTimeout(timer)
+
+      const digits = String(cepInput.value || '').replace(/\D/g, '').slice(0, 8)
+      if (digits.length > 5) {
+        cepInput.value = digits.slice(0, 5) + '-' + digits.slice(5)
+      } else {
+        cepInput.value = digits
+      }
+
+      timer = setTimeout(lookup, 350)
+    })
+
+    cepInput.addEventListener('blur', lookup)
+    cepInput.dataset.cepReady = 'true'
+  })
+}
+
 // --- Sidebar treeview a11y --------------------------------------------------
 // AdminLTE's Treeview toggles .menu-open on the <li>; mirror that state onto
 // the toggle link's aria-expanded so screen readers track open/closed submenus.
@@ -219,5 +325,6 @@ whenReady(() => {
   initTomSelects()
   initDatatables()
   initEditors()
+  initCepAutofill()
   initTreeviewA11y()
 })
