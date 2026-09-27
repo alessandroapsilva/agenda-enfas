@@ -2354,3 +2354,11 @@ body.enfas-shell,
     min-height:44px;
     padding:.35rem;
 }
+
+
+.ea-avatar-sm{
+    width:30px;
+    height:30px;
+    border-radius:9px;
+    font-size:.68rem;
+}
