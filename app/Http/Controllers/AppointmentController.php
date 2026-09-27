@@ -27,6 +27,7 @@ class AppointmentController extends Controller
                 'patient',
                 'professional',
                 'service',
+                'location',
             ])
             ->orderByDesc('start_at')
             ->paginate(40);
