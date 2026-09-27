@@ -45,21 +45,6 @@ return new class extends Migration
                 if (! Schema::hasColumn('appointments', 'medication_notes')) {
                     $table->text('medication_notes')->nullable();
                 }
-                if (! Schema::hasColumn('appointments', 'pickup_status')) {
-                    $table->string('pickup_status', 40)->nullable();
-                }
-                if (! Schema::hasColumn('appointments', 'pickup_ready_at')) {
-                    $table->timestamp('pickup_ready_at')->nullable();
-                }
-                if (! Schema::hasColumn('appointments', 'pickup_collected_at')) {
-                    $table->timestamp('pickup_collected_at')->nullable();
-                }
-                if (! Schema::hasColumn('appointments', 'pickup_collected_by')) {
-                    $table->string('pickup_collected_by', 160)->nullable();
-                }
-                if (! Schema::hasColumn('appointments', 'pickup_collector_document')) {
-                    $table->string('pickup_collector_document', 80)->nullable();
-                }
             });
         }
     }
