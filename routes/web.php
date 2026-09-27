@@ -180,6 +180,7 @@ Route::middleware('auth')->group(function () {
         [CepLookupController::class, 'show']
     )
         ->where('cep', '[0-9-]{8,9}')
+        ->middleware('throttle:30,1')
         ->name('cep.lookup');
 
 
