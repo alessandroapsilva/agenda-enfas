@@ -9,6 +9,7 @@ return [
         'patients.manage' => 'Cadastrar e editar pacientes',
         'professionals.view' => 'Ver profissionais',
         'professionals.manage' => 'Gerenciar profissionais e disponibilidade',
+        'professional.workspace' => 'Acessar painel próprio do profissional',
         'services.view' => 'Ver serviços',
         'services.manage' => 'Gerenciar serviços e orientações',
         'whatsapp.view' => 'Ver central WhatsApp',
@@ -30,7 +31,7 @@ return [
             'reports.view','audit.view',
         ],
         'professional' => [
-            'dashboard.view','agenda.view',
+            'dashboard.view','agenda.view','professional.workspace',
             'patients.view','whatsapp.view',
         ],
         'attendant' => [
