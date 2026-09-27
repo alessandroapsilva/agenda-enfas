@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 
 class MasterDataController extends Controller
 {
@@ -118,6 +119,14 @@ class MasterDataController extends Controller
         $config=$this->config($entity);
         $payload=$this->payload($request,$entity,$config);
 
+        if ($entity === 'locations') {
+            $this->guardLocationCode($payload);
+
+            if (($payload['is_main'] ?? false) === true) {
+                DB::table('locations')->update(['is_main' => false]);
+            }
+        }
+
         if (Schema::hasColumn($entity,'is_active')) {
             $payload['is_active']=true;
         }
@@ -146,6 +155,16 @@ class MasterDataController extends Controller
         abort_unless(DB::table($entity)->where('id',$id)->exists(),404);
 
         $payload=$this->payload($request,$entity,$config);
+
+        if ($entity === 'locations') {
+            $this->guardLocationCode($payload, $id);
+
+            if (($payload['is_main'] ?? false) === true) {
+                DB::table('locations')
+                    ->where('id','!=',$id)
+                    ->update(['is_main' => false]);
+            }
+        }
 
         if (Schema::hasColumn($entity,'updated_at')) {
             $payload['updated_at']=now();
@@ -268,6 +287,28 @@ class MasterDataController extends Controller
             fn($value,$key)=>isset($columns[$key]),
             ARRAY_FILTER_USE_BOTH
         );
+    }
+
+    private function guardLocationCode(array $payload, ?int $ignoreId = null): void
+    {
+        $code = $payload['code'] ?? null;
+
+        if (blank($code)) {
+            return;
+        }
+
+        $query = DB::table('locations')
+            ->where('code', $code);
+
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        if ($query->exists()) {
+            throw ValidationException::withMessages([
+                'code' => 'Já existe uma unidade com este código.',
+            ]);
+        }
     }
 
     private function config(string $entity): array
