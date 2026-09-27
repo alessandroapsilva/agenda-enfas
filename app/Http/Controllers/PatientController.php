@@ -74,12 +74,6 @@ class PatientController extends Controller
 
         $patient = Patient::create($data);
 
-        if (blank($patient->rgea_number)) {
-            $patient->forceFill([
-                'rgea_number' => 'RGEA-'.str_pad((string) $patient->id, 6, '0', STR_PAD_LEFT),
-            ])->save();
-        }
-
         return back()->with(
             'success',
             'Paciente cadastrado com sucesso. RGEA: '.$patient->rgea_number.'.'
@@ -171,7 +165,7 @@ class PatientController extends Controller
                 Rule::unique('patients', 'cpf')->ignore($patient?->id),
             ],
             'rgea_number' => [
-                'nullable',
+                'required',
                 'string',
                 'max:40',
                 Rule::unique('patients', 'rgea_number')->ignore($patient?->id),
