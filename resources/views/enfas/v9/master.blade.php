@@ -75,6 +75,12 @@
                                         name="{{ $name }}"
                                         value="{{ $value }}"
                                         @if($name==='price') step="0.01" @endif
+                                        @if($name==='postal_code')
+                                            inputmode="numeric"
+                                            maxlength="9"
+                                            placeholder="00000-000"
+                                            data-cep-autofill
+                                        @endif
                                         @required($required)>
                                 @endif
                             </div>
