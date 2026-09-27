@@ -154,6 +154,9 @@
             class="modal-content">
 
             @csrf
+            <input type="hidden" name="preferred_contact_channel" value="whatsapp">
+            <input type="hidden" name="contact_consent" value="1">
+            <input type="hidden" name="do_not_contact" value="0">
 
             <div class="modal-header">
 
