@@ -263,6 +263,39 @@
                 </div>
 
 
+                <hr class="my-4">
+
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-1">Tipo de agendamento</h6>
+                    <small class="text-secondary">Use retirada de medicamento quando o paciente vier apenas buscar medicação.</small>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tipo</label>
+                        <select name="appointment_type" id="appointmentType" class="form-select" required>
+                            <option value="care">Atendimento</option>
+                            <option value="medication_pickup">Retirada de medicamento</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="medicationPickupFields" class="row g-3 mt-1 d-none">
+                    <div class="col-md-7">
+                        <label class="form-label">Medicamento</label>
+                        <input name="medication_name" id="medicationName" class="form-control" maxlength="255" placeholder="Nome do medicamento">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Quantidade / apresentação</label>
+                        <input name="medication_quantity" id="medicationQuantity" class="form-control" maxlength="120" placeholder="Ex.: 2 caixas">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Orientações administrativas da retirada</label>
+                        <textarea name="medication_notes" class="form-control" rows="3" placeholder="Informações de separação, retirada ou identificação. Não substitui orientação clínica."></textarea>
+                    </div>
+                </div>
+
+
                 @if($customFields->isNotEmpty())
 
                     <hr class="my-4">
@@ -781,6 +814,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.currentAppointmentId = null;
     window.currentAppointmentData = null;
+
+    const appointmentType = document.getElementById('appointmentType');
+    const medicationPickupFields = document.getElementById('medicationPickupFields');
+    const medicationName = document.getElementById('medicationName');
+    const medicationQuantity = document.getElementById('medicationQuantity');
+
+    const syncAppointmentType = () => {
+        const isPickup = appointmentType?.value === 'medication_pickup';
+        medicationPickupFields?.classList.toggle('d-none', ! isPickup);
+
+        if (medicationName) medicationName.required = isPickup;
+        if (medicationQuantity) medicationQuantity.required = isPickup;
+    };
+
+    appointmentType?.addEventListener('change', syncAppointmentType);
+    syncAppointmentType();
 
 
     const calendar = new FullCalendar.Calendar(
