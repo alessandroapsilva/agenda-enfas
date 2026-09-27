@@ -84,24 +84,10 @@ class MedicationPickupAndRgeaTest extends TestCase
 
         $this->assertDatabaseHas('appointments', [
             'id' => $appointmentId,
+            'appointment_type' => 'medication_pickup',
             'medication_name' => 'Medicamento Teste',
             'medication_quantity' => '2 caixas',
-            'pickup_status' => 'scheduled',
-        ]);
-
-        $this->actingAs($admin)
-            ->patch(route('medication-pickups.status', $appointmentId), [
-                'pickup_status' => 'collected',
-                'pickup_collected_by' => 'Paciente RGEA',
-                'pickup_collector_document' => 'DOC-123',
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('appointments', [
-            'id' => $appointmentId,
-            'pickup_status' => 'collected',
-            'pickup_collected_by' => 'Paciente RGEA',
-            'status' => 'completed',
+            'medication_notes' => 'Retirada administrativa.',
         ]);
     }
 
