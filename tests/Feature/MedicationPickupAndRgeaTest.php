@@ -91,10 +91,10 @@ class MedicationPickupAndRgeaTest extends TestCase
         ]);
     }
 
-    public function test_rgea_is_generated_when_registration_is_blank(): void
+    public function test_rgea_is_required_and_never_generated_by_agenda(): void
     {
         $admin = User::factory()->create([
-            'username' => 'admin.rgea.auto',
+            'username' => 'admin.rgea.manual',
             'role' => 'admin',
             'is_active' => true,
             'force_password_change' => false,
@@ -102,23 +102,17 @@ class MedicationPickupAndRgeaTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('patients.store'), [
-                'name' => 'Paciente Automático',
+                'name' => 'Paciente Sem RGEA',
                 'phone' => '11999999993',
                 'preferred_contact_channel' => 'whatsapp',
                 'contact_consent' => 1,
                 'do_not_contact' => 0,
             ])
-            ->assertRedirect();
+            ->assertSessionHasErrors('rgea_number');
 
-        $patient = DB::table('patients')
-            ->where('name', 'Paciente Automático')
-            ->first();
-
-        $this->assertNotNull($patient);
-        $this->assertSame(
-            'RGEA-'.str_pad((string) $patient->id, 6, '0', STR_PAD_LEFT),
-            $patient->rgea_number
-        );
+        $this->assertDatabaseMissing('patients', [
+            'name' => 'Paciente Sem RGEA',
+        ]);
     }
 
     public function test_rgea_must_be_unique(): void
