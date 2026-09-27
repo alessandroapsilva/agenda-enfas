@@ -6,6 +6,18 @@
 @section('page_subtitle','Agenda, confirmações e atendimento em uma única experiência.')
 
 @section('page_actions')
+<form method="GET" class="ea-unit-context">
+    <i class="bi bi-buildings"></i>
+    <select name="location_id" class="form-select" onchange="this.form.submit()">
+        <option value="">Todas as unidades</option>
+        @foreach($locations as $location)
+            <option value="{{ $location->id }}" @selected((int)$locationId === (int)$location->id)>
+                {{ $location->name }}
+            </option>
+        @endforeach
+    </select>
+</form>
+
 <a href="{{ route('enfas.whatsapp') }}" class="btn btn-light border">
     <i class="bi bi-headset"></i>
     Central WhatsApp
