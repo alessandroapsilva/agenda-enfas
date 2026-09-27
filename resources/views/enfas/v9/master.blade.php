@@ -22,7 +22,7 @@
 
 <div class="row g-4">
     <div class="col-xl-4">
-        <div class="card v9-card sticky-xl-top" style="top:1rem">
+        <div class="card v9-card ea-form-card sticky-xl-top" style="top:1rem">
             <div class="card-header border-0">
                 <strong>
                     {{ $editing ? 'Editar '.$config['singular'] : 'Novo '.$config['singular'] }}
@@ -101,7 +101,7 @@
     </div>
 
     <div class="col-xl-8">
-        <div class="card v9-card">
+        <div class="card v9-card ea-registry-card">
             <div class="card-header border-0">
                 <form
                     method="GET"
