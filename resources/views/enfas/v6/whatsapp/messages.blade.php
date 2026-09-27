@@ -6,7 +6,7 @@
 @if(session('success'))<div class="alert alert-success">{{session('success')}}</div>@endif
 @if($errors->any())<div class="alert alert-danger">{{$errors->first()}}</div>@endif
 <div class="card mb-3"><div class="card-header"><strong>Envio manual</strong></div><form class="card-body" method="POST" action="{{url('/whatsapp/mensagens/enviar')}}">@csrf
-<div class="row g-3"><div class="col-md-7"><label class="form-label">Agendamento</label><select class="form-select" name="appointment_id" required><option value="">Selecione...</option>@foreach($appointments as $a)<option value="{{$a->id}}">{{$a->code}} · {{$a->patient_name}} · {{\Carbon\Carbon::parse($a->start_at)->format('d/m/Y H:i')}}</option>@endforeach</select></div><div class="col-md-5"><label class="form-label">Template aprovado</label><select class="form-select" name="template_id" required><option value="">Selecione...</option>@foreach($templates as $t)<option value="{{$t->id}}">{{$t->name}}</option>@endforeach</select></div></div>
+<div class="row g-3"><div class="col-md-7"><label class="form-label">Agendamento</label><select class="form-select" name="appointment_id" required><option value="">Selecione...</option>@foreach($appointments as $a)<option value="{{$a->id}}">{{$a->code}} · {{$a->patient_name}} · {{\Illuminate\Support\Carbon::parse($a->start_at)->format('d/m/Y H:i')}}</option>@endforeach</select></div><div class="col-md-5"><label class="form-label">Template aprovado</label><select class="form-select" name="template_id" required><option value="">Selecione...</option>@foreach($templates as $t)<option value="{{$t->id}}">{{$t->name}}</option>@endforeach</select></div></div>
 <button class="btn btn-success mt-3"><i class="bi bi-whatsapp me-1"></i>Enviar</button>
 </form></div>
 
