@@ -2270,3 +2270,87 @@ body.enfas-shell,
         min-width:0;
     }
 }
+
+
+/* Entity / management cards */
+.ea-entity-card{
+    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+
+.ea-entity-card:hover{
+    transform:translateY(-1px);
+    border-color:#d5dfec!important;
+    box-shadow:0 16px 40px rgba(15,23,42,.07)!important;
+}
+
+.ea-summary-tile{
+    min-height:76px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.85rem 1rem;
+    border:1px solid #e5eaf1;
+    border-radius:12px;
+    background:#f9fbfd;
+}
+
+.ea-summary-tile small{
+    color:#8591a2!important;
+    font-size:.69rem;
+    font-weight:700;
+}
+
+.ea-summary-tile strong{
+    margin-top:.18rem;
+    color:#223049;
+    font-size:.92rem;
+}
+
+.ea-form-card{
+    position:relative;
+}
+
+.ea-form-card>.card-header{
+    background:linear-gradient(180deg,#fff,#f9fbfe);
+}
+
+.ea-registry-card>.card-header{
+    background:#fbfcfe;
+}
+
+.ea-team-card>.card-body,
+.ea-team-card>.card-body.p-0{
+    background:#fff;
+}
+
+.ea-team-card .border-bottom:last-child{
+    border-bottom:0!important;
+}
+
+.ea-team-card [data-bs-toggle="collapse"]{
+    white-space:nowrap;
+}
+
+.enfas-shell .form-check-input{
+    border-color:#cbd5e1;
+}
+
+.enfas-shell .form-check-input:checked{
+    border-color:#2563eb;
+    background-color:#2563eb;
+}
+
+.enfas-shell .form-check-label{
+    color:#4e5b6e;
+    font-size:.8rem;
+}
+
+.enfas-shell .form-switch .form-check-input{
+    width:2.3em;
+    height:1.2em;
+}
+
+.enfas-shell input[type="color"].form-control{
+    min-height:44px;
+    padding:.35rem;
+}
