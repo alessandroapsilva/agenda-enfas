@@ -74,6 +74,11 @@ Route::middleware('throttle:60,1')->group(function () {
     )->name('patient-journey.cancel');
 
     Route::post(
+        '/jornada/{token}/reagendar',
+        [PatientJourneyController::class, 'reschedule']
+    )->name('patient-journey.reschedule');
+
+    Route::post(
         '/jornada/{token}/check-in',
         [PatientJourneyController::class, 'checkIn']
     )->name('patient-journey.check-in');
