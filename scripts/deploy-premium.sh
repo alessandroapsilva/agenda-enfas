@@ -25,23 +25,21 @@ run_as_app() {
 }
 
 database_guard() {
-  local configured actual
+  local actual
 
   cd "$APP_DIR"
 
-  configured="$(
-    run_as_app "$PHP_BIN" artisan tinker --execute='echo (string) config("database.connections.".config("database.default").".database");' 2>/dev/null
-  )"
+  [[ -f scripts/database-guard.php ]] \
+    || fail "Verificador de banco não encontrado em scripts/database-guard.php"
 
-  actual="$(
-    run_as_app "$PHP_BIN" artisan tinker --execute='echo (string) (Illuminate\\Support\\Facades\\DB::selectOne("SELECT DATABASE() AS db")->db ?? "");' 2>/dev/null
-  )"
+  if ! actual="$(run_as_app "$PHP_BIN" scripts/database-guard.php "$EXPECTED_DB")"; then
+    fail "Falha na validação do banco de produção."
+  fi
 
-  configured="$(printf '%s' "$configured" | tail -n1 | tr -d '\r\n[:space:]')"
   actual="$(printf '%s' "$actual" | tail -n1 | tr -d '\r\n[:space:]')"
 
-  [[ "$configured" == "$EXPECTED_DB" ]] || fail "DB configurado inesperado: '${configured:-vazio}'. Esperado: $EXPECTED_DB"
-  [[ "$actual" == "$EXPECTED_DB" ]] || fail "SELECT DATABASE() retornou '${actual:-vazio}'. Esperado: $EXPECTED_DB"
+  [[ "$actual" == "$EXPECTED_DB" ]] \
+    || fail "Verificador retornou '${actual:-vazio}'. Esperado: $EXPECTED_DB"
 
   log "Banco validado: $EXPECTED_DB"
 }
