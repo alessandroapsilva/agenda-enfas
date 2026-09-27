@@ -247,6 +247,56 @@
                     </div>
 
                     <div class="col-12">
+                        <div class="ea-form-section">
+                            <div>
+                                <strong>Endereço</strong>
+                                <span>Digite o CEP para preencher automaticamente.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">CEP</label>
+                        <input
+                            name="postal_code"
+                            class="form-control"
+                            inputmode="numeric"
+                            maxlength="9"
+                            data-cep-autofill
+                            placeholder="00000-000">
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Logradouro</label>
+                        <input name="address_line" class="form-control" placeholder="Rua, avenida...">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Número</label>
+                        <input name="address_number" class="form-control" placeholder="Número">
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label">Complemento</label>
+                        <input name="address_complement" class="form-control" placeholder="Apto, bloco, referência...">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Bairro</label>
+                        <input name="neighborhood" class="form-control" placeholder="Bairro">
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Cidade</label>
+                        <input name="city" class="form-control" placeholder="Cidade">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">UF</label>
+                        <input name="state" maxlength="2" class="form-control text-uppercase" placeholder="UF">
+                    </div>
+
+                    <div class="col-12">
 
                         <label class="form-label">
                             Observações
