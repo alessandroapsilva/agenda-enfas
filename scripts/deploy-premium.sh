@@ -26,13 +26,12 @@ run_as_app() {
 
 database_guard() {
   local actual
+  local guard="$RELEASE_DIR/scripts/database-guard.php"
 
-  cd "$APP_DIR"
+  [[ -f "$guard" ]] \
+    || fail "Verificador de banco não encontrado no clone premium: $guard"
 
-  [[ -f scripts/database-guard.php ]] \
-    || fail "Verificador de banco não encontrado em scripts/database-guard.php"
-
-  if ! actual="$(run_as_app "$PHP_BIN" scripts/database-guard.php "$EXPECTED_DB")"; then
+  if ! actual="$(run_as_app "$PHP_BIN" "$guard" "$APP_DIR" "$EXPECTED_DB")"; then
     fail "Falha na validação do banco de produção."
   fi
 
