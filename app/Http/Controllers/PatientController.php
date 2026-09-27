@@ -66,9 +66,18 @@ class PatientController extends Controller
             $data['contact_consent_source'] = 'internal_registration';
         }
 
-        Patient::create($data);
+        $patient = Patient::create($data);
 
-        return back()->with('success', 'Paciente cadastrado com sucesso.');
+        if (blank($patient->rgea_number)) {
+            $patient->forceFill([
+                'rgea_number' => 'RGEA-'.str_pad((string) $patient->id, 6, '0', STR_PAD_LEFT),
+            ])->save();
+        }
+
+        return back()->with(
+            'success',
+            'Paciente cadastrado com sucesso. RGEA: '.$patient->rgea_number.'.'
+        );
     }
 
     public function update(Request $request, Patient $patient)
@@ -79,7 +88,7 @@ class PatientController extends Controller
         $data['phone'] = trim($data['phone']);
         $data['rgea_number'] = filled($data['rgea_number'] ?? null)
             ? strtoupper(trim($data['rgea_number']))
-            : null;
+            : $patient->rgea_number;
 
         if (! empty($data['contact_consent']) && ! $patient->contact_consent_at) {
             $data['contact_consent_at'] = now();
