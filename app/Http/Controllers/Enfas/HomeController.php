@@ -72,6 +72,12 @@ class HomeController extends Controller
                     )
             ),
             'patients' => $this->count('patients'),
+            'pickup_ready' => $this->count(
+                'appointments',
+                fn ($q) => $q
+                    ->where('appointment_type', 'medication_pickup')
+                    ->where('pickup_status', 'ready')
+            ),
             'professionals' => $this->count(
                 'professionals',
                 fn ($q) => $q->where('is_active', true)
