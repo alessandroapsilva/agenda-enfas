@@ -180,21 +180,6 @@
                             <div class="pj-note mt-3">{{ $appointment->medication_notes }}</div>
                         @endif
 
-                        @php
-                            $pickupLabels = [
-                                'scheduled' => 'Agendada',
-                                'preparing' => 'Em separação',
-                                'ready' => 'Pronta para retirada',
-                                'collected' => 'Retirada concluída',
-                                'not_collected' => 'Não retirada',
-                                'cancelled' => 'Cancelada',
-                            ];
-                        @endphp
-
-                        <div class="pj-note mt-3">
-                            <strong>Status da retirada:</strong>
-                            {{ $pickupLabels[$appointment->pickup_status] ?? 'Em acompanhamento' }}
-                        </div>
                     </div>
                 </section>
             @endif
