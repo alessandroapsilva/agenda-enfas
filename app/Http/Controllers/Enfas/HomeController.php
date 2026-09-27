@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Enfas;
 
 use App\Http\Controllers\Controller;
 use App\Models\MetaIntegration;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,7 +25,7 @@ class HomeController extends Controller
         return $query->count();
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -39,37 +40,52 @@ class HomeController extends Controller
         $start = now()->startOfDay();
         $end = now()->endOfDay();
 
+        $locations = Schema::hasTable('locations')
+            ? DB::table('locations')
+                ->where('is_active', true)
+                ->orderByDesc('is_main')
+                ->orderBy('name')
+                ->get(['id','name','code','is_main'])
+            : collect();
+
+        $locationId = $request->integer('location_id') ?: null;
+
+        if ($locationId && ! $locations->contains('id', $locationId)) {
+            $locationId = null;
+        }
+
+        $scopeLocation = function ($query) use ($locationId) {
+            if (
+                $locationId
+                && Schema::hasColumn('appointments', 'location_id')
+            ) {
+                $query->where('location_id', $locationId);
+            }
+        };
+
         $metrics = [
             'today' => $this->count(
                 'appointments',
-                fn ($q) => $q->whereBetween(
-                    'start_at',
-                    [$start, $end]
-                )
+                function ($q) use ($start, $end, $scopeLocation) {
+                    $q->whereBetween('start_at', [$start, $end]);
+                    $scopeLocation($q);
+                }
             ),
             'confirmed' => $this->count(
                 'appointments',
-                fn ($q) => $q
-                    ->whereBetween(
-                        'start_at',
-                        [$start, $end]
-                    )
-                    ->where('status', 'confirmed')
+                function ($q) use ($start, $end, $scopeLocation) {
+                    $q->whereBetween('start_at', [$start, $end])
+                        ->where('status', 'confirmed');
+                    $scopeLocation($q);
+                }
             ),
             'awaiting' => $this->count(
                 'appointments',
-                fn ($q) => $q
-                    ->whereBetween(
-                        'start_at',
-                        [$start, $end]
-                    )
-                    ->whereIn(
-                        'status',
-                        [
-                            'scheduled',
-                            'awaiting_confirmation',
-                        ]
-                    )
+                function ($q) use ($start, $end, $scopeLocation) {
+                    $q->whereBetween('start_at', [$start, $end])
+                        ->whereIn('status', ['scheduled','awaiting_confirmation']);
+                    $scopeLocation($q);
+                }
             ),
             'patients' => $this->count('patients'),
             'professionals' => $this->count(
@@ -137,6 +153,13 @@ class HomeController extends Controller
                     'location_id'
                 )) {
                 $columns[] = 'locations.name as location_name';
+            }
+
+            if (
+                $locationId
+                && Schema::hasColumn('appointments', 'location_id')
+            ) {
+                $query->where('appointments.location_id', $locationId);
             }
 
             $appointments = $query
@@ -256,6 +279,8 @@ class HomeController extends Controller
             $experienceBase = DB::table('appointments')
                 ->where('satisfaction_at', '>=', now()->subDays(30));
 
+            $scopeLocation($experienceBase);
+
             $scores = (clone $experienceBase)
                 ->whereNotNull('satisfaction_score')
                 ->pluck('satisfaction_score')
@@ -287,22 +312,34 @@ class HomeController extends Controller
         $week = [
             'total' => $this->count(
                 'appointments',
-                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                function ($q) use ($weekStart, $weekEnd, $scopeLocation) {
+                    $q->whereBetween('start_at', [$weekStart, $weekEnd]);
+                    $scopeLocation($q);
+                }
             ),
             'confirmed' => $this->count(
                 'appointments',
-                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
-                    ->where('status', 'confirmed')
+                function ($q) use ($weekStart, $weekEnd, $scopeLocation) {
+                    $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                        ->where('status', 'confirmed');
+                    $scopeLocation($q);
+                }
             ),
             'cancelled' => $this->count(
                 'appointments',
-                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
-                    ->where('status', 'cancelled')
+                function ($q) use ($weekStart, $weekEnd, $scopeLocation) {
+                    $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                        ->where('status', 'cancelled');
+                    $scopeLocation($q);
+                }
             ),
             'no_show' => $this->count(
                 'appointments',
-                fn ($q) => $q->whereBetween('start_at', [$weekStart, $weekEnd])
-                    ->where('status', 'no_show')
+                function ($q) use ($weekStart, $weekEnd, $scopeLocation) {
+                    $q->whereBetween('start_at', [$weekStart, $weekEnd])
+                        ->where('status', 'no_show');
+                    $scopeLocation($q);
+                }
             ),
         ];
 
@@ -315,7 +352,9 @@ class HomeController extends Controller
                 'wa',
                 'inbox',
                 'week',
-                'experience'
+                'experience',
+                'locations',
+                'locationId'
             )
         );
     }
