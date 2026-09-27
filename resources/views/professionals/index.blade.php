@@ -202,7 +202,7 @@
                                     <div class="border rounded-3 p-3 mb-2 d-flex justify-content-between gap-3">
                                         <div>
                                             <strong>{{ $block->title ?: ucfirst($block->type) }}</strong>
-                                            <div class="text-muted small">{{ CarbonCarbon::parse($block->starts_at)->format('d/m/Y H:i') }} → {{ CarbonCarbon::parse($block->ends_at)->format('d/m/Y H:i') }}</div>
+                                            <div class="text-muted small">{{ \Carbon\Carbon::parse($block->starts_at)->format('d/m/Y H:i') }} → {{ \Carbon\Carbon::parse($block->ends_at)->format('d/m/Y H:i') }}</div>
                                             @if($block->reason)<div class="small mt-1">{{ $block->reason }}</div>@endif
                                         </div>
                                         <form method="POST" action="{{ route('professionals.blocks.destroy',[$professional,$block->id]) }}">
