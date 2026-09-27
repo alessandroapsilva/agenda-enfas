@@ -33,6 +33,10 @@ class WaitlistService
                 $q->whereNull('professional_id')
                     ->orWhere('professional_id', $appointment->professional_id);
             })
+            ->where(function ($q) use ($appointment) {
+                $q->whereNull('location_id')
+                    ->orWhere('location_id', $appointment->location_id);
+            })
             ->where(function ($q) use ($start) {
                 $q->whereNull('earliest_date')
                     ->orWhereDate('earliest_date', '<=', $start->toDateString());
@@ -64,6 +68,7 @@ class WaitlistService
 
         $candidate->update([
             'professional_id' => $appointment->professional_id,
+            'location_id' => $candidate->location_id ?: $appointment->location_id,
             'status' => 'offered',
             'offered_start_at' => $start,
             'offered_end_at' => $end,
@@ -129,14 +134,19 @@ class WaitlistService
             $start = $entry->offered_start_at->copy();
             $end = $entry->offered_end_at->copy();
 
-            if (! $this->availability->isAvailable($professionalId, $start, $end)) {
-                throw new RuntimeException('Esse horário acabou de ser ocupado.');
-            }
+            $hold = $this->availability->hold(
+                $professionalId,
+                $start,
+                $end,
+                null,
+                2
+            );
 
             $appointment = Appointment::create([
                 'patient_id' => $entry->patient_id,
                 'professional_id' => $professionalId,
                 'service_id' => $entry->service_id,
+                'location_id' => $entry->location_id,
                 'start_at' => $start,
                 'end_at' => $end,
                 'duration_minutes' => $start->diffInMinutes($end),
@@ -146,6 +156,14 @@ class WaitlistService
                 'confirmed_at' => now(),
                 'source' => 'waitlist',
             ]);
+
+            DB::table('slot_reservations')
+                ->where('id', $hold->id)
+                ->update([
+                    'status' => 'consumed',
+                    'appointment_id' => $appointment->id,
+                    'updated_at' => now(),
+                ]);
 
             $entry->update([
                 'status' => 'accepted',
