@@ -230,8 +230,8 @@
                                                 <label class="pj-slot">
                                                     <input type="radio" name="start_at" value="{{ $slot['start'] }}" required>
                                                     <span>
-                                                        <strong>{{ CarbonCarbon::parse($slot['start'])->translatedFormat('D, d/m') }}</strong>
-                                                        <small>{{ CarbonCarbon::parse($slot['start'])->format('H:i') }}</small>
+                                                        <strong>{{ \Carbon\Carbon::parse($slot['start'])->translatedFormat('D, d/m') }}</strong>
+                                                        <small>{{ \Carbon\Carbon::parse($slot['start'])->format('H:i') }}</small>
                                                     </span>
                                                 </label>
                                             @endforeach
