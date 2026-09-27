@@ -35,11 +35,6 @@ class Appointment extends Model
         'medication_name',
         'medication_quantity',
         'medication_notes',
-        'pickup_status',
-        'pickup_ready_at',
-        'pickup_collected_at',
-        'pickup_collected_by',
-        'pickup_collector_document',
         'notes',
         'whatsapp_message_id',
         'check_in_completed_at',
@@ -65,8 +60,6 @@ class Appointment extends Model
             'check_in_completed_at' => 'datetime',
             'satisfaction_at' => 'datetime',
             'return_due_at' => 'date',
-            'pickup_ready_at' => 'datetime',
-            'pickup_collected_at' => 'datetime',
         ];
     }
 
