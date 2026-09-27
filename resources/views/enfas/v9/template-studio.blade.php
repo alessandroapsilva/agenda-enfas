@@ -282,6 +282,8 @@
                             'reschedule'=>'Reagendamento',
                             'cancellation'=>'Cancelamento',
                             'post_service'=>'Pós-atendimento',
+                            'return'=>'Retorno',
+                            'medication_pickup'=>'Retirada de medicamento',
                             'general'=>'Geral',
                         ] as $value=>$label)
                             <option
@@ -374,6 +376,12 @@
                     <small class="text-secondary">
                         Você pode editar o texto livremente. Variáveis aceitas ficam no formato {{ '{' }}{1}{{ '}' }}, {{ '{' }}{2}{{ '}' }}, etc.
                     </small>
+                    <div class="small text-secondary mt-2">
+                        Chaves disponíveis: <code>paciente_nome</code>, <code>data</code>, <code>hora</code>,
+                        <code>profissional</code>, <code>servico</code>, <code>codigo_agendamento</code>,
+                        <code>local</code>, <code>rgea</code>, <code>medicamento</code>,
+                        <code>quantidade_medicamento</code>, <code>retorno_data</code> e <code>jornada_url</code>.
+                    </div>
                 </div>
 
                 <div class="col-md-6">
@@ -382,7 +390,7 @@
                         class="form-control"
                         name="variable_keys_text"
                         value="{{ $edit ? implode(',',$edit->variable_keys??[]) : '' }}"
-                        placeholder="paciente_nome,servico,data,hora,profissional">
+                        placeholder="paciente_nome,servico,data,hora,profissional,jornada_url">
                 </div>
 
                 <div class="col-md-6">
