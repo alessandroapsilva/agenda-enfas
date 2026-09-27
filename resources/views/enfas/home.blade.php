@@ -182,6 +182,60 @@
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <strong class="d-block">Experiência do paciente</strong>
+                <span class="small text-secondary">Satisfação registrada nos últimos 30 dias</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="ea-week-metric">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <span>NPS</span>
+                            <strong>{{ $experience['nps'] === null ? '—' : $experience['nps'] }}</strong>
+                            <small>recomendação do atendimento</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="ea-week-metric">
+                            <i class="bi bi-star-fill"></i>
+                            <span>Estrelas</span>
+                            <strong>{{ $experience['stars'] === null ? '—' : number_format($experience['stars'],1,',','.') }}</strong>
+                            <small>média de 1 a 5</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="ea-week-metric">
+                            <i class="bi bi-chat-square-heart"></i>
+                            <span>Respostas</span>
+                            <strong>{{ $experience['responses'] }}</strong>
+                            <small>avaliações recebidas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <strong class="d-block">Acesso rápido</strong>
+                <span class="small text-secondary">Cadastros essenciais</span>
+            </div>
+            <div class="card-body v92-quick-list">
+                <a href="{{ route('patients.index') }}"><i class="bi bi-people"></i>Pacientes e RGEA</a>
+                <a href="{{ route('v9.locations.index') }}"><i class="bi bi-buildings"></i>Unidades</a>
+                <a href="{{ route('services.index') }}"><i class="bi bi-grid"></i>Serviços</a>
+                <a href="{{ route('v92.reports') }}"><i class="bi bi-bar-chart"></i>Relatórios</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="card">
