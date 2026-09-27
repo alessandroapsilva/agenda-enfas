@@ -32,24 +32,30 @@
 
 @section('content')
 
-<section class="v92-hero mb-4">
+<div class="ea-dashboard-context mb-4">
     <div>
-        <span class="v92-eyebrow">ENFAS AGENDA · {{ now()->translatedFormat('d/m/Y') }}</span>
-        <h2>Operação clínica sem ruído.</h2>
-        <p>
-            Acompanhe a agenda do dia, confirmações, conversas e indicadores
-            com acesso rápido aos pontos que exigem atenção.
-        </p>
+        <span class="ea-dashboard-date">{{ now()->translatedFormat('l, d \d\e F') }}</span>
+        <strong>Operação do dia</strong>
+        <small>
+            @if($locationId)
+                {{ optional($locations->firstWhere('id',$locationId))->name }}
+            @else
+                Todas as unidades
+            @endif
+        </small>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a href="{{ url('/agenda') }}" class="btn btn-light btn-lg">
-            <i class="bi bi-calendar3"></i>Abrir agenda
+        <a href="{{ route('agenda.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-calendar3 me-1"></i>Agenda
         </a>
-        <a href="{{ route('waitlist.index') }}" class="btn btn-outline-light btn-lg">
-            <i class="bi bi-hourglass-split"></i>Lista de espera
+        <a href="{{ route('waitlist.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-hourglass-split me-1"></i>Lista de espera
+        </a>
+        <a href="{{ route('v92.reports') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-bar-chart me-1"></i>Relatórios
         </a>
     </div>
-</section>
+</div>
 
 <div class="row g-3 mb-4">
     @foreach([
@@ -239,7 +245,7 @@
                 <span class="small text-secondary">Cadastros essenciais</span>
             </div>
             <div class="card-body v92-quick-list">
-                <a href="{{ route('patients.index') }}"><i class="bi bi-people"></i>Pacientes e RGEA</a>
+                <a href="{{ route('patients.index') }}"><i class="bi bi-people"></i>Pacientes</a>
                 <a href="{{ route('v9.locations.index') }}"><i class="bi bi-buildings"></i>Unidades</a>
                 <a href="{{ route('services.index') }}"><i class="bi bi-grid"></i>Serviços</a>
                 <a href="{{ route('v92.reports') }}"><i class="bi bi-bar-chart"></i>Relatórios</a>
