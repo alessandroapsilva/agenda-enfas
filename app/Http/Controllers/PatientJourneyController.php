@@ -327,6 +327,12 @@ class PatientJourneyController extends Controller
             'Atendimento com '.($appointment->professional?->name ?: 'profissional ENFAS')
         );
 
+        $location = $escape(
+            $appointment->location
+                ? trim($appointment->location->name.' · '.$appointment->location->fullAddress(), ' ·')
+                : ''
+        );
+
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
@@ -340,6 +346,7 @@ class PatientJourneyController extends Controller
             'DTEND:'.$end,
             'SUMMARY:'.$summary,
             'DESCRIPTION:'.$description,
+            ...($location !== '' ? ['LOCATION:'.$location] : []),
             'END:VEVENT',
             'END:VCALENDAR',
             '',
