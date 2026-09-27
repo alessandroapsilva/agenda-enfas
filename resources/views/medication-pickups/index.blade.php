@@ -47,7 +47,8 @@
             <span class="small text-secondary">Prioridade para retiradas ainda em andamento.</span>
         </div>
 
-        <form method="GET" class="d-flex gap-2">
+        <form method="GET" class="d-flex flex-wrap gap-2">
+            <input type="search" name="q" value="{{ $search }}" class="form-control" placeholder="Paciente, RGEA ou medicamento">
             <select name="status" class="form-select">
                 <option value="">Todos os status</option>
                 <option value="scheduled" @selected($status==='scheduled')>Agendada</option>
@@ -118,13 +119,21 @@
                             @csrf
                             @method('PATCH')
 
+                            @php
+                                $nextStatuses = match($pickup->pickup_status) {
+                                    'scheduled' => ['scheduled'=>'Agendada','preparing'=>'Em separação','cancelled'=>'Cancelada'],
+                                    'preparing' => ['preparing'=>'Em separação','ready'=>'Pronta','cancelled'=>'Cancelada'],
+                                    'ready' => ['ready'=>'Pronta','collected'=>'Retirada','not_collected'=>'Não retirada','cancelled'=>'Cancelada'],
+                                    'collected' => ['collected'=>'Retirada'],
+                                    'not_collected' => ['not_collected'=>'Não retirada'],
+                                    'cancelled' => ['cancelled'=>'Cancelada'],
+                                    default => ['scheduled'=>'Agendada'],
+                                };
+                            @endphp
                             <select name="pickup_status" class="form-select form-select-sm">
-                                <option value="scheduled" @selected($pickup->pickup_status==='scheduled')>Agendada</option>
-                                <option value="preparing" @selected($pickup->pickup_status==='preparing')>Em separação</option>
-                                <option value="ready" @selected($pickup->pickup_status==='ready')>Pronta</option>
-                                <option value="collected" @selected($pickup->pickup_status==='collected')>Retirada</option>
-                                <option value="not_collected" @selected($pickup->pickup_status==='not_collected')>Não retirada</option>
-                                <option value="cancelled" @selected($pickup->pickup_status==='cancelled')>Cancelada</option>
+                                @foreach($nextStatuses as $value => $label)
+                                    <option value="{{ $value }}" @selected($pickup->pickup_status===$value)>{{ $label }}</option>
+                                @endforeach
                             </select>
 
                             <input name="pickup_collected_by" class="form-control form-control-sm" value="{{ $pickup->pickup_collected_by }}" placeholder="Quem retirou">
