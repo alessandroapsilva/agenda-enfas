@@ -95,7 +95,10 @@ class AgendaController extends Controller
                         (string) $appointment->id,
 
                     'title' =>
-                        $appointment->patient->name
+                        ($appointment->appointment_type === 'medication_pickup'
+                            ? '💊 '
+                            : '')
+                        . $appointment->patient->name
                         . ' • '
                         . $appointment->service->name,
 
@@ -144,6 +147,9 @@ class AgendaController extends Controller
                             $appointment
                                 ->service
                                 ->name,
+
+                        'appointmentType' =>
+                            $appointment->appointment_type,
                     ],
                 ]
             )
