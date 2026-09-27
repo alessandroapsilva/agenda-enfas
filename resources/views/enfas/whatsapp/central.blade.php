@@ -206,7 +206,7 @@
             </div>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('enfas.v6.templates') }}" class="btn btn-outline-secondary btn-sm">Modelos</a>
+            <a href="{{ route('v9.templates.index') }}" class="btn btn-outline-secondary btn-sm">Modelos</a>
             <a href="{{ route('enfas.v6.automations') }}" class="btn btn-outline-secondary btn-sm">Automações</a>
             <a href="{{ route('enfas.v6.messages') }}" class="btn btn-outline-secondary btn-sm">Histórico</a>
         </div>
