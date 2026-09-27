@@ -2362,3 +2362,50 @@ body.enfas-shell,
     border-radius:9px;
     font-size:.68rem;
 }
+
+
+.ea-patient-profile{
+    overflow:hidden;
+}
+
+.ea-patient-profile::before{
+    content:"";
+    display:block;
+    height:4px;
+    background:linear-gradient(90deg,#2563eb,#60a5fa);
+}
+
+.ea-patient-rgea{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    margin-top:.15rem;
+    padding:.6rem .7rem;
+    border:1px solid #dce7fa;
+    border-radius:10px;
+    background:#f5f9ff;
+}
+
+.ea-patient-rgea i{
+    color:#2563eb;
+}
+
+.ea-patient-rgea span{
+    color:#7a8798;
+    font-size:.68rem;
+    font-weight:800;
+    letter-spacing:.08em;
+}
+
+.ea-patient-rgea strong{
+    margin-left:auto;
+    color:#244b96;
+    font-size:.78rem;
+}
+
+.ea-message-card{
+    padding:.9rem 1rem;
+    border:1px solid #e6ebf2;
+    border-radius:12px;
+    background:#fbfcfe;
+}
