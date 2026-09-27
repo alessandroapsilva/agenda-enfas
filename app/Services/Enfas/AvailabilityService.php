@@ -116,6 +116,14 @@ class AvailabilityService
                 ->where('starts_at', '<', $end)
                 ->where('ends_at', '>', $start);
 
+            if ($excludeAppointmentId) {
+                $holds->where(function ($query) use ($excludeAppointmentId) {
+                    $query
+                        ->whereNull('appointment_id')
+                        ->orWhere('appointment_id', '!=', $excludeAppointmentId);
+                });
+            }
+
             if ($holds->exists()) {
                 return false;
             }
