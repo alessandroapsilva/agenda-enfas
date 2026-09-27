@@ -24,7 +24,8 @@ class PatientController extends Controller
                         ->orWhere('phone', 'like', "%{$search}%")
                         ->orWhere('secondary_phone', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('cpf', 'like', "%{$search}%");
+                        ->orWhere('cpf', 'like', "%{$search}%")
+                        ->orWhere('rgea_number', 'like', "%{$search}%");
                 });
             })
             ->orderBy('name')
@@ -141,6 +142,12 @@ class PatientController extends Controller
                 'string',
                 'max:20',
                 Rule::unique('patients', 'cpf')->ignore($patient?->id),
+            ],
+            'rgea_number' => [
+                'nullable',
+                'string',
+                'max:40',
+                Rule::unique('patients', 'rgea_number')->ignore($patient?->id),
             ],
             'birth_date' => ['nullable', 'date'],
             'address_line' => ['nullable', 'string', 'max:255'],
