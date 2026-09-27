@@ -73,12 +73,14 @@
 
 <div class="row g-3 mb-4">
     @foreach([
+        ['Taxa de resposta',$rates['response'],'bi-chat-dots'],
         ['Taxa de confirmação',$rates['confirmation'],'bi-check2-circle'],
+        ['Taxa de presença',$rates['presence'],'bi-person-check'],
         ['Taxa de conclusão',$rates['completion'],'bi-clipboard2-check'],
         ['Taxa de cancelamento',$rates['cancellation'],'bi-calendar-x'],
         ['Taxa de falta',$rates['no_show'],'bi-person-x'],
     ] as $rate)
-    <div class="col-md-6 col-xl-3">
+    <div class="col-md-6 col-xl-4">
         <div class="card h-100 ea-gauge-card">
             <div class="card-body">
                 <div class="ea-gauge-head">
