@@ -131,6 +131,7 @@ class ProductionHealthService
             'v9.locations.index',
             'patient-journey.show',
             'patient-journey.satisfaction',
+            'cep.lookup',
         ] as $route) {
             $this->add(
                 $checks,
@@ -160,6 +161,25 @@ class ProductionHealthService
                 'table_'.$table,
                 Schema::hasTable($table),
                 'Tabela '.$table
+            );
+        }
+
+        foreach([
+            ['patients','rgea_number'],
+            ['appointments','location_id'],
+            ['appointments','appointment_type'],
+            ['appointments','satisfaction_stars'],
+            ['appointments','completed_at'],
+            ['appointments','rescheduled_at'],
+            ['waitlist_entries','location_id'],
+            ['locations','code'],
+            ['locations','is_main'],
+        ] as [$table,$column]) {
+            $this->add(
+                $checks,
+                'column_'.$table.'_'.$column,
+                Schema::hasColumn($table,$column),
+                'Coluna '.$table.'.'.$column
             );
         }
 
