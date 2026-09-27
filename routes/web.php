@@ -4,6 +4,7 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
+use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
 use App\Http\Controllers\ProfessionalController;
@@ -172,6 +173,14 @@ Route::middleware('auth')->group(function () {
         '/agendamentos/{appointment}/contato',
         [AppointmentController::class, 'contact']
     )->middleware('permission:agenda.manage')->name('appointments.contact');
+
+
+    Route::get(
+        '/cep/{cep}',
+        [CepLookupController::class, 'show']
+    )
+        ->where('cep', '[0-9-]{8,9}')
+        ->name('cep.lookup');
 
 
     /*
