@@ -119,7 +119,7 @@ class WhatsAppAutomationController extends Controller
         return $request->validate([
             'name' => 'required|string|max:160',
             'trigger_event' =>
-                'required|in:appointment_created,appointment_before,appointment_confirmed,appointment_rescheduled,appointment_cancelled,appointment_completed,appointment_return_due',
+                'required|in:appointment_created,appointment_before,appointment_confirmed,appointment_rescheduled,appointment_cancelled,appointment_completed,appointment_return_due,medication_pickup_ready',
             'offset_minutes' =>
                 'nullable|integer|min:0|max:525600',
             'template_id' =>
