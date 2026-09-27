@@ -55,6 +55,17 @@
                                         name="{{ $name }}"
                                         rows="4"
                                         @required($required)>{{ $value }}</textarea>
+                                @elseif($type==='checkbox')
+                                    <input type="hidden" name="{{ $name }}" value="0">
+                                    <div class="form-check form-switch mt-2">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="{{ $name }}"
+                                            value="1"
+                                            @checked((bool)$value)>
+                                        <label class="form-check-label">{{ $label }}</label>
+                                    </div>
                                 @else
                                     <input
                                         class="form-control"
@@ -137,6 +148,27 @@
                                 <div class="small">
                                     {{ $row->phone??$row->email??$row->specialty??$row->description??'' }}
                                 </div>
+
+                                @if($entity === 'locations')
+                                    <div class="small text-secondary">
+                                        @if($row->code ?? null)
+                                            <span class="badge text-bg-light border me-1">{{ $row->code }}</span>
+                                        @endif
+                                        @if($row->is_main ?? false)
+                                            <span class="badge text-bg-primary">PRINCIPAL</span>
+                                        @endif
+                                    </div>
+                                    @if(($row->address ?? null) || ($row->city ?? null))
+                                        <div class="small text-secondary mt-1">
+                                            <i class="bi bi-geo-alt me-1"></i>
+                                            {{ collect([
+                                                trim(($row->address ?? '').(($row->address_number ?? null) ? ', '.$row->address_number : '')),
+                                                $row->neighborhood ?? null,
+                                                collect([$row->city ?? null,$row->state ?? null])->filter()->implode('/'),
+                                            ])->filter()->implode(' · ') }}
+                                        </div>
+                                    @endif
+                                @endif
 
                                 @if(isset($row->registration_number) && $row->registration_number)
                                     <div class="small text-secondary">
