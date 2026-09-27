@@ -49,7 +49,7 @@
                 name="q"
                 value="{{ $search }}"
                 class="form-control"
-                placeholder="Nome, telefone ou CPF"
+                placeholder="Nome, telefone, CPF ou RGEA"
             >
 
             <button class="btn btn-outline-secondary">
@@ -70,6 +70,7 @@
                 <th>Telefone</th>
                 <th>E-mail</th>
                 <th>CPF</th>
+                <th>RGEA</th>
                 <th class="text-end">Agendamentos</th>
                 <th class="text-end">Ações</th>
             </tr>
@@ -95,6 +96,14 @@
                         {{ $patient->cpf ?: '—' }}
                     </td>
 
+                    <td>
+                        @if($patient->rgea_number)
+                            <span class="badge text-bg-light border">{{ $patient->rgea_number }}</span>
+                        @else
+                            —
+                        @endif
+                    </td>
+
                     <td class="text-end">
                         {{ $patient->appointments_count }}
                     </td>
@@ -110,7 +119,7 @@
             @empty
 
                 <tr>
-                    <td colspan="6"
+                    <td colspan="7"
                         class="text-center py-5 text-secondary">
 
                         Nenhum paciente cadastrado.
@@ -219,6 +228,11 @@
                             name="cpf"
                             class="form-control">
 
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">RGEA / Matrícula</label>
+                        <input name="rgea_number" class="form-control" placeholder="Ex.: RGEA-000123">
                     </div>
 
                     <div class="col-md-3">
