@@ -313,7 +313,7 @@ return [
                 ['text' => 'Saúde do sistema', 'route' => 'v92.health.dashboard', 'icon' => 'bi bi-heart-pulse', 'can' => 'settings.manage'],
             ],
         ],
-    ]
+    ],
 
     /*
     |--------------------------------------------------------------------------
