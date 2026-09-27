@@ -265,7 +265,7 @@
                 @forelse($daily as $row)
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>{{ \Carbon\Carbon::parse($row->day)->format('d/m') }}</span>
+                            <span>{{ date('d/m', strtotime((string) $row->day)) }}</span>
                             <strong>{{ $row->total }}</strong>
                         </div>
                         <div class="progress" style="height:8px;">
