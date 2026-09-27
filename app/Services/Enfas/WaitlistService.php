@@ -16,7 +16,10 @@ class WaitlistService
     ) {
     }
 
-    public function offerFreedSlot(Appointment $appointment): ?WaitlistEntry
+    public function offerFreedSlot(
+        Appointment $appointment,
+        ?int $excludeEntryId = null
+    ): ?WaitlistEntry
     {
         $appointment->loadMissing(['service', 'professional']);
 
@@ -29,6 +32,10 @@ class WaitlistService
             ->with('patient')
             ->where('status', 'waiting')
             ->where('service_id', $appointment->service_id)
+            ->when(
+                $excludeEntryId,
+                fn ($q) => $q->where('id', '!=', $excludeEntryId)
+            )
             ->where(function ($q) use ($appointment) {
                 $q->whereNull('professional_id')
                     ->orWhere('professional_id', $appointment->professional_id);
@@ -176,16 +183,52 @@ class WaitlistService
 
     public function decline(int $entryId): void
     {
-        WaitlistEntry::query()
+        $entry = WaitlistEntry::query()
+            ->with(['service','professional'])
             ->where('id', $entryId)
             ->where('status', 'offered')
-            ->update([
-                'status' => 'waiting',
-                'offered_start_at' => null,
-                'offered_end_at' => null,
-                'offer_expires_at' => null,
-                'updated_at' => now(),
-            ]);
+            ->first();
+
+        if (! $entry) {
+            return;
+        }
+
+        $start = $entry->offered_start_at?->copy();
+        $end = $entry->offered_end_at?->copy();
+        $professionalId = $entry->professional_id;
+        $serviceId = $entry->service_id;
+        $locationId = $entry->location_id;
+
+        $entry->update([
+            'status' => 'waiting',
+            'offered_start_at' => null,
+            'offered_end_at' => null,
+            'offer_expires_at' => null,
+        ]);
+
+        if (
+            ! $start
+            || ! $end
+            || ! $professionalId
+            || $start->isPast()
+        ) {
+            return;
+        }
+
+        $slot = new Appointment([
+            'professional_id' => $professionalId,
+            'service_id' => $serviceId,
+            'location_id' => $locationId,
+            'start_at' => $start,
+            'end_at' => $end,
+            'status' => 'cancelled',
+        ]);
+
+        try {
+            $this->offerFreedSlot($slot, $entry->id);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     public function expireOldOffers(): void
