@@ -2,47 +2,34 @@
 
 @section('title', 'Pacientes')
 
-@section('content_header')
+@section('page_kicker','PACIENTES E RGEA')
+@section('page_title','Pacientes')
+@section('page_subtitle','Cadastro, matrícula RGEA, contatos e histórico de atendimento em uma única ficha.')
 
-<div class="d-flex justify-content-between align-items-end gap-3">
-
-    <div>
-
-        <h3 class="enfas-page-title">
-            Pacientes
-        </h3>
-
-        <p class="enfas-page-subtitle">
-            Cadastro e localização rápida.
-        </p>
-
-    </div>
-
-    <button
-        class="btn btn-primary"
-        data-bs-toggle="modal"
-        data-bs-target="#patientModal">
-
-        <i class="bi bi-person-plus me-1"></i>
-
-        Novo paciente
-
-    </button>
-
-</div>
-
-@stop
+@section('page_actions')
+<button
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#patientModal">
+    <i class="bi bi-person-plus me-1"></i>
+    Novo paciente
+</button>
+@endsection
 
 
 @section('content')
 
 <div class="card">
 
-    <div class="card-header">
+    <div class="card-header justify-content-between gap-3">
+        <div>
+            <strong class="d-block">Base de pacientes</strong>
+            <span class="small text-secondary">Pesquise por nome, telefone, CPF ou RGEA.</span>
+        </div>
 
         <form
             method="GET"
-            class="d-flex gap-2">
+            class="d-flex gap-2 ea-searchbar">
 
             <input
                 type="search"
@@ -83,7 +70,15 @@
                 <tr>
 
                     <td>
-                        <strong>{{ $patient->name }}</strong>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="ea-avatar">
+                                {{ strtoupper(substr($patient->name,0,1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <strong class="d-block text-truncate">{{ $patient->name }}</strong>
+                                <span class="small text-secondary">Paciente ENFAS</span>
+                            </div>
+                        </div>
                     </td>
 
                     <td>{{ $patient->phone }}</td>
@@ -98,9 +93,9 @@
 
                     <td>
                         @if($patient->rgea_number)
-                            <span class="badge text-bg-light border">{{ $patient->rgea_number }}</span>
+                            <span class="ea-registry-pill"><i class="bi bi-upc-scan"></i>{{ $patient->rgea_number }}</span>
                         @else
-                            —
+                            <span class="text-secondary">—</span>
                         @endif
                     </td>
 
