@@ -152,7 +152,7 @@
                     <div class="col-md-6"><input name="neighborhood" class="form-control" value="{{ $patient->neighborhood }}" placeholder="Bairro"></div>
                     <div class="col-md-6"><input name="city" class="form-control" value="{{ $patient->city }}" placeholder="Cidade"></div>
                     <div class="col-md-4"><input name="state" maxlength="2" class="form-control text-uppercase" value="{{ $patient->state }}" placeholder="UF"></div>
-                    <div class="col-md-8"><input name="postal_code" class="form-control" value="{{ $patient->postal_code }}" placeholder="CEP"></div>
+                    <div class="col-md-8"><input name="postal_code" class="form-control" value="{{ $patient->postal_code }}" placeholder="00000-000" inputmode="numeric" maxlength="9" data-cep-autofill></div>
 
                     <div class="col-12">
                         <label class="form-label">Observações administrativas</label>
