@@ -223,6 +223,7 @@ class ManagementController extends Controller
             'completed' => $metrics['completed'],
             'responses' => 0,
             'average_score' => null,
+            'average_stars' => null,
             'nps' => null,
         ];
 
@@ -249,6 +250,17 @@ class ManagementController extends Controller
                     (($promoters / $scores->count()) * 100)
                     - (($detractors / $scores->count()) * 100)
                 );
+            }
+        }
+
+        if (Schema::hasColumn('appointments', 'satisfaction_stars')) {
+            $stars = (clone $base)
+                ->whereNotNull('satisfaction_stars')
+                ->pluck('satisfaction_stars')
+                ->map(fn ($score) => (int) $score);
+
+            if ($stars->isNotEmpty()) {
+                $journey['average_stars'] = round($stars->avg(), 1);
             }
         }
 
@@ -307,6 +319,7 @@ class ManagementController extends Controller
                 'a.confirmation_status',
                 'a.check_in_completed_at',
                 'a.satisfaction_score',
+                'a.satisfaction_stars',
                 'a.satisfaction_comment',
                 'p.name as patient_name',
                 'pro.name as professional_name',
@@ -331,7 +344,8 @@ class ManagementController extends Controller
                 'Status',
                 'Confirmação',
                 'Check-in',
-                'Satisfação',
+                'NPS',
+                'Estrelas',
                 'Comentário',
             ], ';');
 
@@ -351,6 +365,7 @@ class ManagementController extends Controller
                     $row->confirmation_status,
                     $row->check_in_completed_at ? 'Sim' : 'Não',
                     $row->satisfaction_score,
+                    $row->satisfaction_stars,
                     $row->satisfaction_comment,
                 ], ';');
             }
