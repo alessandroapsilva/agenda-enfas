@@ -31,7 +31,15 @@
     </div>
 </form>
 
-<div class="row g-3 mb-4">
+<nav class="ea-analysis-nav mb-4" aria-label="Seções dos relatórios">
+    <a href="#visao-geral" class="active"><i class="bi bi-grid"></i>Visão geral</a>
+    <a href="#jornada"><i class="bi bi-signpost-split"></i>Jornada</a>
+    <a href="#profissionais"><i class="bi bi-person-badge"></i>Profissionais</a>
+    <a href="#satisfacao"><i class="bi bi-star"></i>Satisfação</a>
+    <a href="#faltas"><i class="bi bi-person-x"></i>Faltas e cancelamentos</a>
+</nav>
+
+<div id="visao-geral" class="row g-3 mb-4">
 @foreach([
     ['Agendamentos',$metrics['appointments'],'bi-calendar3'],
     ['Confirmados',$metrics['confirmed'],'bi-check2-circle'],
@@ -60,17 +68,22 @@
         ['Taxa de falta',$rates['no_show'],'bi-person-x'],
     ] as $rate)
     <div class="col-md-6 col-xl-3">
-        <div class="card h-100">
+        <div class="card h-100 ea-gauge-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
+                <div class="ea-gauge-head">
                     <div>
-                        <small class="text-muted d-block">{{ $rate[0] }}</small>
-                        <strong class="display-6">{{ number_format($rate[1],1,',','.') }}%</strong>
+                        <span>{{ $rate[0] }}</span>
+                        <small>Período selecionado</small>
                     </div>
-                    <i class="bi {{ $rate[2] }} fs-3 text-primary"></i>
+                    <i class="bi {{ $rate[2] }}"></i>
                 </div>
-                <div class="progress mt-3" role="progressbar">
-                    <div class="progress-bar" style="width: {{ min(100,$rate[1]) }}%"></div>
+
+                <div class="ea-gauge"
+                     style="--value: {{ max(0,min(100,$rate[1])) }};">
+                    <div class="ea-gauge-inner">
+                        <strong>{{ number_format($rate[1],1,',','.') }}%</strong>
+                        <span>taxa</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,7 +91,7 @@
     @endforeach
 </div>
 
-<div class="row g-4 mb-4">
+<div id="jornada" class="row g-4 mb-4">
     <div class="col-xl-8">
         <div class="card h-100">
             <div class="card-header">
@@ -112,7 +125,7 @@
         </div>
     </div>
 
-    <div class="col-xl-4">
+    <div id="satisfacao" class="col-xl-4">
         <div class="card h-100">
             <div class="card-header">
                 <strong>Satisfação do paciente</strong>
@@ -156,7 +169,7 @@
     </div>
 </div>
 
-<div class="row g-4 mb-4">
+<div id="profissionais" class="row g-4 mb-4">
     <div class="col-xl-8">
         <div class="card h-100">
             <div class="card-header">
@@ -306,7 +319,7 @@
 </div>
 
 @if($cancellationReasons->isNotEmpty())
-<div class="card mt-4">
+<div id="faltas" class="card mt-4">
     <div class="card-header">
         <strong>Motivos de cancelamento</strong>
         <div class="small text-muted">Principais motivos informados pelos pacientes no período.</div>
