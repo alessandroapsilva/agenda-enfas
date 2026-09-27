@@ -26,6 +26,16 @@ class HomeController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+
+        if (
+            $user
+            && $user->role === 'professional'
+            && $user->professional_id
+        ) {
+            return redirect()->route('professional.workspace');
+        }
+
         $start = now()->startOfDay();
         $end = now()->endOfDay();
 
