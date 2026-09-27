@@ -15,7 +15,7 @@
 <div class="row g-4">
 @forelse($services as $service)
     <div class="col-xl-6">
-        <div class="card h-100">
+        <div class="card h-100 ea-entity-card">
             <div class="card-body">
                 <div class="d-flex justify-content-between gap-3">
                     <div class="d-flex gap-3">
@@ -39,19 +39,19 @@
 
                 <div class="row g-2 mt-3">
                     <div class="col-md-4">
-                        <div class="border rounded-3 p-3 h-100">
+                        <div class="ea-summary-tile h-100">
                             <small class="text-muted d-block mb-1">Reagendamento online</small>
                             <strong>{{ $service->allow_online_reschedule ? 'Permitido':'Bloqueado' }}</strong>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="border rounded-3 p-3 h-100">
+                        <div class="ea-summary-tile h-100">
                             <small class="text-muted d-block mb-1">Recorrência</small>
                             <strong>{{ $service->allow_recurrence ? 'Permitida':'Bloqueada' }}</strong>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="border rounded-3 p-3 h-100">
+                        <div class="ea-summary-tile h-100">
                             <small class="text-muted d-block mb-1">Retorno sugerido</small>
                             <strong>{{ $service->return_after_days ? $service->return_after_days.' dias' : 'Sem regra' }}</strong>
                         </div>
