@@ -11,6 +11,7 @@ class WaitlistEntry extends Model
         'patient_id',
         'service_id',
         'professional_id',
+        'location_id',
         'preferred_period',
         'earliest_date',
         'latest_date',
@@ -46,6 +47,11 @@ class WaitlistEntry extends Model
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
     }
 
     public function appointment(): BelongsTo
