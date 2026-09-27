@@ -169,8 +169,10 @@
                                 <option value="{{ $patient->id }}">
 
                                     {{ $patient->name }}
-                                    ·
-                                    {{ $patient->phone }}
+                                    @if($patient->rgea_number)
+                                        · RGEA {{ $patient->rgea_number }}
+                                    @endif
+                                    · {{ $patient->phone }}
 
                                 </option>
 
