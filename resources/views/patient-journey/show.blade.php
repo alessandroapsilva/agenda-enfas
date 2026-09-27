@@ -125,6 +125,45 @@
                 </div>
             </section>
 
+            @if($appointment->appointment_type === 'medication_pickup')
+                <section class="pj-card">
+                    <div class="pj-card-body">
+                        <h2 class="pj-section-title"><i class="bi bi-capsule me-2 text-primary"></i>Retirada de medicamento</h2>
+
+                        <div class="pj-detail">
+                            <div>
+                                <div class="pj-label">Medicamento</div>
+                                <div class="pj-value">{{ $appointment->medication_name }}</div>
+                            </div>
+                            <div>
+                                <div class="pj-label">Quantidade</div>
+                                <div class="pj-value">{{ $appointment->medication_quantity }}</div>
+                            </div>
+                        </div>
+
+                        @if($appointment->medication_notes)
+                            <div class="pj-note mt-3">{{ $appointment->medication_notes }}</div>
+                        @endif
+
+                        @php
+                            $pickupLabels = [
+                                'scheduled' => 'Agendada',
+                                'preparing' => 'Em separação',
+                                'ready' => 'Pronta para retirada',
+                                'collected' => 'Retirada concluída',
+                                'not_collected' => 'Não retirada',
+                                'cancelled' => 'Cancelada',
+                            ];
+                        @endphp
+
+                        <div class="pj-note mt-3">
+                            <strong>Status da retirada:</strong>
+                            {{ $pickupLabels[$appointment->pickup_status] ?? 'Em acompanhamento' }}
+                        </div>
+                    </div>
+                </section>
+            @endif
+
             @if($appointment->service?->required_documents || $appointment->service?->preparation_instructions)
                 <section class="pj-card">
                     <div class="pj-card-body">
