@@ -21,7 +21,7 @@
         $professionalBlocks = $blocks->get($professional->id, collect());
     @endphp
     <div class="col-12">
-        <div class="card">
+        <div class="card ea-entity-card">
             <div class="card-body">
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
                     <div class="d-flex gap-3">
@@ -67,19 +67,19 @@
 
                 <div class="row g-3 mt-2">
                     <div class="col-md-4">
-                        <div class="border rounded-3 p-3">
+                        <div class="ea-summary-tile">
                             <small class="text-muted d-block">Jornada padrão</small>
                             <strong>{{ substr($professional->work_start,0,5) }} – {{ substr($professional->work_end,0,5) }}</strong>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="border rounded-3 p-3">
+                        <div class="ea-summary-tile">
                             <small class="text-muted d-block">Intervalo entre slots</small>
                             <strong>{{ $professional->slot_interval }} min</strong>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="border rounded-3 p-3">
+                        <div class="ea-summary-tile">
                             <small class="text-muted d-block">Bloqueios futuros</small>
                             <strong>{{ $professionalBlocks->count() }}</strong>
                         </div>
@@ -139,7 +139,7 @@
                 </div>
 
                 <div class="collapse mt-4" id="availability-prof-{{ $professional->id }}">
-                    <div class="border rounded-3 p-3">
+                    <div class="ea-summary-tile">
                         <h6>Disponibilidade semanal</h6>
                         <p class="text-muted small">Defina jornada e pausa por dia. O motor de reagendamento usa estes horários.</p>
                         <form method="POST" action="{{ route('professionals.availability',$professional) }}">
@@ -171,7 +171,7 @@
                 </div>
 
                 <div class="collapse mt-4" id="block-prof-{{ $professional->id }}">
-                    <div class="border rounded-3 p-3">
+                    <div class="ea-summary-tile">
                         <div class="row g-4">
                             <div class="col-lg-5">
                                 <h6>Novo bloqueio</h6>
@@ -221,7 +221,7 @@
         </div>
     </div>
 @empty
-    <div class="col-12"><div class="card"><div class="enfas-empty"><div class="enfas-empty-icon"><i class="bi bi-person-badge"></i></div><h5>Nenhum profissional</h5></div></div></div>
+    <div class="col-12"><div class="card ea-entity-card"><div class="enfas-empty"><div class="enfas-empty-icon"><i class="bi bi-person-badge"></i></div><h5>Nenhum profissional</h5></div></div></div>
 @endforelse
 </div>
 
