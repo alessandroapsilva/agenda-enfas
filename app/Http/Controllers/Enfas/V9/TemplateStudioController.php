@@ -347,7 +347,7 @@ class TemplateStudioController extends Controller
         $rules=[
             'purpose'=>[
                 'required',
-                'in:confirmation,reminder,reschedule,cancellation,post_service,general',
+                'in:confirmation,reminder,reschedule,cancellation,post_service,return,medication_pickup,general',
             ],
             'category'=>[
                 'required',
