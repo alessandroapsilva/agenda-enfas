@@ -121,12 +121,14 @@ class PatientJourneyTest extends TestCase
 
         $this->post(route('patient-journey.satisfaction', $token), [
             'score' => 10,
+            'stars' => 5,
             'comment' => 'Ótimo atendimento.',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('appointments', [
             'id' => $appointmentId,
             'satisfaction_score' => 10,
+            'satisfaction_stars' => 5,
             'satisfaction_comment' => 'Ótimo atendimento.',
         ]);
 
