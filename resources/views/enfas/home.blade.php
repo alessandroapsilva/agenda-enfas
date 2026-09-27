@@ -102,7 +102,7 @@
                             };
                         @endphp
                         <tr>
-                            <td><strong class="text-primary">{{ CarbonCarbon::parse($a->start_at)->format('H:i') }}</strong></td>
+                            <td><strong class="text-primary">{{ \Carbon\Carbon::parse($a->start_at)->format('H:i') }}</strong></td>
                             <td><strong>{{ $a->patient_name }}</strong></td>
                             <td>{{ $a->service_name }}</td>
                             <td><span class="text-secondary">{{ $a->professional_name }}</span></td>
