@@ -234,6 +234,7 @@ return [
     'menu' => [
         ['header' => 'OPERAÇÃO'],
         ['text' => 'Visão geral', 'route' => 'dashboard', 'icon' => 'bi bi-grid-1x2-fill', 'can' => 'dashboard.view'],
+        ['text' => 'Meu painel', 'route' => 'professional.workspace', 'icon' => 'bi bi-person-workspace', 'can' => 'professional.workspace'],
         ['text' => 'Agenda', 'route' => 'agenda.index', 'icon' => 'bi bi-calendar3', 'can' => 'agenda.view'],
         ['text' => 'Agendamentos', 'route' => 'appointments.index', 'icon' => 'bi bi-calendar2-check', 'can' => 'agenda.view'],
         ['text' => 'Confirmações', 'route' => 'v10.confirmations', 'icon' => 'bi bi-patch-check', 'can' => 'agenda.view'],
