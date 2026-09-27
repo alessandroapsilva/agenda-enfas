@@ -237,7 +237,6 @@ return [
         ['text' => 'Meu painel', 'route' => 'professional.workspace', 'icon' => 'bi bi-person-workspace', 'can' => 'professional.workspace'],
         ['text' => 'Agenda', 'route' => 'agenda.index', 'icon' => 'bi bi-calendar3', 'can' => 'agenda.view'],
         ['text' => 'Agendamentos', 'route' => 'appointments.index', 'icon' => 'bi bi-calendar2-check', 'can' => 'agenda.view'],
-        ['text' => 'Retirada de medicamentos', 'route' => 'medication-pickups.index', 'icon' => 'bi bi-capsule', 'can' => 'agenda.view'],
         ['text' => 'Confirmações', 'route' => 'v10.confirmations', 'icon' => 'bi bi-patch-check', 'can' => 'agenda.view'],
         ['text' => 'Lista de espera', 'route' => 'waitlist.index', 'icon' => 'bi bi-hourglass-split', 'can' => 'agenda.view'],
 
