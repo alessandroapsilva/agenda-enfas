@@ -55,8 +55,32 @@ class ProductionHealthService
         try {
             DB::select('SELECT 1');
             $this->add($checks,'database',true,'Banco de dados respondeu');
+
+            $configuredDatabase = (string) config(
+                'database.connections.'.config('database.default').'.database'
+            );
+
+            $actualDatabase = (string) (
+                DB::selectOne('SELECT DATABASE() AS db')->db ?? ''
+            );
+
+            $this->add(
+                $checks,
+                'database_name',
+                $configuredDatabase === 'agenda-enfas'
+                    && $actualDatabase === 'agenda-enfas',
+                'Banco de produção correto',
+                $actualDatabase ?: 'não identificado'
+            );
         } catch (Throwable $e) {
             $this->add($checks,'database',false,'Banco de dados indisponível');
+            $this->add(
+                $checks,
+                'database_name',
+                false,
+                'Banco de produção correto',
+                'não foi possível validar'
+            );
         }
 
         try {
@@ -103,6 +127,10 @@ class ProductionHealthService
             'enfas.whatsapp.thread.send',
             'v9.templates.index',
             'enfas.v6.automations',
+            'professional.workspace',
+            'v9.locations.index',
+            'patient-journey.show',
+            'patient-journey.satisfaction',
         ] as $route) {
             $this->add(
                 $checks,
@@ -125,6 +153,7 @@ class ProductionHealthService
             'wa_conversations',
             'wa_webhook_events',
             'waitlist_entries',
+            'locations',
         ] as $table) {
             $this->add(
                 $checks,
