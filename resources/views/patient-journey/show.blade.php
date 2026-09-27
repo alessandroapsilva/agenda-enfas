@@ -44,6 +44,10 @@
         .pj-nps input{display:none}
         .pj-nps span{height:36px;display:grid;place-items:center;border:1px solid #dbe3ee;border-radius:9px;font-weight:700;font-size:.78rem;background:#fff}
         .pj-nps input:checked+span{color:#fff;background:#2563eb;border-color:#2563eb}
+        .pj-stars{display:flex;gap:6px;flex-direction:row-reverse;justify-content:flex-end}
+        .pj-stars input{display:none}
+        .pj-stars label{cursor:pointer;font-size:2rem;line-height:1;color:#cbd5e1;transition:.15s ease}
+        .pj-stars input:checked~label,.pj-stars label:hover,.pj-stars label:hover~label{color:#f59e0b;transform:translateY(-1px)}
         .pj-progress{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:20px}
         .pj-step{position:relative;padding:12px 8px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;text-align:center}
         .pj-step i{display:grid;place-items:center;width:32px;height:32px;margin:0 auto 6px;border-radius:50%;background:#f1f5f9;color:#64748b}
@@ -156,6 +160,12 @@
                             <div class="pj-label">Código</div>
                             <div class="pj-value">{{ $appointment->code }}</div>
                         </div>
+                        @if($appointment->location)
+                            <div>
+                                <div class="pj-label">Unidade / Local</div>
+                                <div class="pj-value">{{ $appointment->location->name }}</div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </section>
@@ -229,14 +239,29 @@
 
                         @if($appointment->satisfaction_at)
                             <div class="pj-note pj-success">
-                                Avaliação registrada com nota <strong>{{ $appointment->satisfaction_score }}/10</strong>.
+                                <div class="mb-1">
+                                    @for($star=1;$star<=5;$star++)
+                                        <i class="bi {{ $star <= (int)$appointment->satisfaction_stars ? 'bi-star-fill' : 'bi-star' }} text-warning"></i>
+                                    @endfor
+                                </div>
+                                NPS <strong>{{ $appointment->satisfaction_score }}/10</strong>.
                                 Obrigado por compartilhar sua experiência.
                             </div>
                         @else
-                            <p class="pj-muted">De 0 a 10, quanto você recomendaria nosso atendimento?</p>
-
                             <form method="POST" action="{{ route('patient-journey.satisfaction',$appointment->public_token) }}">
                                 @csrf
+
+                                <div class="mb-4">
+                                    <div class="pj-label mb-2">Como você avalia sua experiência?</div>
+                                    <div class="pj-stars" aria-label="Avaliação por estrelas">
+                                        @for($star=5;$star>=1;$star--)
+                                            <input id="star{{ $star }}" type="radio" name="stars" value="{{ $star }}" required>
+                                            <label for="star{{ $star }}" title="{{ $star }} estrela(s)">★</label>
+                                        @endfor
+                                    </div>
+                                </div>
+
+                                <p class="pj-muted">De 0 a 10, quanto você recomendaria nosso atendimento?</p>
                                 <div class="pj-nps mb-3">
                                     @for($score=0;$score<=10;$score++)
                                         <label>
