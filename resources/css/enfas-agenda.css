@@ -2648,3 +2648,10 @@ body.enfas-shell,
     color:#b9c6d8!important;
     background:#172130!important;
 }
+
+
+/* Keep AdminLTE layout math aligned with the premium sidebar width */
+.enfas-shell{
+    --lte-sidebar-width:272px;
+    --lte-sidebar-collapsed-width:4.6rem;
+}
