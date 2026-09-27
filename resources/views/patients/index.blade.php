@@ -2,9 +2,9 @@
 
 @section('title', 'Pacientes')
 
-@section('page_kicker','PACIENTES E RGEA')
+@section('page_kicker','PACIENTES')
 @section('page_title','Pacientes')
-@section('page_subtitle','Cadastro, matrícula RGEA, contatos e histórico de atendimento em uma única ficha.')
+@section('page_subtitle','Cadastro, RGEA externo, contatos e histórico de atendimento.')
 
 @section('page_actions')
 <button
@@ -141,7 +141,7 @@
      id="patientModal"
      tabindex="-1">
 
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
 
         <form
             method="POST"
@@ -176,6 +176,14 @@
             <div class="modal-body">
 
                 <div class="row g-3">
+                    <div class="col-12">
+                        <div class="ea-form-section">
+                            <div>
+                                <strong>Identificação</strong>
+                                <span>Dados cadastrais e RGEA emitido pelo sistema de origem.</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="col-md-8">
 
@@ -241,6 +249,15 @@
                             placeholder="Informe o RGEA">
                         <div class="form-text">
                             Identificador gerado no sistema de origem. O Agenda ENFAS não cria RGEA.
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="ea-form-section">
+                            <div>
+                                <strong>Contato</strong>
+                                <span>Dados usados para confirmações e comunicação.</span>
+                            </div>
                         </div>
                     </div>
 
