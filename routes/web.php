@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
 use App\Http\Controllers\ProfessionalController;
+use App\Http\Controllers\ProfessionalWorkspaceController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WaitlistController;
@@ -203,6 +204,12 @@ Route::middleware('auth')->group(function () {
         '/pacientes/{patient}/contato',
         [PatientController::class, 'contact']
     )->middleware('permission:patients.manage')->name('patients.contact');
+
+
+    Route::get(
+        '/meu-painel',
+        [ProfessionalWorkspaceController::class, 'index']
+    )->middleware('permission:agenda.view')->name('professional.workspace');
 
 
     /*
