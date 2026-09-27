@@ -62,6 +62,11 @@ class AppointmentController extends Controller
                 'exists:services,id',
             ],
 
+            'location_id' => [
+                'nullable',
+                'exists:locations,id',
+            ],
+
             'start_at' => [
                 'required',
                 'date',
@@ -157,6 +162,7 @@ class AppointmentController extends Controller
             'patient_id' => $patient->id,
             'professional_id' => $professional->id,
             'service_id' => $service->id,
+            'location_id' => $data['location_id'] ?? null,
 
             'start_at' => $start,
             'end_at' => $end,
@@ -279,6 +285,7 @@ class AppointmentController extends Controller
             'patient',
             'professional',
             'service',
+            'location',
             'creator',
             'events.user',
         ]);
@@ -372,6 +379,12 @@ class AppointmentController extends Controller
 
                 'patient_rgea' =>
                     $appointment->patient->rgea_number,
+
+                'location' =>
+                    $appointment->location?->name,
+
+                'location_address' =>
+                    $appointment->location?->fullAddress(),
 
                 'professional' =>
                     $appointment->professional->name,
