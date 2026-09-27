@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,20 +14,6 @@ return new class extends Migration
                     $table->string('rgea_number', 40)->nullable()->unique();
                 }
             });
-        }
-
-        if (Schema::hasTable('patients') && Schema::hasColumn('patients', 'rgea_number')) {
-            DB::table('patients')
-                ->whereNull('rgea_number')
-                ->orderBy('id')
-                ->get(['id'])
-                ->each(function ($patient) {
-                    DB::table('patients')
-                        ->where('id', $patient->id)
-                        ->update([
-                            'rgea_number' => 'RGEA-'.str_pad((string) $patient->id, 6, '0', STR_PAD_LEFT),
-                        ]);
-                });
         }
 
         if (Schema::hasTable('appointments')) {
