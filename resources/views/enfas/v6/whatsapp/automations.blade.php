@@ -22,7 +22,6 @@ $triggers = [
     'appointment_cancelled' => 'Quando houver cancelamento',
     'appointment_completed' => 'Depois do atendimento',
     'appointment_return_due' => 'Na data prevista de retorno',
-    'medication_pickup_ready' => 'Quando o medicamento estiver pronto',
 ];
 
 $purposes = [
