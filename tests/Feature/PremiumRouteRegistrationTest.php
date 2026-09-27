@@ -24,6 +24,8 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('professionals.availability'));
         $this->assertTrue(Route::has('services.index'));
         $this->assertTrue(Route::has('waitlist.index'));
+        $this->assertTrue(Route::has('professional.workspace'));
+        $this->assertTrue(Route::has('v9.locations.index'));
         $this->assertTrue(Route::has('enfas.whatsapp'));
         $this->assertTrue(Route::has('enfas.whatsapp.thread.send'));
 
