@@ -5,12 +5,19 @@ declare(strict_types=1);
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
 
-require dirname(__DIR__).'/vendor/autoload.php';
+$appDir = rtrim((string) ($argv[1] ?? ''), DIRECTORY_SEPARATOR);
+$expected = (string) ($argv[2] ?? 'agenda-enfas');
 
-$app = require dirname(__DIR__).'/bootstrap/app.php';
+if ($appDir === '' || ! is_file($appDir.'/vendor/autoload.php') || ! is_file($appDir.'/bootstrap/app.php')) {
+    fwrite(STDERR, "Diretório Laravel inválido: {$appDir}\n");
+    exit(19);
+}
+
+require $appDir.'/vendor/autoload.php';
+
+$app = require $appDir.'/bootstrap/app.php';
+$app->useEnvironmentPath($appDir);
 $app->make(Kernel::class)->bootstrap();
-
-$expected = $argv[1] ?? 'agenda-enfas';
 
 $configured = (string) config(
     'database.connections.'.config('database.default').'.database'
