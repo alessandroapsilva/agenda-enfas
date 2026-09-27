@@ -195,6 +195,7 @@ class PatientJourneyController extends Controller
                     'confirmation_channel' => 'patient_journey',
                     'confirmed_at' => null,
                     'cancelled_at' => null,
+                    'rescheduled_at' => now(),
                 ])->save();
 
                 DB::table('slot_reservations')
