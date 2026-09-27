@@ -236,6 +236,10 @@ class AgendaController extends Controller
             'duration_minutes' =>
                 $start->diffInMinutes($end),
 
+            'rescheduled_at' => now(),
+            'confirmation_status' => 'pending',
+            'confirmed_at' => null,
+
             'updated_by' =>
                 auth()->id(),
         ]);
