@@ -43,13 +43,22 @@
         .pj-nps input{display:none}
         .pj-nps span{height:36px;display:grid;place-items:center;border:1px solid #dbe3ee;border-radius:9px;font-weight:700;font-size:.78rem;background:#fff}
         .pj-nps input:checked+span{color:#fff;background:#2563eb;border-color:#2563eb}
+        .pj-progress{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:20px}
+        .pj-step{position:relative;padding:12px 8px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;text-align:center}
+        .pj-step i{display:grid;place-items:center;width:32px;height:32px;margin:0 auto 6px;border-radius:50%;background:#f1f5f9;color:#64748b}
+        .pj-step strong{display:block;font-size:.72rem;color:#64748b}
+        .pj-step.is-done{border-color:#bfdbfe;background:#eff6ff}
+        .pj-step.is-done i{background:#2563eb;color:#fff}
+        .pj-step.is-done strong{color:#1d4ed8}
+        .pj-step.is-current{box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+
         .pj-slot{cursor:pointer}
         .pj-slot input{display:none}
         .pj-slot span{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;border:1px solid #dbe3ee;border-radius:12px;background:#fff;transition:.15s ease}
         .pj-slot span strong{font-size:.84rem}
         .pj-slot span small{color:#64748b;font-weight:700}
         .pj-slot input:checked+span{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
-        @media(max-width:780px){.pj-grid{grid-template-columns:1fr}.pj-detail{grid-template-columns:1fr}.pj-hero{padding:23px}.pj-nps{grid-template-columns:repeat(6,1fr)}}
+        @media(max-width:780px){.pj-grid{grid-template-columns:1fr}.pj-detail{grid-template-columns:1fr}.pj-hero{padding:23px}.pj-nps{grid-template-columns:repeat(6,1fr)}.pj-progress{grid-template-columns:repeat(3,1fr)}}
     </style>
 </head>
 <body>
@@ -88,6 +97,31 @@
             consulta orientações e realiza seu check-in.
         </p>
     </section>
+
+    @php
+        $journeySteps = [
+            ['Agendado', true, 'bi-calendar-check'],
+            ['Confirmado', (bool) $appointment->confirmed_at || in_array($appointment->status,['confirmed','completed'],true), 'bi-check2-circle'],
+            ['Check-in', (bool) $appointment->check_in_completed_at, 'bi-qr-code-scan'],
+            ['Concluído', $appointment->status === 'completed', 'bi-person-check'],
+            ['Avaliação', (bool) $appointment->satisfaction_at, 'bi-chat-square-heart'],
+            ['Retorno', (bool) $appointment->return_due_at, 'bi-arrow-repeat'],
+        ];
+
+        $lastDone = collect($journeySteps)
+            ->map(fn ($step, $index) => $step[1] ? $index : null)
+            ->filter(fn ($index) => $index !== null)
+            ->max() ?? 0;
+    @endphp
+
+    <div class="pj-progress">
+        @foreach($journeySteps as $index => $step)
+            <div class="pj-step {{ $step[1] ? 'is-done' : '' }} {{ $index === $lastDone ? 'is-current' : '' }}">
+                <i class="bi {{ $step[2] }}"></i>
+                <strong>{{ $step[0] }}</strong>
+            </div>
+        @endforeach
+    </div>
 
     <div class="pj-grid">
         <main class="d-grid gap-3">
