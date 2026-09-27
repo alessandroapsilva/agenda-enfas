@@ -13,17 +13,13 @@
 
 @section('content')
 <div class="row g-3 mb-4">
-    @php
-        $waiting = $entries->getCollection()->where('status','waiting')->count();
-        $offered = $entries->getCollection()->where('status','offered')->count();
-        $accepted = $entries->getCollection()->where('status','accepted')->count();
-    @endphp
     @foreach([
-        ['Aguardando',$waiting,'bi-hourglass-split'],
-        ['Oferta enviada',$offered,'bi-send-check'],
-        ['Convertidos',$accepted,'bi-check2-circle'],
+        ['Aguardando',$metrics['waiting'],'bi-hourglass-split'],
+        ['Oferta enviada',$metrics['offered'],'bi-send-check'],
+        ['Convertidos',$metrics['accepted'],'bi-check2-circle'],
+        ['Encerrados',$metrics['cancelled'],'bi-x-circle'],
     ] as $m)
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-3">
             <div class="enfas-stat">
                 <div class="enfas-stat-top">
                     <span class="enfas-stat-label">{{ $m[0] }}</span>
@@ -36,6 +32,43 @@
 </div>
 
 <div class="card">
+    <div class="card-header justify-content-between gap-3">
+        <div>
+            <strong class="d-block">Fila inteligente</strong>
+            <span class="small text-secondary">Prioridade por data de entrada, serviço, unidade e preferências do paciente.</span>
+        </div>
+
+        <form method="GET" class="d-flex flex-wrap gap-2 ea-waitlist-filters">
+            <input
+                type="search"
+                name="q"
+                value="{{ $search }}"
+                class="form-control"
+                placeholder="Paciente, RGEA ou serviço">
+
+            <select name="location_id" class="form-select">
+                <option value="">Todas as unidades</option>
+                @foreach($locations as $location)
+                    <option value="{{ $location->id }}" @selected((int)$locationId === (int)$location->id)>
+                        {{ $location->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            <select name="status" class="form-select">
+                <option value="">Todos os status</option>
+                <option value="waiting" @selected($status==='waiting')>Aguardando</option>
+                <option value="offered" @selected($status==='offered')>Oferta enviada</option>
+                <option value="accepted" @selected($status==='accepted')>Convertido</option>
+                <option value="cancelled" @selected($status==='cancelled')>Encerrado</option>
+            </select>
+
+            <button class="btn btn-outline-primary">
+                <i class="bi bi-funnel"></i>
+            </button>
+        </form>
+    </div>
+
     <div class="table-responsive">
         <table class="table align-middle mb-0">
             <thead>
@@ -43,6 +76,7 @@
                     <th>Paciente</th>
                     <th>Serviço</th>
                     <th>Profissional</th>
+                    <th>Unidade</th>
                     <th>Preferência</th>
                     <th>Janela</th>
                     <th>Status</th>
@@ -58,6 +92,7 @@
                     </td>
                     <td>{{ $entry->service?->name }}</td>
                     <td>{{ $entry->professional?->name ?: 'Qualquer profissional' }}</td>
+                    <td>{{ $entry->location?->name ?: 'Qualquer unidade' }}</td>
                     <td>
                         {{ match($entry->preferred_period) {
                             'morning'=>'Manhã',
@@ -102,7 +137,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="text-center py-5 text-muted">Nenhum paciente na lista de espera.</td></tr>
+                <tr><td colspan="8" class="text-center py-5 text-muted">Nenhum paciente na lista de espera.</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -128,7 +163,11 @@
                         <select name="patient_id" class="form-select" required>
                             <option value="">Selecione...</option>
                             @foreach($patients as $patient)
-                                <option value="{{ $patient->id }}">{{ $patient->displayName() }} · {{ $patient->phone }}</option>
+                                <option value="{{ $patient->id }}">
+                                    {{ $patient->displayName() }}
+                                    @if($patient->rgea_number) · {{ $patient->rgea_number }} @endif
+                                    · {{ $patient->phone }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -147,6 +186,18 @@
                             <option value="">Qualquer profissional</option>
                             @foreach($professionals as $professional)
                                 <option value="{{ $professional->id }}">{{ $professional->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Unidade</label>
+                        <select name="location_id" class="form-select">
+                            <option value="">Qualquer unidade</option>
+                            @foreach($locations as $location)
+                                <option value="{{ $location->id }}" @selected($location->is_main)>
+                                    {{ $location->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
