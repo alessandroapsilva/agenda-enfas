@@ -114,6 +114,11 @@ class Appointment extends Model
         return $this->belongsTo(Service::class);
     }
 
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function series(): BelongsTo
     {
         return $this->belongsTo(AppointmentSeries::class, 'series_id');
