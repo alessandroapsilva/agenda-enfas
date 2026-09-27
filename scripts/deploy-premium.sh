@@ -24,24 +24,21 @@ run_as_app() {
   sudo -u "$APP_USER" "$@"
 }
 
-laravel_value() {
-  local php_code="$1"
-
-  run_as_app "$PHP_BIN" -r "
-require 'vendor/autoload.php';
-\$app = require 'bootstrap/app.php';
-\$app->make(Illuminate\\Contracts\\Console\\Kernel::class)->bootstrap();
-${php_code}
-"
-}
-
 database_guard() {
   local configured actual
 
   cd "$APP_DIR"
 
-  configured="$(laravel_value 'echo (string) config("database.connections.".config("database.default").".database");')"
-  actual="$(laravel_value '\$row = Illuminate\\Support\\Facades\\DB::selectOne("SELECT DATABASE() AS db"); echo (string) (\$row->db ?? "");')"
+  configured="$(
+    run_as_app "$PHP_BIN" artisan tinker --execute='echo (string) config("database.connections.".config("database.default").".database");' 2>/dev/null
+  )"
+
+  actual="$(
+    run_as_app "$PHP_BIN" artisan tinker --execute='echo (string) (Illuminate\\Support\\Facades\\DB::selectOne("SELECT DATABASE() AS db")->db ?? "");' 2>/dev/null
+  )"
+
+  configured="$(printf '%s' "$configured" | tail -n1 | tr -d '\r\n[:space:]')"
+  actual="$(printf '%s' "$actual" | tail -n1 | tr -d '\r\n[:space:]')"
 
   [[ "$configured" == "$EXPECTED_DB" ]] || fail "DB configurado inesperado: '${configured:-vazio}'. Esperado: $EXPECTED_DB"
   [[ "$actual" == "$EXPECTED_DB" ]] || fail "SELECT DATABASE() retornou '${actual:-vazio}'. Esperado: $EXPECTED_DB"
