@@ -73,6 +73,7 @@ class MasterDataController extends Controller
                 ['responsible_name','Responsável pela unidade','text',false],
                 ['opening_hours','Horário de funcionamento','textarea',false],
                 ['patient_instructions','Orientações ao paciente','textarea',false],
+                ['is_main','Unidade principal','checkbox',false],
                 ['notes','Observações internas','textarea',false],
             ],
         ],
@@ -237,6 +238,7 @@ class MasterDataController extends Controller
                 'email' => 'email',
                 'number' => 'numeric',
                 'date' => 'date',
+                'checkbox' => 'boolean',
                 default => 'string',
             };
 
@@ -245,6 +247,20 @@ class MasterDataController extends Controller
         }
 
         $data=$request->validate($rules);
+
+        foreach ($config['fields'] as [$name,$label,$type,$required]) {
+            if ($type === 'checkbox' && Schema::hasColumn($entity,$name)) {
+                $data[$name] = $request->boolean($name);
+            }
+        }
+
+        if (
+            $entity === 'locations'
+            && filled($data['code'] ?? null)
+        ) {
+            $data['code'] = strtoupper(trim((string) $data['code']));
+        }
+
         $columns=array_flip(Schema::getColumnListing($entity));
 
         return array_filter(
