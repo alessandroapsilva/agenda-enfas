@@ -24,7 +24,7 @@ class MedicationPickupAndRgeaTest extends TestCase
             'name' => 'Profissional Retirada',
             'work_start' => '08:00:00',
             'work_end' => '18:00:00',
-            'active_days' => json_encode([1,2,3,4,5]),
+            'active_days' => json_encode([0,1,2,3,4,5,6]),
             'slot_interval' => 30,
             'color' => '#2563eb',
             'is_active' => true,
