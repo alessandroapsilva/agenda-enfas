@@ -54,7 +54,7 @@
 <div class="card mb-3">
     <div class="card-body">
         <div class="row g-3 align-items-end">
-            <div class="col-lg-3 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <label class="form-label">Profissional</label>
                 <select id="agendaFilterProfessional" class="form-select">
                     <option value="">Todos</option>
@@ -64,7 +64,7 @@
                 </select>
             </div>
 
-            <div class="col-lg-3 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <label class="form-label">Serviço</label>
                 <select id="agendaFilterService" class="form-select">
                     <option value="">Todos</option>
@@ -74,7 +74,17 @@
                 </select>
             </div>
 
-            <div class="col-lg-3 col-md-6">
+            <div class="col-xl-3 col-md-6">
+                <label class="form-label">Unidade</label>
+                <select id="agendaFilterLocation" class="form-select">
+                    <option value="">Todas</option>
+                    @foreach($locations as $location)
+                        <option value="{{ $location->id }}">{{ $location->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
                 <label class="form-label">Status</label>
                 <select id="agendaFilterStatus" class="form-select">
                     <option value="">Todos</option>
@@ -251,15 +261,26 @@
                             @foreach($professionals as $professional)
 
                                 <option value="{{ $professional->id }}">
-
                                     {{ $professional->name }}
-
                                 </option>
 
                             @endforeach
 
                         </select>
 
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Unidade / Local</label>
+                        <select name="location_id" class="form-select">
+                            <option value="">Sem unidade definida</option>
+                            @foreach($locations as $location)
+                                <option value="{{ $location->id }}">
+                                    {{ $location->name }}
+                                    @if($location->code) · {{ $location->code }} @endif
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                 </div>
@@ -732,6 +753,12 @@
             <strong id="detailRgea">—</strong>
         </div>
 
+        <div id="detailLocationBlock" class="enfas-detail-block mt-3 d-none">
+            <small>Unidade / Local</small>
+            <strong id="detailLocation">—</strong>
+            <span id="detailLocationAddress">—</span>
+        </div>
+
         <div id="detailMedicationPickup" class="enfas-detail-block mt-3 d-none">
             <small>Retirada de medicamento</small>
             <strong id="detailMedicationName">—</strong>
@@ -894,10 +921,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const professional = document.getElementById('agendaFilterProfessional')?.value;
                 const service = document.getElementById('agendaFilterService')?.value;
+                const location = document.getElementById('agendaFilterLocation')?.value;
                 const status = document.getElementById('agendaFilterStatus')?.value;
 
                 if (professional) params.set('professional_id', professional);
                 if (service) params.set('service_id', service);
+                if (location) params.set('location_id', location);
                 if (status) params.set('status', status);
 
                 fetch(@json(route('agenda.events')) + '?' + params.toString(), {
@@ -1112,6 +1141,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const rgea = document.getElementById('detailRgea');
             rgeaBlock.classList.toggle('d-none', ! appointment.patient_rgea);
             rgea.textContent = appointment.patient_rgea || '—';
+
+            const locationBlock = document.getElementById('detailLocationBlock');
+            locationBlock.classList.toggle('d-none', ! appointment.location);
+            document.getElementById('detailLocation').textContent = appointment.location || '—';
+            document.getElementById('detailLocationAddress').textContent = appointment.location_address || '';
 
             const medicationBlock = document.getElementById('detailMedicationPickup');
             const isMedicationPickup = appointment.appointment_type === 'medication_pickup';
