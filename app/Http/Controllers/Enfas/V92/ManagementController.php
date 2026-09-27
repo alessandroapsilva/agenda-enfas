@@ -507,7 +507,14 @@ class ManagementController extends Controller
 
         $manual=DB::table('operational_alerts')
             ->where('status','open')
-            ->orderByRaw("FIELD(severity,'danger','warning','info')")
+            ->orderByRaw("
+                CASE severity
+                    WHEN 'danger' THEN 1
+                    WHEN 'warning' THEN 2
+                    WHEN 'info' THEN 3
+                    ELSE 4
+                END
+            ")
             ->orderByDesc('id')
             ->get();
 
