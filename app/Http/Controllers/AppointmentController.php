@@ -73,7 +73,7 @@ class AppointmentController extends Controller
             ],
 
             'appointment_type' => [
-                'required',
+                'nullable',
                 'in:care,medication_pickup',
             ],
 
@@ -178,7 +178,7 @@ class AppointmentController extends Controller
 
             'source' => 'internal',
 
-            'appointment_type' => $data['appointment_type'],
+            'appointment_type' => $data['appointment_type'] ?? 'care',
             'medication_name' => $data['medication_name'] ?? null,
             'medication_quantity' => $data['medication_quantity'] ?? null,
             'medication_notes' => $data['medication_notes'] ?? null,
