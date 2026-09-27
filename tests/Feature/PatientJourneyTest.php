@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class PatientJourneyTest extends TestCase
@@ -71,6 +72,8 @@ class PatientJourneyTest extends TestCase
 
     public function test_patient_can_use_public_journey(): void
     {
+        Carbon::setTestNow('2026-09-28 08:00:00');
+
         [$appointmentId, $token] = $this->seedAppointment();
 
         $this->get(route('patient-journey.show', $token))
@@ -95,6 +98,22 @@ class PatientJourneyTest extends TestCase
         $this->assertNotNull(
             DB::table('appointments')->where('id', $appointmentId)->value('check_in_completed_at')
         );
+
+        $this->post(route('patient-journey.reschedule', $token), [
+            'start_at' => '2026-09-28 10:30:00',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointmentId,
+            'start_at' => '2026-09-28 10:30:00',
+            'status' => 'awaiting_confirmation',
+            'confirmation_status' => 'pending',
+        ]);
+
+        $this->assertDatabaseHas('slot_reservations', [
+            'appointment_id' => $appointmentId,
+            'status' => 'consumed',
+        ]);
 
         DB::table('appointments')->where('id', $appointmentId)->update([
             'status' => 'completed',
