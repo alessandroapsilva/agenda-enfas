@@ -725,6 +725,19 @@
 
         </div>
 
+        <div id="detailRgeaBlock" class="enfas-detail-block mt-3 d-none">
+            <small>RGEA / Matrícula</small>
+            <strong id="detailRgea">—</strong>
+        </div>
+
+        <div id="detailMedicationPickup" class="enfas-detail-block mt-3 d-none">
+            <small>Retirada de medicamento</small>
+            <strong id="detailMedicationName">—</strong>
+            <span id="detailMedicationQuantity">—</span>
+            <span id="detailPickupStatus">—</span>
+            <div id="detailMedicationNotes" class="small text-secondary mt-2"></div>
+        </div>
+
 
         <div
             id="detailCustomFields"
@@ -1093,6 +1106,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 'detailDate'
             ).textContent =
                 `${appointment.start} – ${appointment.end}`;
+
+            const rgeaBlock = document.getElementById('detailRgeaBlock');
+            const rgea = document.getElementById('detailRgea');
+            rgeaBlock.classList.toggle('d-none', ! appointment.patient_rgea);
+            rgea.textContent = appointment.patient_rgea || '—';
+
+            const medicationBlock = document.getElementById('detailMedicationPickup');
+            const isMedicationPickup = appointment.appointment_type === 'medication_pickup';
+            medicationBlock.classList.toggle('d-none', ! isMedicationPickup);
+
+            if (isMedicationPickup) {
+                const pickupLabels = {
+                    scheduled: 'Agendada',
+                    preparing: 'Em separação',
+                    ready: 'Pronta para retirada',
+                    collected: 'Retirada concluída',
+                    not_collected: 'Não retirada',
+                    cancelled: 'Cancelada'
+                };
+
+                document.getElementById('detailMedicationName').textContent =
+                    appointment.medication_name || 'Medicamento não informado';
+
+                document.getElementById('detailMedicationQuantity').textContent =
+                    appointment.medication_quantity || 'Quantidade não informada';
+
+                document.getElementById('detailPickupStatus').textContent =
+                    'Status: ' + (pickupLabels[appointment.pickup_status] || 'Em acompanhamento');
+
+                document.getElementById('detailMedicationNotes').textContent =
+                    appointment.medication_notes || '';
+            }
 
 
             const customContainer =
