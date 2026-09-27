@@ -45,9 +45,8 @@
         ['Confirmados',$metrics['confirmed'],'bi-check2-circle','Presenças confirmadas'],
         ['Aguardando',$metrics['awaiting'],'bi-hourglass-split','Precisam de retorno'],
         ['Pacientes',$metrics['patients'],'bi-people','Base ativa'],
-        ['Retiradas prontas',$metrics['pickup_ready'],'bi-capsule','Aguardando retirada'],
     ] as $card)
-    <div class="col-xl col-md-6">
+    <div class="col-xl-3 col-md-6">
         <div class="enfas-stat">
             <div class="enfas-stat-top">
                 <span class="enfas-stat-label">{{ $card[0] }}</span>
