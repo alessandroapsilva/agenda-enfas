@@ -111,8 +111,29 @@ class ManagementController extends Controller
         $rangeStart = $from->copy()->startOfDay();
         $rangeEnd = $to->copy()->endOfDay();
 
+        $locations = Schema::hasTable('locations')
+            ? DB::table('locations')
+                ->where('is_active', true)
+                ->orderByDesc('is_main')
+                ->orderBy('name')
+                ->get(['id','name','code'])
+            : collect();
+
+        $locationId = $request->integer('location_id') ?: null;
+
+        if ($locationId && ! $locations->contains('id', $locationId)) {
+            $locationId = null;
+        }
+
         $base = DB::table('appointments')
             ->whereBetween('start_at', [$rangeStart, $rangeEnd]);
+
+        if (
+            $locationId
+            && Schema::hasColumn('appointments', 'location_id')
+        ) {
+            $base->where('location_id', $locationId);
+        }
 
         $metrics = [
             'appointments' => (clone $base)->count(),
@@ -132,9 +153,18 @@ class ManagementController extends Controller
             'no_show' => round(($metrics['no_show'] / $denominator) * 100, 1),
         ];
 
-        $professionals = DB::table('appointments as a')
+        $professionalsQuery = DB::table('appointments as a')
             ->join('professionals as p', 'p.id', '=', 'a.professional_id')
-            ->whereBetween('a.start_at', [$rangeStart, $rangeEnd])
+            ->whereBetween('a.start_at', [$rangeStart, $rangeEnd]);
+
+        if (
+            $locationId
+            && Schema::hasColumn('appointments', 'location_id')
+        ) {
+            $professionalsQuery->where('a.location_id', $locationId);
+        }
+
+        $professionals = $professionalsQuery
             ->groupBy('p.id', 'p.name')
             ->select([
                 'p.id',
@@ -156,9 +186,18 @@ class ManagementController extends Controller
                 return $row;
             });
 
-        $services = DB::table('appointments as a')
+        $servicesQuery = DB::table('appointments as a')
             ->join('services as s', 's.id', '=', 'a.service_id')
-            ->whereBetween('a.start_at', [$rangeStart, $rangeEnd])
+            ->whereBetween('a.start_at', [$rangeStart, $rangeEnd]);
+
+        if (
+            $locationId
+            && Schema::hasColumn('appointments', 'location_id')
+        ) {
+            $servicesQuery->where('a.location_id', $locationId);
+        }
+
+        $services = $servicesQuery
             ->groupBy('s.id', 's.name')
             ->select([
                 's.id',
@@ -172,8 +211,17 @@ class ManagementController extends Controller
             ->limit(12)
             ->get();
 
-        $daily = DB::table('appointments')
-            ->whereBetween('start_at', [$rangeStart, $rangeEnd])
+        $dailyQuery = DB::table('appointments')
+            ->whereBetween('start_at', [$rangeStart, $rangeEnd]);
+
+        if (
+            $locationId
+            && Schema::hasColumn('appointments', 'location_id')
+        ) {
+            $dailyQuery->where('location_id', $locationId);
+        }
+
+        $daily = $dailyQuery
             ->selectRaw('DATE(start_at) as day')
             ->selectRaw('COUNT(*) as total')
             ->selectRaw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed")
@@ -289,7 +337,9 @@ class ManagementController extends Controller
             'journey',
             'cancellationReasons',
             'from',
-            'to'
+            'to',
+            'locations',
+            'locationId'
         ));
     }
 
@@ -302,14 +352,25 @@ class ManagementController extends Controller
             [$from, $to] = [$to, $from];
         }
 
-        $rows = DB::table('appointments as a')
+        $locationId = $request->integer('location_id') ?: null;
+
+        $rowsQuery = DB::table('appointments as a')
             ->leftJoin('patients as p', 'p.id', '=', 'a.patient_id')
             ->leftJoin('professionals as pro', 'pro.id', '=', 'a.professional_id')
             ->leftJoin('services as s', 's.id', '=', 'a.service_id')
             ->whereBetween('a.start_at', [
                 $from->copy()->startOfDay(),
                 $to->copy()->endOfDay(),
-            ])
+            ]);
+
+        if (
+            $locationId
+            && Schema::hasColumn('appointments', 'location_id')
+        ) {
+            $rowsQuery->where('a.location_id', $locationId);
+        }
+
+        $rows = $rowsQuery
             ->orderBy('a.start_at')
             ->get([
                 'a.code',
