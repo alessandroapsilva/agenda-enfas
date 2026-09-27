@@ -43,9 +43,11 @@
                     <div class="row g-3">
                         @foreach($config['fields'] as [$name,$label,$type,$required])
                             <div class="{{ $type==='textarea' ? 'col-12' : 'col-md-6 col-xl-12' }}">
-                                <label class="form-label">
-                                    {{ $label }}
-                                </label>
+                                @if($type!=='checkbox')
+                                    <label class="form-label">
+                                        {{ $label }}
+                                    </label>
+                                @endif
 
                                 @php($value=old($name,$editing->{$name}??''))
 
