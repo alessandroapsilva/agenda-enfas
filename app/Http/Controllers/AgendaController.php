@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\AppointmentEvent;
 use App\Models\CustomField;
+use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Professional;
 use App\Models\Service;
@@ -32,6 +33,12 @@ class AgendaController extends Controller
             ->orderBy('name')
             ->get();
 
+        $locations = Location::query()
+            ->where('is_active', true)
+            ->orderByDesc('is_main')
+            ->orderBy('name')
+            ->get();
+
         $customFields = CustomField::query()
             ->where('entity_type', 'appointment')
             ->where('is_active', true)
@@ -45,6 +52,7 @@ class AgendaController extends Controller
                 'patients',
                 'professionals',
                 'services',
+                'locations',
                 'customFields'
             )
         );
@@ -66,6 +74,7 @@ class AgendaController extends Controller
                 'patient',
                 'professional',
                 'service',
+                'location',
             ])
             ->when($request->filled('professional_id'), fn ($q) =>
                 $q->where('professional_id', $request->integer('professional_id'))
@@ -75,6 +84,9 @@ class AgendaController extends Controller
             )
             ->when($request->filled('status'), fn ($q) =>
                 $q->where('status', $request->string('status')->toString())
+            )
+            ->when($request->filled('location_id'), fn ($q) =>
+                $q->where('location_id', $request->integer('location_id'))
             )
             ->where(
                 'start_at',
@@ -150,6 +162,9 @@ class AgendaController extends Controller
 
                         'appointmentType' =>
                             $appointment->appointment_type,
+
+                        'location' =>
+                            $appointment->location?->name,
                     ],
                 ]
             )
