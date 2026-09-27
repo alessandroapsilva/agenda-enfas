@@ -195,13 +195,6 @@ class ProcessEnfasReminders extends Command
                 $now
             ),
 
-            'medication_pickup_ready' => $this->timestampAppointments(
-                clone $base,
-                'pickup_ready_at',
-                $since,
-                $now
-            ),
-
             default => null,
         };
     }
