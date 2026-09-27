@@ -6,7 +6,6 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
-use App\Http\Controllers\MedicationPickupController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ProfessionalWorkspaceController;
 use App\Http\Controllers\ServiceController;
@@ -299,23 +298,6 @@ Route::middleware('auth')->group(function () {
     )->middleware('permission:settings.manage')->name('custom-fields.status');
 
 
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RETIRADA DE MEDICAMENTOS
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/retiradas-medicamentos',
-        [MedicationPickupController::class, 'index']
-    )->middleware('permission:agenda.view')->name('medication-pickups.index');
-
-    Route::patch(
-        '/retiradas-medicamentos/{appointment}/status',
-        [MedicationPickupController::class, 'updateStatus']
-    )->middleware('permission:agenda.manage')->name('medication-pickups.status');
 
 
     /*
