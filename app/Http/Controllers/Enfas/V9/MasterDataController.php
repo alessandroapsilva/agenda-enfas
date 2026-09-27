@@ -59,13 +59,21 @@ class MasterDataController extends Controller
             'reference' => ['appointments','location_id'],
             'fields' => [
                 ['name','Nome da unidade','text',true],
+                ['code','Código da unidade','text',false],
                 ['phone','Telefone','text',false],
+                ['whatsapp','WhatsApp','text',false],
                 ['email','E-mail','email',false],
-                ['address','Endereço','text',false],
+                ['address','Logradouro','text',false],
+                ['address_number','Número','text',false],
+                ['address_complement','Complemento','text',false],
+                ['neighborhood','Bairro','text',false],
                 ['city','Cidade','text',false],
                 ['state','UF','text',false],
                 ['postal_code','CEP','text',false],
-                ['notes','Observações','textarea',false],
+                ['responsible_name','Responsável pela unidade','text',false],
+                ['opening_hours','Horário de funcionamento','textarea',false],
+                ['patient_instructions','Orientações ao paciente','textarea',false],
+                ['notes','Observações internas','textarea',false],
             ],
         ],
     ];
@@ -78,7 +86,20 @@ class MasterDataController extends Controller
 
         if ($request->filled('q')) {
             $q='%'.$request->string('q')->trim().'%';
-            $query->where('name','like',$q);
+
+            $query->where(function ($query) use ($q, $entity) {
+                $query->where('name','like',$q);
+
+                if ($entity === 'locations') {
+                    if (Schema::hasColumn('locations','code')) {
+                        $query->orWhere('code','like',$q);
+                    }
+
+                    if (Schema::hasColumn('locations','city')) {
+                        $query->orWhere('city','like',$q);
+                    }
+                }
+            });
         }
 
         $rows=$query->paginate(25)->withQueryString();
