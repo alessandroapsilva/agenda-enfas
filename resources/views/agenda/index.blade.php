@@ -2,37 +2,17 @@
 
 @section('title', 'Agenda')
 
-@section('content_header')
+@section('page_kicker','OPERAÇÃO')
+@section('page_title','Agenda')
+@section('page_subtitle','Visualize disponibilidade, confirmação e movimentação dos atendimentos em um único fluxo.')
 
-<div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
-
-    <div>
-
-        <h3 class="enfas-page-title">
-            Agenda
-        </h3>
-
-        <p class="enfas-page-subtitle">
-            Clique em um horário livre ou arraste um compromisso.
-        </p>
-
-    </div>
-
-    <button
-        id="newAppointmentBtn"
-        class="btn btn-primary"
-        data-bs-toggle="modal"
-        data-bs-target="#appointmentModal">
-
-        <i class="bi bi-plus-lg me-1"></i>
-
-        Novo agendamento
-
-    </button>
-
-</div>
-
-@stop
+@section('page_actions')
+@can('agenda.manage')
+<button id="newAppointmentBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal">
+    <i class="bi bi-plus-lg"></i>Novo agendamento
+</button>
+@endcan
+@endsection
 
 
 @section('content')
@@ -50,8 +30,29 @@
 @endif
 
 
+<div class="ea-ops-strip mb-3">
+    <div>
+        <strong class="d-block">Mapa operacional da agenda</strong>
+        <span class="small text-secondary">Use os filtros para reduzir o calendário ao contexto da equipe.</span>
+    </div>
+    <div class="ea-status-legend">
+        <span><i style="background:#f59e0b"></i>Aguardando</span>
+        <span><i style="background:#16a34a"></i>Confirmado</span>
+        <span><i style="background:#2563eb"></i>Concluído</span>
+        <span><i style="background:#dc2626"></i>Falta</span>
+        <span><i style="background:#94a3b8"></i>Cancelado</span>
+    </div>
+</div>
+
+
 
 <div class="card mb-3">
+    <div class="card-header">
+        <div>
+            <strong class="d-block">Filtros da agenda</strong>
+            <span class="small text-secondary">Profissional, serviço, unidade e situação.</span>
+        </div>
+    </div>
     <div class="card-body">
         <div class="row g-3 align-items-end">
             <div class="col-xl-3 col-md-6">
@@ -101,7 +102,7 @@
                     <i class="bi bi-funnel me-1"></i>Filtrar
                 </button>
                 <button type="button" class="btn btn-primary flex-fill" data-bs-toggle="modal" data-bs-target="#bestSlotModal">
-                    <i class="bi bi-stars me-1"></i>Melhor horário
+                    <i class="bi bi-stars me-1"></i>Encontrar horário
                 </button>
             </div>
         </div>
