@@ -12,7 +12,7 @@ Route::middleware('auth')
                 OperationsController::class,
                 'today',
             ]
-        )->name('v11.today');
+        )->middleware('permission:agenda.view')->name('v11.today');
 
         Route::get(
             '/confirmacoes/central',
@@ -20,7 +20,7 @@ Route::middleware('auth')
                 OperationsController::class,
                 'confirmations',
             ]
-        )->name(
+        )->middleware('permission:agenda.view')->name(
             'v11.confirmations'
         );
 
@@ -32,7 +32,7 @@ Route::middleware('auth')
             ]
         )->whereNumber(
             'appointment'
-        )->name(
+        )->middleware('permission:agenda.manage')->name(
             'v11.confirmations.mark'
         );
     });
