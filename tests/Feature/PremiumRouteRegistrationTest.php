@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\Enfas\HomeController;
 use App\Http\Controllers\Enfas\WhatsAppController;
+use App\Http\Controllers\Enfas\V9\TemplateStudioController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ServiceController;
@@ -60,4 +61,31 @@ class PremiumRouteRegistrationTest extends TestCase
             $services->getActionName()
         );
     }
+
+    public function test_whatsapp_template_routes_use_single_consolidated_controller(): void
+    {
+        $index = Route::getRoutes()->getByName('v9.templates.index');
+        $store = Route::getRoutes()->getByName('v9.templates.store');
+        $sync = Route::getRoutes()->getByName('v9.templates.sync');
+
+        $this->assertSame(
+            TemplateStudioController::class.'@index',
+            $index->getActionName()
+        );
+
+        $this->assertSame(
+            TemplateStudioController::class.'@store',
+            $store->getActionName()
+        );
+
+        $this->assertSame(
+            TemplateStudioController::class.'@sync',
+            $sync->getActionName()
+        );
+
+        $this->assertFalse(Route::has('enfas.v6.templates'));
+        $this->assertFalse(Route::has('enfas.v6.templates.store'));
+        $this->assertFalse(Route::has('enfas.v6.templates.sync'));
+    }
+
 }
