@@ -29,11 +29,7 @@ class HomeController extends Controller
     {
         $user = auth()->user();
 
-        if (
-            $user
-            && $user->role === 'professional'
-            && $user->professional_id
-        ) {
+        if ($user && $user->role === 'professional') {
             return redirect()->route('professional.workspace');
         }
 
