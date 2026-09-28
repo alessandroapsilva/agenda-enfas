@@ -7,18 +7,19 @@
 
 @section('content')
 
-<section class="v92-hero mb-4">
-    <div>
-        <span class="v92-eyebrow">ENFAS · {{ now()->translatedFormat('d/m/Y') }}</span>
-        <h2>{{ $professional->name }}</h2>
-        <p>{{ $professional->specialty ?: 'Profissional ENFAS' }} · acompanhe sua operação sem ruído.</p>
+<div class="ea-professional-head mb-4">
+    <div class="d-flex align-items-center gap-3 min-w-0">
+        <div class="ea-avatar">{{ strtoupper(substr($professional->name,0,1)) }}</div>
+        <div class="min-w-0">
+            <span class="small text-secondary d-block">{{ now()->translatedFormat('l, d \d\e F') }}</span>
+            <h4 class="mb-0 text-truncate">{{ $professional->name }}</h4>
+            <span class="small text-secondary">{{ $professional->specialty ?: 'Profissional ENFAS' }}</span>
+        </div>
     </div>
-    <div class="d-flex flex-wrap gap-2">
-        <a href="{{ route('agenda.index') }}" class="btn btn-light">
-            <i class="bi bi-calendar3"></i>Abrir agenda
-        </a>
-    </div>
-</section>
+    <span class="badge text-bg-light border">
+        <i class="bi bi-shield-check me-1"></i>Ambiente individual
+    </span>
+</div>
 
 <div class="row g-3 mb-4">
     @foreach([
