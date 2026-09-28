@@ -3,7 +3,6 @@
 use App\Http\Controllers\Enfas\V6\MetaSubscriptionController;
 use App\Http\Controllers\Enfas\V6\WhatsAppAutomationController;
 use App\Http\Controllers\Enfas\V6\WhatsAppMessageController;
-use App\Http\Controllers\Enfas\V6\WhatsAppTemplateController;
 use App\Http\Controllers\Enfas\V6\Meta\WhatsAppWebhookController;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
@@ -20,21 +19,8 @@ Route::middleware('auth')->group(function(){
         ->middleware('permission:whatsapp.manage')
         ->name('enfas.v6.meta.subscribe');
 
-    Route::get('/whatsapp/templates',[WhatsAppTemplateController::class,'index'])
-        ->middleware('permission:whatsapp.manage')
-        ->name('enfas.v6.templates');
-    Route::post('/whatsapp/templates',[WhatsAppTemplateController::class,'store'])
-        ->middleware('permission:whatsapp.manage')
-        ->name('enfas.v6.templates.store');
-    Route::post('/whatsapp/templates/sincronizar',[WhatsAppTemplateController::class,'sync'])
-        ->middleware('permission:whatsapp.manage')
-        ->name('enfas.v6.templates.sync');
-    Route::post('/whatsapp/templates/{template}/enviar-meta',[WhatsAppTemplateController::class,'submit'])
-        ->middleware('permission:whatsapp.manage')
-        ->name('enfas.v6.templates.submit');
-    Route::delete('/whatsapp/templates/{template}',[WhatsAppTemplateController::class,'delete'])
-        ->middleware('permission:whatsapp.manage')
-        ->name('enfas.v6.templates.delete');
+    // Template management is consolidated in the V9 Template Studio routes.
+    // Keep this file focused on Meta webhook/subscription, automations and message history.
 
     Route::get('/whatsapp/automacoes',[WhatsAppAutomationController::class,'index'])
         ->middleware('permission:whatsapp.manage')
