@@ -232,7 +232,7 @@ return [
     */
 
     'menu' => [
-        ['header' => 'ENFAS AGENDA'],
+        ['header' => 'OPERAÇÃO'],
 
         [
             'text' => 'Visão geral',
@@ -240,78 +240,134 @@ return [
             'icon' => 'bi bi-grid-1x2-fill',
             'can' => 'dashboard.view',
         ],
-
         [
             'text' => 'Meu painel',
             'route' => 'professional.workspace',
             'icon' => 'bi bi-person-workspace',
             'can' => 'professional.workspace',
         ],
-
         [
-            'text' => 'Estatísticas',
-            'icon' => 'bi bi-bar-chart-line',
-            'can' => 'reports.view',
-            'submenu' => [
-                ['text' => 'Indicadores e NPS', 'route' => 'v92.reports', 'icon' => 'bi bi-speedometer2', 'can' => 'reports.view'],
-                ['text' => 'Alertas operacionais', 'route' => 'v92.alerts', 'icon' => 'bi bi-bell', 'can' => 'reports.view'],
-            ],
-        ],
-
-        [
-            'text' => 'Agendamentos',
+            'text' => 'Agenda',
+            'route' => 'agenda.index',
             'icon' => 'bi bi-calendar3',
             'can' => 'agenda.view',
-            'submenu' => [
-                ['text' => 'Agenda', 'route' => 'agenda.index', 'icon' => 'bi bi-calendar3', 'can' => 'agenda.view'],
-                ['text' => 'Todos os agendamentos', 'route' => 'appointments.index', 'icon' => 'bi bi-calendar2-check', 'can' => 'agenda.view'],
-                ['text' => 'Confirmações', 'route' => 'v10.confirmations', 'icon' => 'bi bi-patch-check', 'can' => 'agenda.view'],
-                ['text' => 'Lista de espera', 'route' => 'waitlist.index', 'icon' => 'bi bi-hourglass-split', 'can' => 'agenda.view'],
-            ],
         ],
-
+        [
+            'text' => 'Agendamentos',
+            'route' => 'appointments.index',
+            'icon' => 'bi bi-calendar2-check',
+            'can' => 'agenda.view',
+        ],
         [
             'text' => 'Pacientes',
             'route' => 'patients.index',
             'icon' => 'bi bi-people',
             'can' => 'patients.view',
         ],
+        [
+            'text' => 'Lista de espera',
+            'route' => 'waitlist.index',
+            'icon' => 'bi bi-hourglass-split',
+            'can' => 'agenda.view',
+        ],
+        [
+            'text' => 'Confirmações',
+            'route' => 'v10.confirmations',
+            'icon' => 'bi bi-patch-check',
+            'can' => 'agenda.view',
+        ],
+
+        ['header' => 'ATENDIMENTO'],
 
         [
-            'text' => 'Comunicação',
-            'icon' => 'bi bi-chat-dots',
+            'text' => 'Central WhatsApp',
+            'route' => 'enfas.whatsapp',
+            'icon' => 'bi bi-whatsapp',
             'can' => 'whatsapp.view',
-            'submenu' => [
-                ['text' => 'Central WhatsApp', 'route' => 'enfas.whatsapp', 'icon' => 'bi bi-whatsapp', 'can' => 'whatsapp.view'],
-                ['text' => 'Templates', 'route' => 'v9.templates.index', 'icon' => 'bi bi-chat-square-text', 'can' => 'whatsapp.view'],
-                ['text' => 'Automações', 'route' => 'enfas.v6.automations', 'icon' => 'bi bi-lightning-charge', 'can' => 'whatsapp.manage'],
-                ['text' => 'Mensagens', 'route' => 'enfas.v6.messages', 'icon' => 'bi bi-send', 'can' => 'whatsapp.view'],
-                ['text' => 'Mídia', 'route' => 'v9.media.index', 'icon' => 'bi bi-images', 'can' => 'whatsapp.view'],
-            ],
+        ],
+        [
+            'text' => 'Templates',
+            'route' => 'v9.templates.index',
+            'icon' => 'bi bi-chat-square-text',
+            'can' => 'whatsapp.view',
+        ],
+        [
+            'text' => 'Automações',
+            'route' => 'enfas.v6.automations',
+            'icon' => 'bi bi-lightning-charge',
+            'can' => 'whatsapp.manage',
+        ],
+        [
+            'text' => 'Histórico de mensagens',
+            'route' => 'enfas.v6.messages',
+            'icon' => 'bi bi-send',
+            'can' => 'whatsapp.view',
         ],
 
+        ['header' => 'GESTÃO'],
+
         [
-            'text' => 'Configurações',
-            'icon' => 'bi bi-sliders2',
+            'text' => 'Profissionais',
+            'route' => 'professionals.index',
+            'icon' => 'bi bi-person-badge',
             'can' => 'professionals.view',
-            'submenu' => [
-                ['text' => 'Profissionais', 'route' => 'professionals.index', 'icon' => 'bi bi-person-badge', 'can' => 'professionals.view'],
-                ['text' => 'Serviços', 'route' => 'services.index', 'icon' => 'bi bi-grid', 'can' => 'services.view'],
-                ['text' => 'Unidades', 'route' => 'v9.locations.index', 'icon' => 'bi bi-buildings', 'can' => 'professionals.view'],
-                ['text' => 'Campos personalizados', 'route' => 'custom-fields.index', 'icon' => 'bi bi-ui-checks-grid', 'can' => 'settings.manage'],
-            ],
+        ],
+        [
+            'text' => 'Serviços',
+            'route' => 'services.index',
+            'icon' => 'bi bi-grid',
+            'can' => 'services.view',
+        ],
+        [
+            'text' => 'Unidades',
+            'route' => 'v9.locations.index',
+            'icon' => 'bi bi-buildings',
+            'can' => 'professionals.view',
+        ],
+        [
+            'text' => 'Indicadores e NPS',
+            'route' => 'v92.reports',
+            'icon' => 'bi bi-graph-up-arrow',
+            'can' => 'reports.view',
+        ],
+        [
+            'text' => 'Alertas operacionais',
+            'route' => 'v92.alerts',
+            'icon' => 'bi bi-bell',
+            'can' => 'reports.view',
         ],
 
+        ['header' => 'ADMINISTRAÇÃO'],
+
         [
-            'text' => 'Administração',
-            'icon' => 'bi bi-shield-lock',
+            'text' => 'Usuários e acessos',
+            'route' => 'users.index',
+            'icon' => 'bi bi-person-lock',
+            'can' => 'users.manage',
+        ],
+        [
+            'text' => 'Auditoria',
+            'route' => 'v92.audit',
+            'icon' => 'bi bi-shield-check',
+            'can' => 'audit.view',
+        ],
+        [
+            'text' => 'Preferências',
+            'route' => 'v92.settings',
+            'icon' => 'bi bi-sliders2',
             'can' => 'settings.manage',
-            'submenu' => [
-                ['text' => 'Usuários', 'route' => 'users.index', 'icon' => 'bi bi-person-lock', 'can' => 'manage-users'],
-                ['text' => 'Auditoria', 'route' => 'v92.audit', 'icon' => 'bi bi-shield-check', 'can' => 'audit.view'],
-                ['text' => 'Preferências', 'route' => 'v92.settings', 'icon' => 'bi bi-gear', 'can' => 'settings.manage'],
-                ['text' => 'Saúde do sistema', 'route' => 'v92.health.dashboard', 'icon' => 'bi bi-heart-pulse', 'can' => 'settings.manage'],
-            ],
+        ],
+        [
+            'text' => 'Campos personalizados',
+            'route' => 'custom-fields.index',
+            'icon' => 'bi bi-ui-checks-grid',
+            'can' => 'settings.manage',
+        ],
+        [
+            'text' => 'Saúde do sistema',
+            'route' => 'v92.health.dashboard',
+            'icon' => 'bi bi-heart-pulse',
+            'can' => 'settings.manage',
         ],
     ],
 
