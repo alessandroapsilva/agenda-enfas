@@ -885,9 +885,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             nowIndicator: true,
 
-            selectable: true,
+            selectable: @json(auth()->user()->canAccess('agenda.manage')),
 
-            editable: true,
+            editable: @json(auth()->user()->canAccess('agenda.manage')),
 
             eventInteractive: true,
 
@@ -948,9 +948,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.value =
                     info.startStr.substring(0, 16);
 
-                document
-                    .getElementById('newAppointmentBtn')
-                    .click();
+                const createButton = document.getElementById('newAppointmentBtn');
+                if (createButton) createButton.click();
             },
 
             eventClick: async function(info) {
@@ -1439,7 +1438,10 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelector('select[name="service_id"]').value =
             document.getElementById('bestSlotService').value;
 
-        document.getElementById('newAppointmentBtn').click();
+        const createButton = document.getElementById('newAppointmentBtn');
+        if (! createButton) return;
+
+        createButton.click();
         document.getElementById('appointmentStart').dispatchEvent(new Event('change'));
     };
 
