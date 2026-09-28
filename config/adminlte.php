@@ -272,7 +272,7 @@ return [
         ],
         [
             'text' => 'Confirmações',
-            'route' => 'v10.confirmations',
+            'route' => 'v11.confirmations',
             'icon' => 'bi bi-patch-check',
             'can' => 'agenda.view',
         ],
