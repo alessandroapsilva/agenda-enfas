@@ -31,8 +31,8 @@ return [
             'reports.view','audit.view',
         ],
         'professional' => [
-            'dashboard.view','agenda.view','professional.workspace',
-            'patients.view','whatsapp.view',
+            'dashboard.view',
+            'professional.workspace',
         ],
         'attendant' => [
             'dashboard.view','agenda.view','agenda.manage',
