@@ -18,6 +18,7 @@
     </select>
 </form>
 
+@can('whatsapp.view')
 <a href="{{ route('enfas.whatsapp') }}" class="btn btn-light border">
     <i class="bi bi-headset"></i>
     Central WhatsApp
@@ -25,9 +26,12 @@
         <span class="badge text-bg-danger ms-1">{{ $inbox['unread'] }}</span>
     @endif
 </a>
-<a href="{{ url('/agenda') }}" class="btn btn-primary">
+@endcan
+@can('agenda.manage')
+<a href="{{ route('agenda.index') }}" class="btn btn-primary">
     <i class="bi bi-calendar-plus"></i>Novo agendamento
 </a>
+@endcan
 @endsection
 
 @section('content')
@@ -45,15 +49,19 @@
         </small>
     </div>
     <div class="d-flex flex-wrap gap-2">
+        @can('agenda.view')
         <a href="{{ route('agenda.index') }}" class="btn btn-outline-primary">
             <i class="bi bi-calendar3 me-1"></i>Agenda
         </a>
         <a href="{{ route('waitlist.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-hourglass-split me-1"></i>Lista de espera
         </a>
+        @endcan
+        @can('reports.view')
         <a href="{{ route('v92.reports') }}" class="btn btn-outline-secondary">
             <i class="bi bi-bar-chart me-1"></i>Relatórios
         </a>
+        @endcan
     </div>
 </div>
 
