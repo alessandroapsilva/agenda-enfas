@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::get(
         '/confirmacoes',
-        [ConfirmationCenterController::class,'index']
+        fn () => redirect()->route('v11.confirmations')
     )->middleware('permission:agenda.view')->name('v10.confirmations');
 
     Route::patch(
