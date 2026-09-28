@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Professional;
 use App\Models\Service;
+use App\Services\Enfas\AccessScopeService;
 use App\Services\Enfas\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,14 +17,14 @@ use Illuminate\Validation\ValidationException;
 
 class AgendaController extends Controller
 {
-    public function index()
+    public function index(Request $request, AccessScopeService $access)
     {
-        $patients = Patient::query()
+        $patients = $access->patients(Patient::query(), $request->user())
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        $professionals = Professional::query()
+        $professionals = $access->professionals(Professional::query(), $request->user())
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -59,7 +60,7 @@ class AgendaController extends Controller
     }
 
 
-    public function events(Request $request)
+    public function events(Request $request, AccessScopeService $access)
     {
         $start = Carbon::parse(
             $request->get('start')
@@ -69,7 +70,7 @@ class AgendaController extends Controller
             $request->get('end')
         );
 
-        $appointments = Appointment::query()
+        $appointments = $access->appointments(Appointment::query(), $request->user())
             ->with([
                 'patient',
                 'professional',
@@ -173,7 +174,7 @@ class AgendaController extends Controller
 
 
 
-    public function bestSlots(Request $request, AvailabilityService $availability)
+    public function bestSlots(Request $request, AvailabilityService $availability, AccessScopeService $access)
     {
         $data = $request->validate([
             'professional_id' => ['required','integer','exists:professionals,id'],
@@ -182,6 +183,11 @@ class AgendaController extends Controller
             'from' => ['nullable','date'],
             'limit' => ['nullable','integer','min:1','max:12'],
         ]);
+
+        abort_unless(
+            $access->canUseProfessional($request->user(), (int) $data['professional_id']),
+            403
+        );
 
         $slots = $availability->nextSlots(
             $data['professional_id'],
@@ -200,8 +206,13 @@ class AgendaController extends Controller
     public function move(
         Request $request,
         Appointment $appointment,
-        AvailabilityService $availability
+        AvailabilityService $availability,
+        AccessScopeService $access
     ) {
+        abort_unless(
+            $access->canViewAppointment($request->user(), $appointment),
+            403
+        );
         $data = $request->validate([
             'start' => [
                 'required',
