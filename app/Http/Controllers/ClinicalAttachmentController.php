@@ -26,6 +26,7 @@ class ClinicalAttachmentController extends Controller
             ])],
             'title' => ['required','string','max:180'],
             'source' => ['nullable', Rule::in(['upload','scanner','camera'])],
+            'scan_metadata' => ['nullable','string','max:8000'],
             'file' => ['required','file','mimes:pdf,jpg,jpeg,png,tif,tiff','max:30720'],
         ]);
 
@@ -59,6 +60,9 @@ class ClinicalAttachmentController extends Controller
             'size_bytes' => strlen($bytes),
             'sha256' => hash('sha256', $bytes),
             'source' => $data['source'] ?? 'upload',
+            'scan_metadata' => filled($data['scan_metadata'] ?? null)
+                ? json_decode($data['scan_metadata'], true)
+                : null,
             'created_by' => $request->user()->id,
         ]);
 
