@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class PharmaceuticalCareController extends Controller
@@ -32,6 +34,7 @@ class PharmaceuticalCareController extends Controller
         $pmc = collect();
         $lmes = collect();
         $apacs = collect();
+        $documents = collect();
 
         if ($selectedPatient) {
             $medications = DB::table('sigh_patient_medications')
@@ -55,6 +58,12 @@ class PharmaceuticalCareController extends Controller
 
             $apacs = DB::table('sigh_apac_authorizations')
                 ->where('patient_id', $selectedPatient->id)
+                ->orderByDesc('id')
+                ->get();
+
+            $documents = DB::table('sigh_patient_documents')
+                ->where('patient_id', $selectedPatient->id)
+                ->orderByDesc('document_date')
                 ->orderByDesc('id')
                 ->get();
         }
@@ -85,6 +94,7 @@ class PharmaceuticalCareController extends Controller
             'pmc',
             'lmes',
             'apacs',
+            'documents',
             'stats',
             'q'
         ));
@@ -202,4 +212,59 @@ class PharmaceuticalCareController extends Controller
 
         return back()->with('success', 'APAC incluída no acompanhamento.');
     }
+
+    public function storeDocument(Request $request)
+    {
+        $data = $request->validate([
+            'patient_id' => ['required','exists:patients,id'],
+            'category' => ['required', Rule::in([
+                'prescription','lme','apac','exam','report','authorization','identity','other',
+            ])],
+            'title' => ['required','string','max:180'],
+            'document_date' => ['nullable','date'],
+            'valid_until' => ['nullable','date'],
+            'notes' => ['nullable','string','max:5000'],
+            'file' => ['required','file','mimes:pdf,jpg,jpeg,png','max:15360'],
+        ]);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $path = 'sigh/patients/'.$data['patient_id'].'/'.Str::uuid().'.'.$extension;
+
+        Storage::disk('local')->put($path, $file->get());
+
+        DB::table('sigh_patient_documents')->insert([
+            'patient_id' => $data['patient_id'],
+            'category' => $data['category'],
+            'title' => trim($data['title']),
+            'original_name' => $file->getClientOriginalName(),
+            'disk' => 'local',
+            'path' => $path,
+            'mime_type' => $file->getMimeType(),
+            'size_bytes' => $file->getSize(),
+            'document_date' => $data['document_date'] ?? null,
+            'valid_until' => $data['valid_until'] ?? null,
+            'notes' => $data['notes'] ?? null,
+            'created_by' => $request->user()->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Documento anexado ao paciente.');
+    }
+
+    public function downloadDocument(int $document)
+    {
+        $row = DB::table('sigh_patient_documents')->where('id', $document)->first();
+
+        abort_unless($row, 404);
+        abort_unless(Storage::disk($row->disk)->exists($row->path), 404);
+
+        return Storage::disk($row->disk)->download(
+            $row->path,
+            $row->original_name,
+            ['Content-Type' => $row->mime_type ?: 'application/octet-stream']
+        );
+    }
+
 }
