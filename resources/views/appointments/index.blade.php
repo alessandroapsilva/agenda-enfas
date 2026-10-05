@@ -38,6 +38,7 @@
                 <th>Profissional</th>
                 <th>Unidade</th>
                 <th>Status</th>
+                <th class="text-end">Ações</th>
             </tr>
 
             </thead>
@@ -84,13 +85,17 @@
                     </td>
 
                     <td>
-
                         <span class="badge text-bg-{{ $appointment->statusBadge() }}">
-
                             {{ $appointment->statusLabel() }}
-
                         </span>
+                    </td>
 
+                    <td class="text-end">
+                        @can('records.view')
+                        <a href="{{ route('appointments.record',$appointment) }}" class="btn btn-sm btn-light border">
+                            <i class="bi bi-file-earmark-medical"></i>Prontuário
+                        </a>
+                        @endcan
                     </td>
 
                 </tr>
@@ -98,7 +103,7 @@
             @empty
 
                 <tr>
-                    <td colspan="8"
+                    <td colspan="9"
                         class="text-center py-5 text-secondary">
 
                         Nenhum agendamento cadastrado.
