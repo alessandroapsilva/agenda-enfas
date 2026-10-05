@@ -17,9 +17,9 @@ return [
     |
     */
 
-    'title' => 'SIGH ENFAS',
+    'title' => 'ENFAS Agenda',
     'title_prefix' => '',
-    'title_postfix' => ' | Sistema Integrado de Gestão em Saúde',
+    'title_postfix' => ' | Enfermagem Alessandro Silva',
 
     /*
     |--------------------------------------------------------------------------
@@ -54,10 +54,10 @@ return [
     |
     */
 
-    'logo' => '<strong>SIGH</strong> <span class="opacity-75">ENFAS</span>',
+    'logo' => '<strong>ENFAS</strong> <span class="opacity-75">Agenda</span>',
     'logo_img' => 'assets/brand/enfas-agenda.svg',
     'logo_img_class' => 'brand-image',
-    'logo_img_alt' => 'SIGH ENFAS',
+    'logo_img_alt' => 'ENFAS Agenda',
 
     /*
     |--------------------------------------------------------------------------
@@ -124,7 +124,7 @@ return [
     |
     */
 
-    'footer_left' => '&copy; '.date('Y').' Enfermagem Alessandro Silva · SIGH ENFAS',
+    'footer_left' => '&copy; '.date('Y').' Enfermagem Alessandro Silva · Agenda ENFAS',
     'footer_right' => 'Ambiente interno seguro',
     'preloader' => false,
     'control_sidebar' => false,
@@ -275,15 +275,6 @@ return [
             'route' => 'v11.confirmations',
             'icon' => 'bi bi-patch-check',
             'can' => 'agenda.view',
-        ],
-
-        ['header' => 'ASSISTÊNCIA'],
-
-        [
-            'text' => 'Assistência Farmacêutica',
-            'route' => 'sigh.pharmacy.index',
-            'icon' => 'bi bi-capsule',
-            'can' => 'pharmacy.view',
         ],
 
         ['header' => 'ATENDIMENTO'],
