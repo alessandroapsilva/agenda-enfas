@@ -97,6 +97,7 @@
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#lme"><i class="bi bi-file-earmark-medical me-1"></i>LME</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#apac"><i class="bi bi-file-earmark-check me-1"></i>APAC</button></li>
 <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#documents"><i class="bi bi-folder2-open me-1"></i>Documentos</button></li>
+<li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#timeline"><i class="bi bi-clock-history me-1"></i>Histórico</button></li>
 </ul>
 
 <div class="tab-content">
@@ -113,7 +114,7 @@
             </div>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Medicamento</th><th>Posologia</th><th>Prescritor</th><th>Situação</th></tr></thead>
+                    <thead><tr><th>Medicamento</th><th>Posologia</th><th>Prescritor</th><th>Situação</th><th class="text-end">Ação</th></tr></thead>
                     <tbody>
                     @forelse($medications as $row)
                         <tr>
@@ -126,9 +127,21 @@
                             <td>{{ collect([$row->dosage,$row->route,$row->frequency])->filter()->implode(' · ') ?: '—' }}</td>
                             <td>{{ $row->prescriber_name ?: '—' }} @if($row->prescriber_registry)<div class="small text-secondary">{{ $row->prescriber_registry }}</div>@endif</td>
                             <td><span class="badge text-bg-{{ $row->is_active ? 'success':'secondary' }}">{{ $row->is_active ? 'Ativo':'Encerrado' }}</span></td>
+                            <td class="text-end">
+                                @can('pharmacy.manage')
+                                <form method="POST" action="{{ route('sigh.pharmacy.medications.status',$row->id) }}" class="d-inline">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="is_active" value="{{ $row->is_active ? 0 : 1 }}">
+                                    <button class="btn btn-sm btn-light border">
+                                        <i class="bi {{ $row->is_active ? 'bi-stop-circle':'bi-arrow-counterclockwise' }}"></i>
+                                        {{ $row->is_active ? 'Encerrar':'Reativar' }}
+                                    </button>
+                                </form>
+                                @endcan
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4"><div class="enfas-empty py-4"><strong>Nenhum medicamento cadastrado</strong><div>Inclua os medicamentos acompanhados para este paciente.</div></div></td></tr>
+                        <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhum medicamento cadastrado</strong><div>Inclua os medicamentos acompanhados para este paciente.</div></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -180,7 +193,7 @@
             </div>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Medicamento</th><th>CID</th><th>Protocolo</th><th>Status</th><th>Renovação</th></tr></thead>
+                    <thead><tr><th>Medicamento</th><th>CID</th><th>Protocolo</th><th>Status</th><th>Renovação</th><th class="text-end">Atualizar</th></tr></thead>
                     <tbody>
                     @forelse($lmes as $row)
                         <tr>
@@ -189,9 +202,32 @@
                             <td>{{ $row->protocol_number ?: '—' }}</td>
                             <td><span class="badge text-bg-light border">{{ str_replace('_',' ',mb_strtoupper($row->status)) }}</span></td>
                             <td>{{ $row->renewal_due_at ? date('d/m/Y', strtotime((string) $row->renewal_due_at)) : '—' }}</td>
+                            <td class="text-end">
+                                @can('pharmacy.manage')
+                                <form method="POST" action="{{ route('sigh.pharmacy.lme.status',$row->id) }}" class="d-flex justify-content-end gap-2">
+                                    @csrf @method('PATCH')
+                                    <select name="status" class="form-select form-select-sm" style="max-width:180px">
+                                        @foreach([
+                                            'draft'=>'Rascunho',
+                                            'pending_documents'=>'Documentos pendentes',
+                                            'submitted'=>'Protocolado',
+                                            'under_review'=>'Em análise',
+                                            'approved'=>'Deferido',
+                                            'denied'=>'Indeferido',
+                                            'dispensing'=>'Em dispensação',
+                                            'renewal_due'=>'Renovação',
+                                            'closed'=>'Encerrado',
+                                        ] as $value=>$label)
+                                        <option value="{{ $value }}" @selected($row->status===$value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button class="btn btn-sm btn-light border"><i class="bi bi-check2"></i></button>
+                                </form>
+                                @endcan
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhuma LME em acompanhamento</strong></div></td></tr>
+                        <tr><td colspan="6"><div class="enfas-empty py-4"><strong>Nenhuma LME em acompanhamento</strong></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -212,7 +248,7 @@
             </div>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Procedimento</th><th>Código</th><th>Autorização</th><th>Competência</th><th>Validade</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Procedimento</th><th>Código</th><th>Autorização</th><th>Competência</th><th>Validade</th><th>Status</th><th class="text-end">Atualizar</th></tr></thead>
                     <tbody>
                     @forelse($apacs as $row)
                         <tr>
@@ -222,9 +258,29 @@
                             <td>{{ $row->competence ?: '—' }}</td>
                             <td>{{ $row->authorized_until ? date('d/m/Y', strtotime((string) $row->authorized_until)) : '—' }}</td>
                             <td><span class="badge text-bg-light border">{{ mb_strtoupper($row->status) }}</span></td>
+                            <td class="text-end">
+                                @can('pharmacy.manage')
+                                <form method="POST" action="{{ route('sigh.pharmacy.apac.status',$row->id) }}" class="d-flex justify-content-end gap-2">
+                                    @csrf @method('PATCH')
+                                    <select name="status" class="form-select form-select-sm" style="max-width:150px">
+                                        @foreach([
+                                            'draft'=>'Rascunho',
+                                            'pending'=>'Pendente',
+                                            'active'=>'Ativa',
+                                            'expired'=>'Vencida',
+                                            'closed'=>'Encerrada',
+                                            'denied'=>'Indeferida',
+                                        ] as $value=>$label)
+                                        <option value="{{ $value }}" @selected($row->status===$value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button class="btn btn-sm btn-light border"><i class="bi bi-check2"></i></button>
+                                </form>
+                                @endcan
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6"><div class="enfas-empty py-4"><strong>Nenhuma APAC em acompanhamento</strong></div></td></tr>
+                        <tr><td colspan="7"><div class="enfas-empty py-4"><strong>Nenhuma APAC em acompanhamento</strong></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -232,6 +288,54 @@
         </div>
     </div>
 
+
+
+
+    <div class="tab-pane fade" id="timeline">
+        <div class="card">
+            <div class="card-header">
+                <strong class="d-block">Histórico assistencial-administrativo</strong>
+                <span class="small text-secondary">Linha do tempo de inclusão, atualização e documentos do módulo.</span>
+            </div>
+            <div class="card-body">
+                <div class="sigh-timeline">
+                    @forelse($events as $event)
+                        <div class="sigh-timeline-item">
+                            <div class="sigh-timeline-dot"><i class="bi bi-clock-history"></i></div>
+                            <div class="sigh-timeline-card">
+                                <div class="d-flex justify-content-between gap-3">
+                                    <strong>
+                                        {{ match($event->subject_type) {
+                                            'medication' => 'Medicamento',
+                                            'pmc' => 'PMC',
+                                            'lme' => 'LME',
+                                            'apac' => 'APAC',
+                                            'document' => 'Documento',
+                                            default => ucfirst($event->subject_type),
+                                        } }}
+                                        · {{ str_replace('_',' ',ucfirst($event->event_type)) }}
+                                    </strong>
+                                    <time>{{ date('d/m/Y H:i', strtotime((string) $event->occurred_at)) }}</time>
+                                </div>
+                                @if($event->from_status || $event->to_status)
+                                    <div class="small text-secondary mt-1">
+                                        @if($event->from_status){{ $event->from_status }} → @endif{{ $event->to_status }}
+                                    </div>
+                                @endif
+                                @if($event->notes)<div class="small mt-2">{{ $event->notes }}</div>@endif
+                                @if($event->user_name)<div class="small text-secondary mt-2">Por {{ $event->user_name }}</div>@endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="enfas-empty py-4">
+                            <strong>Sem histórico ainda</strong>
+                            <div>As próximas movimentações deste módulo aparecerão aqui.</div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="tab-pane fade" id="documents">
         <div class="card">
