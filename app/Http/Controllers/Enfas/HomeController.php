@@ -305,33 +305,6 @@ class HomeController extends Controller
             }
         }
 
-        $care = [
-            'medications' => $this->count(
-                'sigh_patient_medications',
-                fn ($q) => $q->where('is_active', true)
-            ),
-            'pmc_attention' => $this->count(
-                'sigh_pmc_controls',
-                fn ($q) => $q->where('is_active', true)
-                    ->whereNotNull('estimated_end_at')
-                    ->whereDate('estimated_end_at', '<=', now()->addDays(7)->toDateString())
-            ),
-            'lme_attention' => $this->count(
-                'sigh_lme_requests',
-                fn ($q) => $q->whereIn('status', [
-                    'draft','pending_documents','submitted','under_review','renewal_due',
-                ])
-            ),
-            'apac_attention' => $this->count(
-                'sigh_apac_authorizations',
-                fn ($q) => $q->whereIn('status', ['draft','pending','active'])
-                    ->where(function ($inner) {
-                        $inner->whereNull('authorized_until')
-                            ->orWhereDate('authorized_until', '<=', now()->addDays(30)->toDateString());
-                    })
-            ),
-        ];
-
         $week = [
             'total' => $this->count(
                 'appointments',
@@ -377,8 +350,7 @@ class HomeController extends Controller
                 'week',
                 'experience',
                 'locations',
-                'locationId',
-                'care'
+                'locationId'
             )
         );
     }
