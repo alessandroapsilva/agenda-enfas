@@ -17,6 +17,11 @@ echo "==> ENFAS Agenda Premium deploy"
 echo "Diretório: $ROOT_DIR"
 echo "PHP: $($PHP_BIN -r 'echo PHP_VERSION;')"
 
+if ! $PHP_BIN -r "exit(version_compare(PHP_VERSION, '8.4.1', '>=') ? 0 : 1);"; then
+    echo "ERRO: o composer.lock atual exige PHP 8.4.1 ou superior."
+    exit 1
+fi
+
 $PHP_BIN artisan down || true
 
 bring_up() {
