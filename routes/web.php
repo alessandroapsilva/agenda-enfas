@@ -6,6 +6,7 @@ use App\Http\Controllers\AppointmentRecordController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\ClinicalDocumentController;
+use App\Http\Controllers\ClinicalAttachmentController;
 use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
@@ -241,6 +242,16 @@ Route::middleware('auth')->group(function () {
         '/documentos-clinicos/{document}/imprimir',
         [ClinicalDocumentController::class, 'print']
     )->middleware('permission:documents.view')->name('clinical-documents.print');
+
+    Route::post(
+        '/anexos-clinicos',
+        [ClinicalAttachmentController::class, 'store']
+    )->middleware('permission:documents.manage')->name('clinical-attachments.store');
+
+    Route::get(
+        '/anexos-clinicos/{attachment}/baixar',
+        [ClinicalAttachmentController::class, 'download']
+    )->middleware('permission:documents.view')->name('clinical-attachments.download');
 
 
     /*
