@@ -291,6 +291,12 @@ return [
             'icon' => 'bi bi-file-earmark-medical',
             'can' => 'documents.view',
         ],
+        [
+            'text' => 'Prescrições',
+            'route' => 'clinical-prescriptions.index',
+            'icon' => 'bi bi-capsule-pill',
+            'can' => 'prescriptions.view',
+        ],
 
 
         [

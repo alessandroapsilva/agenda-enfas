@@ -11,6 +11,11 @@
     <i class="bi bi-file-earmark-text"></i>Documentos
 </a>
 @endcan
+@can('prescriptions.view')
+<a href="{{ route('clinical-prescriptions.index',['patient_id'=>$appointment->patient_id,'appointment_id'=>$appointment->id]) }}" class="btn btn-light border">
+    <i class="bi bi-capsule-pill"></i>Prescrever
+</a>
+@endcan
 <a href="{{ route('appointments.index') }}" class="btn btn-light border">
     <i class="bi bi-arrow-left"></i>Agendamentos
 </a>

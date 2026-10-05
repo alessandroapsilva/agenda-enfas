@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\ClinicalDocumentController;
 use App\Http\Controllers\ClinicalAttachmentController;
+use App\Http\Controllers\ClinicalPrescriptionController;
 use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
@@ -252,6 +253,58 @@ Route::middleware('auth')->group(function () {
         '/anexos-clinicos/{attachment}/baixar',
         [ClinicalAttachmentController::class, 'download']
     )->middleware('permission:documents.view')->name('clinical-attachments.download');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRESCRIÇÕES
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/prescricoes',
+        [ClinicalPrescriptionController::class, 'index']
+    )->middleware('permission:prescriptions.view')->name('clinical-prescriptions.index');
+
+    Route::post(
+        '/prescricoes',
+        [ClinicalPrescriptionController::class, 'store']
+    )->middleware('permission:prescriptions.manage')->name('clinical-prescriptions.store');
+
+    Route::get(
+        '/prescricoes/{prescription}',
+        [ClinicalPrescriptionController::class, 'show']
+    )->middleware('permission:prescriptions.view')->name('clinical-prescriptions.show');
+
+    Route::patch(
+        '/prescricoes/{prescription}',
+        [ClinicalPrescriptionController::class, 'update']
+    )->middleware('permission:prescriptions.manage')->name('clinical-prescriptions.update');
+
+    Route::post(
+        '/prescricoes/{prescription}/itens',
+        [ClinicalPrescriptionController::class, 'storeItem']
+    )->middleware('permission:prescriptions.manage')->name('clinical-prescriptions.items.store');
+
+    Route::patch(
+        '/prescricoes/{prescription}/itens/{item}',
+        [ClinicalPrescriptionController::class, 'updateItem']
+    )->middleware('permission:prescriptions.manage')->name('clinical-prescriptions.items.update');
+
+    Route::delete(
+        '/prescricoes/{prescription}/itens/{item}',
+        [ClinicalPrescriptionController::class, 'destroyItem']
+    )->middleware('permission:prescriptions.manage')->name('clinical-prescriptions.items.destroy');
+
+    Route::post(
+        '/prescricoes/{prescription}/assinar',
+        [ClinicalPrescriptionController::class, 'sign']
+    )->middleware('permission:prescriptions.sign')->name('clinical-prescriptions.sign');
+
+    Route::get(
+        '/prescricoes/{prescription}/imprimir',
+        [ClinicalPrescriptionController::class, 'print']
+    )->middleware('permission:prescriptions.view')->name('clinical-prescriptions.print');
 
 
     /*

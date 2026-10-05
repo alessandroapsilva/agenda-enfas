@@ -21,6 +21,9 @@ return [
         'documents.view' => 'Ver documentos clínicos',
         'documents.manage' => 'Criar e editar documentos clínicos',
         'documents.sign' => 'Assinar documentos clínicos',
+        'prescriptions.view' => 'Ver prescrições',
+        'prescriptions.manage' => 'Criar e editar prescrições',
+        'prescriptions.sign' => 'Assinar e emitir prescrições',
         'reports.view' => 'Ver relatórios',
         'users.manage' => 'Gerenciar usuários e acessos',
         'settings.manage' => 'Gerenciar configurações do sistema',
@@ -38,6 +41,8 @@ return [
             'activities.view','activities.manage',
             'records.view','records.manage',
             'documents.view','documents.manage','documents.sign',
+            'prescriptions.view','prescriptions.manage','prescriptions.sign',
+            'prescriptions.view','prescriptions.manage','prescriptions.sign',
             'reports.view','audit.view',
         ],
         'professional' => [
