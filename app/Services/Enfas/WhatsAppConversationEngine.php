@@ -66,12 +66,14 @@ class WhatsAppConversationEngine
                 'unread_count' => 1,
                 'context' => [],
                 'last_message_at' => now(),
+                'first_inbound_at' => now(),
                 'last_inbound_at' => now(),
                 'expires_at' => now()->addHours(24),
             ]);
         } else {
             $conversation->update([
                 'last_message_at' => now(),
+                'first_inbound_at' => $conversation->first_inbound_at ?: now(),
                 'last_inbound_at' => now(),
                 'unread_count' => ((int) $conversation->unread_count) + 1,
                 'expires_at' => now()->addHours(24),
