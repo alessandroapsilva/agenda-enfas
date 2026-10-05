@@ -29,6 +29,13 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('v9.locations.index'));
         $this->assertTrue(Route::has('enfas.whatsapp'));
         $this->assertTrue(Route::has('enfas.whatsapp.thread.send'));
+        $this->assertTrue(Route::has('sigh.pharmacy.index'));
+        $this->assertTrue(Route::has('sigh.pharmacy.medications.store'));
+        $this->assertTrue(Route::has('sigh.pharmacy.pmc.store'));
+        $this->assertTrue(Route::has('sigh.pharmacy.lme.store'));
+        $this->assertTrue(Route::has('sigh.pharmacy.apac.store'));
+        $this->assertTrue(Route::has('sigh.pharmacy.documents.store'));
+        $this->assertTrue(Route::has('sigh.pharmacy.documents.download'));
 
         $dashboard = Route::getRoutes()->getByName('dashboard');
         $whatsapp = Route::getRoutes()->getByName('enfas.whatsapp');
