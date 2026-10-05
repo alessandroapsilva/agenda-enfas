@@ -42,6 +42,7 @@ class PremiumWhatsAppInboxTest extends TestCase
         $this->assertSame('5511999999999', $conversation->phone);
         $this->assertSame('bot', $conversation->mode);
         $this->assertSame(1, $conversation->unread_count);
+        $this->assertNotNull($conversation->first_inbound_at);
 
         $message = WaMessage::firstOrFail();
 
