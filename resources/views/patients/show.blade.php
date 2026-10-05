@@ -232,6 +232,7 @@
                             <th>Profissional</th>
                             <th>Status</th>
                             <th>Código</th>
+                            <th class="text-end">Prontuário</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -249,9 +250,17 @@
                             <td>{{ $appointment->professional?->name }}</td>
                             <td><span class="badge text-bg-{{ $appointment->statusBadge() }}">{{ $appointment->statusLabel() }}</span></td>
                             <td><strong>{{ $appointment->code }}</strong></td>
+                            <td class="text-end">
+                                @can('records.view')
+                                <a href="{{ route('appointments.record',$appointment) }}" class="btn btn-sm btn-light border">
+                                    <i class="bi bi-file-earmark-medical"></i>
+                                    {{ $appointment->clinicalRecord?->isFinalized() ? 'Ver' : 'Abrir' }}
+                                </a>
+                                @endcan
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center py-5 text-muted">Nenhum agendamento.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Nenhum agendamento.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
