@@ -97,6 +97,21 @@ return new class extends Migration
             $table->index(['patient_id','category']);
         });
 
+        Schema::create('sigh_care_events', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
+            $table->string('subject_type', 40)->index();
+            $table->unsignedBigInteger('subject_id')->nullable()->index();
+            $table->string('event_type', 60)->index();
+            $table->string('from_status', 40)->nullable();
+            $table->string('to_status', 40)->nullable();
+            $table->text('notes')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('occurred_at')->useCurrent()->index();
+            $table->timestamps();
+            $table->index(['patient_id','occurred_at']);
+        });
+
         Schema::create('sigh_apac_authorizations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
@@ -118,6 +133,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('sigh_apac_authorizations');
+        Schema::dropIfExists('sigh_care_events');
         Schema::dropIfExists('sigh_patient_documents');
         Schema::dropIfExists('sigh_lme_requests');
         Schema::dropIfExists('sigh_pmc_controls');
