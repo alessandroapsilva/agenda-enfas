@@ -58,6 +58,8 @@ return new class extends Migration
             $table->date('next_supply_at')->nullable()->index();
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true)->index();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
 
@@ -76,6 +78,8 @@ return new class extends Migration
             $table->date('valid_until')->nullable()->index();
             $table->date('renewal_due_at')->nullable()->index();
             $table->text('notes')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
 
@@ -126,6 +130,8 @@ return new class extends Migration
             $table->string('professional_name', 160)->nullable();
             $table->string('status', 40)->default('draft')->index();
             $table->text('notes')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }
