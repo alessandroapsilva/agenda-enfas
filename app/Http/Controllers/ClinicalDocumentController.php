@@ -46,8 +46,37 @@ class ClinicalDocumentController extends Controller
             ->orderBy('name')
             ->get();
 
+        $templateOptions = $templates->map(function ($template) use ($patient, $appointment) {
+            $professional = $appointment?->professional;
+
+            $registry = $professional
+                ? trim(implode(' ', array_filter([
+                    $professional->council_type,
+                    $professional->council_number,
+                    $professional->council_state,
+                ])))
+                : '';
+
+            $body = strtr($template->body_template, [
+                '{{patient.name}}' => $patient?->displayName() ?? '',
+                '{{patient.rgea}}' => $patient?->rgea_number ?? '',
+                '{{appointment.code}}' => $appointment?->code ?? '',
+                '{{appointment.date}}' => $appointment?->start_at?->format('d/m/Y H:i') ?? '',
+                '{{professional.name}}' => $professional?->name ?? '',
+                '{{professional.registry}}' => $registry,
+            ]);
+
+            return [
+                'id' => $template->id,
+                'name' => $template->name,
+                'type' => $template->document_type,
+                'title' => $template->title,
+                'body' => $body,
+            ];
+        })->values();
+
         return view('clinical-documents.index', compact(
-            'documents','templates','patient','appointment'
+            'documents','templates','templateOptions','patient','appointment'
         ));
     }
 
