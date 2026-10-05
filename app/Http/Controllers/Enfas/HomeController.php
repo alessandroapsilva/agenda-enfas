@@ -266,6 +266,7 @@ class HomeController extends Controller
             'overdue_tasks' => 0,
             'urgent_conversations' => 0,
             'follow_up' => 0,
+            'avg_first_response_minutes' => null,
         ];
 
         if (Schema::hasTable('wa_conversations')) {
@@ -300,6 +301,31 @@ class HomeController extends Controller
                     ->where('status', 'active')
                     ->where('lead_stage', 'follow_up')
                     ->count();
+            }
+
+            if (
+                Schema::hasColumn('wa_conversations', 'first_inbound_at')
+                && Schema::hasColumn('wa_conversations', 'first_response_at')
+            ) {
+                $samples = DB::table('wa_conversations')
+                    ->whereNotNull('first_inbound_at')
+                    ->whereNotNull('first_response_at')
+                    ->where('first_response_at', '>=', now()->subDays(30))
+                    ->orderByDesc('first_response_at')
+                    ->limit(500)
+                    ->get(['first_inbound_at','first_response_at']);
+
+                if ($samples->isNotEmpty()) {
+                    $engagement['avg_first_response_minutes'] = round(
+                        $samples->avg(function ($row) {
+                            $inbound = \Illuminate\Support\Carbon::parse($row->first_inbound_at);
+                            $response = \Illuminate\Support\Carbon::parse($row->first_response_at);
+
+                            return max(0, $inbound->diffInSeconds($response, false)) / 60;
+                        }),
+                        1
+                    );
+                }
             }
         }
 
