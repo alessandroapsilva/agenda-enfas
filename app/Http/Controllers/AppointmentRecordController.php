@@ -92,4 +92,98 @@ class AppointmentRecordController extends Controller
 
         return back()->with('success', 'Prontuário salvo como rascunho.');
     }
+
+    public function finalize(Request $request, Appointment $appointment, AccessScopeService $access)
+    {
+        abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
+
+        $record = AppointmentClinicalRecord::where('appointment_id', $appointment->id)->firstOrFail();
+
+        if ($record->isFinalized()) {
+            return back()->with('success', 'O prontuário já estava finalizado.');
+        }
+
+        $hasContent = collect([
+            $record->reason_for_visit,
+            $record->history,
+            $record->assessment,
+            $record->interventions,
+            $record->guidance,
+            $record->evolution,
+            $record->follow_up_plan,
+        ])->contains(fn ($value) => filled($value)) || ! empty($record->vitals);
+
+        if (! $hasContent) {
+            throw ValidationException::withMessages([
+                'record' => 'Preencha pelo menos um campo antes de finalizar.',
+            ]);
+        }
+
+        $record->status = 'finalized';
+        $record->finalized_at = now();
+        $record->finalized_by = $request->user()->id;
+        $record->updated_by = $request->user()->id;
+        $record->integrity_hash = hash('sha256', json_encode([
+            'appointment_id' => $record->appointment_id,
+            'patient_id' => $record->patient_id,
+            'professional_id' => $record->professional_id,
+            'reason_for_visit' => $record->reason_for_visit,
+            'history' => $record->history,
+            'vitals' => $record->vitals,
+            'assessment' => $record->assessment,
+            'interventions' => $record->interventions,
+            'guidance' => $record->guidance,
+            'evolution' => $record->evolution,
+            'follow_up_plan' => $record->follow_up_plan,
+            'finalized_at' => now()->toIso8601String(),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $record->save();
+
+        AppointmentEvent::create([
+            'appointment_id' => $appointment->id,
+            'user_id' => $request->user()->id,
+            'event_type' => 'record_finalized',
+            'title' => 'Prontuário finalizado',
+            'description' => 'Registro bloqueado para edição.',
+            'metadata' => [
+                'record_id' => $record->id,
+                'integrity_hash' => $record->integrity_hash,
+            ],
+            'occurred_at' => now(),
+        ]);
+
+        return back()->with('success', 'Prontuário finalizado.');
+    }
+
+    public function addendum(Request $request, Appointment $appointment, AccessScopeService $access)
+    {
+        abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
+
+        $record = AppointmentClinicalRecord::where('appointment_id', $appointment->id)->firstOrFail();
+        abort_unless($record->isFinalized(), 422);
+
+        $data = $request->validate([
+            'body' => ['required','string','min:3','max:8000'],
+        ]);
+
+        $addendum = AppointmentClinicalAddendum::create([
+            'clinical_record_id' => $record->id,
+            'body' => trim($data['body']),
+            'created_by' => $request->user()->id,
+            'signed_at' => now(),
+        ]);
+
+        AppointmentEvent::create([
+            'appointment_id' => $appointment->id,
+            'user_id' => $request->user()->id,
+            'event_type' => 'record_addendum',
+            'title' => 'Complementação do prontuário',
+            'description' => 'Complementação adicionada ao registro finalizado.',
+            'metadata' => ['addendum_id' => $addendum->id],
+            'occurred_at' => now(),
+        ]);
+
+        return back()->with('success', 'Complementação adicionada.');
+    }
+
 }
