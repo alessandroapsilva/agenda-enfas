@@ -83,6 +83,8 @@
                 @endif
             </div>
         </div>
+
+        @include('appointments.partials.clinical-alerts')
     </aside>
 
     <main class="ea-record-main">
@@ -109,6 +111,10 @@
                             <div class="col-12">
                                 <label class="form-label">Histórico / relato</label>
                                 <textarea name="history" class="form-control" rows="4">{{ old('history',$record?->history) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Exame físico</label>
+                                <textarea name="physical_exam" class="form-control" rows="4">{{ old('physical_exam',$record?->physical_exam) }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -153,6 +159,10 @@
                                 <label class="form-label">Glicemia</label>
                                 <div class="input-group"><input type="number" step="0.1" name="vitals[glucose]" value="{{ $vitals['glucose'] ?? '' }}" class="form-control"><span class="input-group-text">mg/dL</span></div>
                             </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label">Dor</label>
+                                <div class="input-group"><input type="number" min="0" max="10" step="1" name="vitals[pain_score]" value="{{ $vitals['pain_score'] ?? '' }}" class="form-control"><span class="input-group-text">0–10</span></div>
+                            </div>
                         </div>
                     </div>
 
@@ -160,10 +170,12 @@
                         <h6>Avaliação e evolução</h6>
                         <div class="row g-3">
                             <div class="col-12"><label class="form-label">Avaliação</label><textarea name="assessment" class="form-control" rows="4">{{ old('assessment',$record?->assessment) }}</textarea></div>
+                            <div class="col-12"><label class="form-label">Impressão clínica / diagnóstico do atendimento</label><textarea name="clinical_impression" class="form-control" rows="4">{{ old('clinical_impression',$record?->clinical_impression) }}</textarea></div>
                             <div class="col-12"><label class="form-label">Intervenções / procedimentos</label><textarea name="interventions" class="form-control" rows="4">{{ old('interventions',$record?->interventions) }}</textarea></div>
                             <div class="col-12"><label class="form-label">Orientações ao paciente</label><textarea name="guidance" class="form-control" rows="4">{{ old('guidance',$record?->guidance) }}</textarea></div>
                             <div class="col-12"><label class="form-label">Evolução</label><textarea name="evolution" class="form-control" rows="5">{{ old('evolution',$record?->evolution) }}</textarea></div>
                             <div class="col-12"><label class="form-label">Plano / retorno</label><textarea name="follow_up_plan" class="form-control" rows="3">{{ old('follow_up_plan',$record?->follow_up_plan) }}</textarea></div>
+                            <div class="col-12"><label class="form-label">Resumo do plano assistencial</label><textarea name="care_plan_summary" class="form-control" rows="3">{{ old('care_plan_summary',$record?->care_plan_summary) }}</textarea></div>
                         </div>
                     </div>
 
@@ -184,11 +196,14 @@
                         @foreach([
                             'Motivo do atendimento'=>$record->reason_for_visit,
                             'Histórico / relato'=>$record->history,
+                            'Exame físico'=>$record->physical_exam,
                             'Avaliação'=>$record->assessment,
+                            'Impressão clínica / diagnóstico'=>$record->clinical_impression,
                             'Intervenções / procedimentos'=>$record->interventions,
                             'Orientações'=>$record->guidance,
                             'Evolução'=>$record->evolution,
                             'Plano / retorno'=>$record->follow_up_plan,
+                            'Resumo do plano assistencial'=>$record->care_plan_summary,
                         ] as $label=>$value)
                             @if($value)
                             <section>
@@ -238,6 +253,10 @@
         </div>
     </main>
 </div>
+
+@include('appointments.partials.clinical-profile')
+@include('appointments.partials.clinical-care')
+@include('appointments.partials.clinical-timeline')
 
 <div class="card mt-4">
     <div class="card-header d-flex align-items-center justify-content-between gap-3">
