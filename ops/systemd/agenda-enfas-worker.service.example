@@ -1,0 +1,17 @@
+[Unit]
+Description=ENFAS Agenda Laravel Queue Worker
+After=network.target
+
+[Service]
+Type=simple
+User=enfas
+Group=enfas
+WorkingDirectory=/home/enfas/htdocs/agenda.enfas.com.br
+ExecStart=/usr/bin/php artisan queue:work database --queue=ocr,default --sleep=2 --tries=2 --timeout=240 --max-time=3600
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=360
+
+[Install]
+WantedBy=multi-user.target
