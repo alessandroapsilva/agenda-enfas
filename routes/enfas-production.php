@@ -19,6 +19,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/whatsapp/conversas/{conversation}/assumir',[WhatsAppController::class,'takeover'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.takeover');
     Route::patch('/whatsapp/conversas/{conversation}/robo',[WhatsAppController::class,'release'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.release');
     Route::patch('/whatsapp/conversas/{conversation}/encerrar',[WhatsAppController::class,'close'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.close');
+    Route::patch('/whatsapp/conversas/{conversation}/contexto',[WhatsAppController::class,'updateConversationContext'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.context');
+    Route::post('/whatsapp/conversas/{conversation}/atividades',[WhatsAppController::class,'createTask'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.thread.tasks.store');
+    Route::patch('/whatsapp/atividades/{task}/concluir',[WhatsAppController::class,'completeTask'])->whereNumber('task')->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.tasks.complete');
+    Route::post('/whatsapp/respostas-rapidas',[WhatsAppController::class,'storeQuickReply'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.quick-replies.store');
 
     Route::post('/whatsapp',[WhatsAppController::class,'save'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.save');
     Route::post('/whatsapp/testar',[WhatsAppController::class,'test'])->middleware('permission:whatsapp.manage')->name('enfas.whatsapp.test');
