@@ -8,14 +8,14 @@ use Illuminate\Console\Command;
 class EnfasProductionCheck extends Command
 {
     protected $signature='enfas:production-check {--no-deep}';
-    protected $description='Go/No-Go de produção do SIGH ENFAS';
+    protected $description='Go/No-Go de produção do ENFAS Agenda';
 
     public function handle(ProductionHealthService $health): int
     {
         $summary=$health->summary(! $this->option('no-deep'));
 
         $this->newLine();
-        $this->line('SIGH ENFAS - Production Readiness');
+        $this->line('ENFAS Agenda - Production Readiness');
         $this->line(str_repeat('=',48));
 
         foreach($summary['checks'] as $check) {
