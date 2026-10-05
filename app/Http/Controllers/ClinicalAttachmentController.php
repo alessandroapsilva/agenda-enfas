@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ExtractClinicalAttachmentOcr;
 use App\Models\Appointment;
 use App\Models\ClinicalAttachment;
 use App\Models\Patient;
@@ -66,7 +67,42 @@ class ClinicalAttachmentController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('success', 'Documento anexado com segurança.');
+        if (config('clinical_ocr.enabled')) {
+            $attachment->update(['ocr_status' => 'pending']);
+            ExtractClinicalAttachmentOcr::dispatch($attachment->id);
+        }
+
+        return back()->with(
+            'success',
+            config('clinical_ocr.enabled')
+                ? 'Documento anexado com segurança. OCR enviado para processamento.'
+                : 'Documento anexado com segurança.'
+        );
+    }
+
+    public function retryOcr(
+        Request $request,
+        ClinicalAttachment $attachment,
+        AccessScopeService $access
+    ) {
+        $attachment->load(['patient', 'appointment']);
+
+        abort_unless($access->canViewPatient($request->user(), $attachment->patient), 403);
+
+        if ($attachment->appointment) {
+            abort_unless($access->canViewAppointment($request->user(), $attachment->appointment), 403);
+        }
+
+        abort_unless(config('clinical_ocr.enabled'), 422);
+
+        $attachment->update([
+            'ocr_status' => 'pending',
+            'ocr_error' => null,
+        ]);
+
+        ExtractClinicalAttachmentOcr::dispatch($attachment->id);
+
+        return back()->with('success', 'OCR reenviado para processamento.');
     }
 
     public function download(Request $request, ClinicalAttachment $attachment, AccessScopeService $access)

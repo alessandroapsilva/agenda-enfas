@@ -278,18 +278,51 @@
     </div>
     <div class="table-responsive">
         <table class="table align-middle mb-0">
-            <thead><tr><th>Documento</th><th>Origem</th><th>Tipo</th><th>Integridade</th><th class="text-end">Ação</th></tr></thead>
+            <thead><tr><th>Documento</th><th>Origem</th><th>Tipo</th><th>OCR</th><th>Integridade</th><th class="text-end">Ação</th></tr></thead>
             <tbody>
             @forelse($attachments as $attachment)
                 <tr>
                     <td><strong>{{ $attachment->title }}</strong><div class="small text-secondary">{{ $attachment->original_name }}</div></td>
                     <td>{{ match($attachment->source) {'scanner'=>'Scanner','camera'=>'Câmera',default=>'Upload'} }}</td>
                     <td>{{ mb_strtoupper($attachment->category) }}</td>
+                    <td>
+                        @if($attachment->ocr_status === 'completed')
+                            <span class="badge text-bg-success">Concluído</span>
+                            @if($attachment->ocr_text)
+                                <details class="small mt-1">
+                                    <summary>Ver texto</summary>
+                                    <div class="border rounded p-2 mt-2" style="max-width:420px;white-space:pre-wrap">{{ mb_substr($attachment->ocr_text,0,1800) }}{{ mb_strlen($attachment->ocr_text)>1800 ? '…' : '' }}</div>
+                                </details>
+                            @endif
+                        @elseif(in_array($attachment->ocr_status,['pending','processing'],true))
+                            <span class="badge text-bg-warning">{{ $attachment->ocr_status === 'processing' ? 'Processando' : 'Na fila' }}</span>
+                        @elseif($attachment->ocr_status === 'failed')
+                            <span class="badge text-bg-danger">Falhou</span>
+                            @can('documents.manage')
+                            <form method="POST" action="{{ route('clinical-attachments.ocr.retry',$attachment) }}" class="mt-1">
+                                @csrf
+                                <button class="btn btn-sm btn-light border">Tentar novamente</button>
+                            </form>
+                            @endcan
+                        @elseif($attachment->ocr_status === 'empty')
+                            <span class="badge text-bg-secondary">Sem texto</span>
+                        @else
+                            <span class="text-secondary small">Não solicitado</span>
+                            @if(config('clinical_ocr.enabled'))
+                            @can('documents.manage')
+                            <form method="POST" action="{{ route('clinical-attachments.ocr.retry',$attachment) }}" class="mt-1">
+                                @csrf
+                                <button class="btn btn-sm btn-light border">Executar OCR</button>
+                            </form>
+                            @endcan
+                            @endif
+                        @endif
+                    </td>
                     <td><code class="small">{{ substr($attachment->sha256,0,12) }}…</code></td>
                     <td class="text-end"><a href="{{ route('clinical-attachments.download',$attachment) }}" class="btn btn-sm btn-light border"><i class="bi bi-download"></i>Baixar</a></td>
                 </tr>
             @empty
-                <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhum documento anexado</strong><div>Uploads e digitalizações deste atendimento aparecerão aqui.</div></div></td></tr>
+                <tr><td colspan="6"><div class="enfas-empty py-4"><strong>Nenhum documento anexado</strong><div>Uploads e digitalizações deste atendimento aparecerão aqui.</div></div></td></tr>
             @endforelse
             </tbody>
         </table>

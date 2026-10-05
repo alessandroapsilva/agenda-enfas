@@ -326,6 +326,11 @@ Route::middleware('auth')->group(function () {
         [ClinicalAttachmentController::class, 'download']
     )->middleware('permission:documents.view')->name('clinical-attachments.download');
 
+    Route::post(
+        '/anexos-clinicos/{attachment}/ocr',
+        [ClinicalAttachmentController::class, 'retryOcr']
+    )->middleware('permission:documents.manage')->name('clinical-attachments.ocr.retry');
+
 
     /*
     |--------------------------------------------------------------------------
