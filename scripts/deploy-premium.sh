@@ -30,7 +30,13 @@ bring_up() {
 trap bring_up EXIT
 
 echo "==> Dependências PHP"
-$COMPOSER_BIN install \
+COMPOSER_PATH="$(command -v "$COMPOSER_BIN" || true)"
+if [[ -z "$COMPOSER_PATH" ]]; then
+    echo "ERRO: Composer não encontrado no PATH."
+    exit 1
+fi
+
+$PHP_BIN "$COMPOSER_PATH" install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
