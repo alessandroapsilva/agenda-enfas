@@ -2,6 +2,9 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <OutputType>WinExe</OutputType>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Enfas.Scan.Agent</AssemblyName>
     <RootNamespace>Enfas.Scan.Agent</RootNamespace>
