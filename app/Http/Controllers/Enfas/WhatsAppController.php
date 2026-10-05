@@ -30,6 +30,9 @@ class WhatsAppController extends Controller
                 });
             })
             ->when($request->filled('mode'), fn ($q) => $q->where('mode', $request->string('mode')->toString()))
+            ->when($request->filled('stage'), fn ($q) => $q->where('lead_stage', $request->string('stage')->toString()))
+            ->when($request->filled('priority'), fn ($q) => $q->where('priority', $request->string('priority')->toString()))
+            ->orderByRaw("CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'normal' THEN 3 ELSE 4 END")
             ->orderByDesc('last_message_at')
             ->orderByDesc('id')
             ->limit(100)
@@ -69,11 +72,47 @@ class WhatsAppController extends Controller
             }
         }
 
+        $tasks = collect();
+        $quickReplies = collect();
+
+        if (Schema::hasTable('clinic_tasks')) {
+            $tasks = DB::table('clinic_tasks as t')
+                ->leftJoin('users as u', 'u.id', '=', 't.assigned_user_id')
+                ->where('t.status', 'open')
+                ->when($selected, fn ($q) => $q->where(function ($inner) use ($selected) {
+                    $inner->where('t.conversation_id', $selected->id);
+
+                    if ($selected->patient_id) {
+                        $inner->orWhere('t.patient_id', $selected->patient_id);
+                    }
+                }))
+                ->orderByRaw("CASE t.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'normal' THEN 3 ELSE 4 END")
+                ->orderBy('t.due_at')
+                ->limit(20)
+                ->get([
+                    't.*',
+                    'u.name as assigned_user_name',
+                ]);
+        }
+
+        if (Schema::hasTable('quick_replies')) {
+            $quickReplies = DB::table('quick_replies')
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->limit(30)
+                ->get();
+        }
+
         $stats = [
             'active' => WaConversation::where('status','active')->count(),
             'human' => WaConversation::where('status','active')->where('mode','human')->count(),
             'bot' => WaConversation::where('status','active')->where('mode','bot')->count(),
             'unread' => WaConversation::where('status','active')->sum('unread_count'),
+            'urgent' => WaConversation::where('status','active')->where('priority','urgent')->count(),
+            'overdue_tasks' => Schema::hasTable('clinic_tasks')
+                ? DB::table('clinic_tasks')->where('status','open')->whereNotNull('due_at')->where('due_at','<',now())->count()
+                : 0,
         ];
 
         return view('enfas.whatsapp.central', compact(
@@ -81,7 +120,9 @@ class WhatsAppController extends Controller
             'conversations',
             'selected',
             'messages',
-            'stats'
+            'stats',
+            'tasks',
+            'quickReplies'
         ));
     }
 
@@ -157,10 +198,107 @@ class WhatsAppController extends Controller
             'human_taken_at' => $conversation->human_taken_at ?: now(),
             'last_message_at' => now(),
             'last_outbound_at' => now(),
+            'first_response_at' => $conversation->first_response_at ?: now(),
             'status' => 'active',
         ]);
 
         return back()->with('success', 'Mensagem enviada. Status: '.$message->status.'.');
+    }
+
+    public function updateConversationContext(Request $request, WaConversation $conversation)
+    {
+        $data = $request->validate([
+            'lead_stage' => ['required', 'in:new,qualified,scheduled,confirmed,follow_up,completed,lost'],
+            'priority' => ['required', 'in:low,normal,high,urgent'],
+            'tags' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $tags = collect(preg_split('/[,;]+/', (string) ($data['tags'] ?? '')))
+            ->map(fn ($tag) => trim($tag))
+            ->filter()
+            ->unique()
+            ->take(12)
+            ->values()
+            ->all();
+
+        $conversation->update([
+            'lead_stage' => $data['lead_stage'],
+            'priority' => $data['priority'],
+            'tags' => $tags,
+        ]);
+
+        return back()->with('success', 'Contexto do atendimento atualizado.');
+    }
+
+    public function createTask(Request $request, WaConversation $conversation)
+    {
+        abort_unless(Schema::hasTable('clinic_tasks'), 404);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:180'],
+            'notes' => ['nullable', 'string', 'max:3000'],
+            'priority' => ['required', 'in:low,normal,high,urgent'],
+            'due_at' => ['nullable', 'date'],
+        ]);
+
+        DB::table('clinic_tasks')->insert([
+            'patient_id' => $conversation->patient_id,
+            'appointment_id' => $conversation->appointment_id,
+            'conversation_id' => $conversation->id,
+            'title' => trim($data['title']),
+            'notes' => $data['notes'] ?? null,
+            'priority' => $data['priority'],
+            'status' => 'open',
+            'due_at' => $data['due_at'] ?? null,
+            'assigned_user_id' => auth()->id(),
+            'created_by' => auth()->id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Atividade criada para este atendimento.');
+    }
+
+    public function completeTask(int $task)
+    {
+        abort_unless(Schema::hasTable('clinic_tasks'), 404);
+
+        $row = DB::table('clinic_tasks')->where('id', $task)->first();
+        abort_unless($row, 404);
+
+        DB::table('clinic_tasks')
+            ->where('id', $task)
+            ->update([
+                'status' => 'completed',
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        return back()->with('success', 'Atividade concluída.');
+    }
+
+    public function storeQuickReply(Request $request)
+    {
+        abort_unless(Schema::hasTable('quick_replies'), 404);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:120'],
+            'shortcut' => ['nullable', 'string', 'max:60', 'unique:quick_replies,shortcut'],
+            'body' => ['required', 'string', 'max:4000'],
+        ]);
+
+        DB::table('quick_replies')->insert([
+            'title' => trim($data['title']),
+            'shortcut' => filled($data['shortcut'] ?? null) ? trim($data['shortcut']) : null,
+            'body' => trim($data['body']),
+            'is_active' => true,
+            'sort_order' => 0,
+            'created_by' => auth()->id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Resposta rápida criada.');
     }
 
     public function save(Request $request)
