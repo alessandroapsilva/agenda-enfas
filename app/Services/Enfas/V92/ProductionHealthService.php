@@ -186,6 +186,7 @@ class ProductionHealthService
             ['wa_conversations','lead_stage'],
             ['wa_conversations','priority'],
             ['wa_conversations','tags'],
+            ['wa_conversations','first_inbound_at'],
             ['wa_conversations','first_response_at'],
         ] as [$table,$column]) {
             $this->add(
