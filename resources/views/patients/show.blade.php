@@ -6,6 +6,11 @@
 @section('page_subtitle', 'Cadastro, histórico de atendimentos e comunicação em um só lugar.')
 
 @section('page_actions')
+@can('documents.view')
+<a href="{{ route('clinical-documents.index',['patient_id'=>$patient->id]) }}" class="btn btn-light border">
+    <i class="bi bi-file-earmark-text me-1"></i>Documentos
+</a>
+@endcan
 <a href="{{ route('patients.index') }}" class="btn btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Pacientes
 </a>
