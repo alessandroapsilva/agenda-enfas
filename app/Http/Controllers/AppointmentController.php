@@ -11,6 +11,7 @@ use App\Models\Professional;
 use App\Models\Service;
 use App\Models\WaMessage;
 use App\Services\Enfas\AvailabilityService;
+use App\Services\Enfas\AccessScopeService;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\RecurringAppointmentService;
 use App\Services\Enfas\WaitlistService;
@@ -20,9 +21,9 @@ use Illuminate\Validation\ValidationException;
 
 class AppointmentController extends Controller
 {
-    public function index()
+    public function index(Request $request, AccessScopeService $access)
     {
-        $appointments = Appointment::query()
+        $appointments = $access->appointments(Appointment::query(), $request->user())
             ->with([
                 'patient',
                 'professional',
@@ -280,8 +281,9 @@ class AppointmentController extends Controller
             ->with('success', 'Série recorrente criada com sucesso. Código interno #'.$series->id.'.');
     }
 
-    public function show(Appointment $appointment)
+    public function show(Request $request, Appointment $appointment, AccessScopeService $access)
     {
+        abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
         $appointment->load([
             'patient',
             'professional',
@@ -443,8 +445,10 @@ class AppointmentController extends Controller
     public function status(
         Request $request,
         Appointment $appointment,
-        WaitlistService $waitlist
+        WaitlistService $waitlist,
+        AccessScopeService $access
     ) {
+        abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
         $data = $request->validate([
             'status' => [
                 'required',
@@ -532,8 +536,10 @@ class AppointmentController extends Controller
     public function contact(
         Request $request,
         Appointment $appointment,
-        MetaWhatsAppService $meta
+        MetaWhatsAppService $meta,
+        AccessScopeService $access
     ) {
+        abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
         $data = $request->validate([
             'channel' => ['required', 'in:whatsapp'],
             'message' => ['required', 'string', 'min:1', 'max:4000'],
