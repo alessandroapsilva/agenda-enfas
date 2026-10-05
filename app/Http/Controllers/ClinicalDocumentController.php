@@ -149,7 +149,13 @@ class ClinicalDocumentController extends Controller
             'signature_type' => 'electronic',
             'user_id' => $request->user()->id,
             'signer_name' => $request->user()->name,
-            'signer_registry' => $document->professional?->registry_number,
+            'signer_registry' => $document->professional
+                ? trim(implode(' ', array_filter([
+                    $document->professional->council_type,
+                    $document->professional->council_number,
+                    $document->professional->council_state,
+                ])))
+                : null,
             'ip_address' => $request->ip(),
             'user_agent' => mb_substr((string) $request->userAgent(), 0, 2000),
             'document_hash' => $hash,
