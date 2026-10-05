@@ -1,9 +1,9 @@
 @extends('enfas.layout')
 
 @section('title','Visão geral')
-@section('page_kicker','SIGH ENFAS · CENTRAL OPERACIONAL')
+@section('page_kicker','CENTRAL OPERACIONAL')
 @section('page_title','Visão geral')
-@section('page_subtitle','Agenda, pacientes, assistência e comunicação em uma única experiência.')
+@section('page_subtitle','Agenda, confirmações e atendimento em uma única experiência.')
 
 @section('page_actions')
 <form method="GET" class="ea-unit-context">
@@ -84,38 +84,6 @@
     </div>
     @endforeach
 </div>
-
-@can('pharmacy.view')
-<div class="card mb-4">
-    <div class="card-header d-flex align-items-center justify-content-between gap-3">
-        <div>
-            <strong class="d-block">Assistência Farmacêutica</strong>
-            <span class="small text-secondary">Medicamentos, PMC, LME e APAC que precisam de acompanhamento.</span>
-        </div>
-        <a href="{{ route('sigh.pharmacy.index') }}" class="btn btn-light border">
-            Abrir módulo <i class="bi bi-arrow-up-right"></i>
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            @foreach([
-                ['Medicamentos ativos',$care['medications'],'bi-capsule'],
-                ['PMC em atenção',$care['pmc_attention'],'bi-house-heart'],
-                ['LME pendentes',$care['lme_attention'],'bi-file-earmark-medical'],
-                ['APAC em atenção',$care['apac_attention'],'bi-file-earmark-check'],
-            ] as $item)
-            <div class="col-6 col-xl-3">
-                <div class="ea-mini-metric h-100">
-                    <i class="bi {{ $item[2] }} mb-2 text-primary"></i>
-                    <strong>{{ $item[1] }}</strong>
-                    <span>{{ $item[0] }}</span>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</div>
-@endcan
 
 <div class="row g-4 mb-4">
     <div class="col-xl-8">
@@ -286,9 +254,6 @@
             </div>
             <div class="card-body v92-quick-list">
                 <a href="{{ route('patients.index') }}"><i class="bi bi-people"></i>Pacientes</a>
-                @can('pharmacy.view')
-                <a href="{{ route('sigh.pharmacy.index') }}"><i class="bi bi-capsule"></i>Assistência Farmacêutica</a>
-                @endcan
                 <a href="{{ route('v9.locations.index') }}"><i class="bi bi-buildings"></i>Unidades</a>
                 <a href="{{ route('services.index') }}"><i class="bi bi-grid"></i>Serviços</a>
                 <a href="{{ route('v92.reports') }}"><i class="bi bi-bar-chart"></i>Relatórios</a>
