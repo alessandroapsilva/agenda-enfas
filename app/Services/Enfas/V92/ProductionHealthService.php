@@ -125,6 +125,10 @@ class ProductionHealthService
             'users.index',
             'enfas.whatsapp',
             'enfas.whatsapp.thread.send',
+            'enfas.whatsapp.thread.context',
+            'enfas.whatsapp.thread.tasks.store',
+            'enfas.whatsapp.tasks.complete',
+            'enfas.whatsapp.quick-replies.store',
             'v9.templates.index',
             'enfas.v6.automations',
             'professional.workspace',
@@ -153,6 +157,8 @@ class ProductionHealthService
             'wa_messages',
             'wa_conversations',
             'wa_webhook_events',
+            'clinic_tasks',
+            'quick_replies',
             'waitlist_entries',
             'locations',
         ] as $table) {
@@ -174,6 +180,10 @@ class ProductionHealthService
             ['waitlist_entries','location_id'],
             ['locations','code'],
             ['locations','is_main'],
+            ['wa_conversations','lead_stage'],
+            ['wa_conversations','priority'],
+            ['wa_conversations','tags'],
+            ['wa_conversations','first_response_at'],
         ] as [$table,$column]) {
             $this->add(
                 $checks,
