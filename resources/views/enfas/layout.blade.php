@@ -4,6 +4,10 @@
     @vite('resources/css/enfas-agenda.css')
 @endpush
 
+@push('adminlte_js')
+    @vite('resources/js/enfas-scan.js')
+@endpush
+
 @section('content_header')
     @hasSection('page_title')
         <div class="ea-pagehead">
