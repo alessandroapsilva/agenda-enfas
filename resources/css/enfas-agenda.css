@@ -2959,3 +2959,41 @@ body.enfas-shell,
 .ea-vitals-grid strong{margin-top:.2rem;font-size:.9rem}
 .ea-record-addendum{padding:.9rem 0;border-bottom:1px solid #edf1f5;white-space:pre-wrap}
 @media(max-width:991.98px){.ea-record-shell{grid-template-columns:1fr}.ea-record-summary{position:static}.ea-vitals-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Agenda ENFAS · Dynamsoft scan station */
+.ea-scanner-viewer{
+    min-height:360px;
+    overflow:hidden;
+    border:1px solid #dbe3ee;
+    border-radius:14px;
+    background:#f8fafc;
+}
+.ea-scanner-empty{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    padding:1rem;
+    border:1px dashed #cbd5e1;
+    border-radius:12px;
+    background:#f8fafc;
+}
+.ea-scanner-empty>i{
+    width:42px;
+    height:42px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    color:#2563eb;
+    background:#eff6ff;
+    font-size:1.2rem;
+}
+.ea-scanner-empty strong,
+.ea-scanner-empty span{
+    display:block;
+}
+.ea-scanner-empty span{
+    margin-top:.15rem;
+    color:#64748b;
+    font-size:.72rem;
+}
