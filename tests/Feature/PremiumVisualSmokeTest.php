@@ -33,6 +33,7 @@ class PremiumVisualSmokeTest extends TestCase
             'v9.templates.index',
             'enfas.v6.automations',
             'activities.index',
+            'clinical-documents.index',
             'users.index',
             'v92.alerts',
             'v92.settings',
