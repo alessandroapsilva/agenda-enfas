@@ -1,3 +1,4 @@
+using NAPS2.Images;
 using NAPS2.Images.Gdi;
 using NAPS2.Pdf;
 using NAPS2.Scan;
@@ -132,7 +133,7 @@ static PaperSource ParseSource(string? value) => (value ?? "").Trim().ToLowerInv
 
 static BitDepth ParseBitDepth(string? value) => (value ?? "").Trim().ToLowerInvariant() switch
 {
-    "bw" => BitDepth.BlackWhite,
+    "bw" => BitDepth.BlackAndWhite,
     "gray" => BitDepth.Grayscale,
     _ => BitDepth.Color
 };
