@@ -11,6 +11,9 @@ class Professional extends Model
     protected $fillable = [
         'name',
         'specialty',
+        'council_type',
+        'council_number',
+        'council_state',
         'phone',
         'email',
         'work_start',
