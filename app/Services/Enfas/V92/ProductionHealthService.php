@@ -142,6 +142,8 @@ class ProductionHealthService
             'clinical-documents.update',
             'clinical-documents.sign',
             'clinical-documents.print',
+            'clinical-attachments.store',
+            'clinical-attachments.download',
             'v9.templates.index',
             'enfas.v6.automations',
             'professional.workspace',
@@ -177,6 +179,7 @@ class ProductionHealthService
             'clinical_document_templates',
             'clinical_documents',
             'clinical_document_signatures',
+            'clinical_attachments',
             'waitlist_entries',
             'locations',
         ] as $table) {
