@@ -208,6 +208,47 @@
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between gap-3">
+        <div>
+            <strong class="d-block">Atendimento e relacionamento</strong>
+            <span class="small text-secondary">Fila de resposta, follow-ups e atividades da equipe.</span>
+        </div>
+        <div class="d-flex gap-2">
+            @can('activities.view')
+            <a href="{{ route('activities.index') }}" class="btn btn-light border">
+                <i class="bi bi-list-check"></i>Atividades
+            </a>
+            @endcan
+            @can('whatsapp.view')
+            <a href="{{ route('enfas.whatsapp') }}" class="btn btn-primary">
+                <i class="bi bi-headset"></i>Central
+            </a>
+            @endcan
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            @foreach([
+                ['Aguardando resposta',$engagement['waiting'],'bi-chat-left-dots'],
+                ['Há mais de 15 min',$engagement['waiting_15'],'bi-stopwatch'],
+                ['Atividades abertas',$engagement['open_tasks'],'bi-list-check'],
+                ['Atividades vencidas',$engagement['overdue_tasks'],'bi-clock-history'],
+                ['Conversas urgentes',$engagement['urgent_conversations'],'bi-exclamation-diamond'],
+                ['Em follow-up',$engagement['follow_up'],'bi-arrow-repeat'],
+            ] as $item)
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="ea-mini-metric h-100">
+                    <i class="bi {{ $item[2] }} mb-2 text-primary"></i>
+                    <strong>{{ $item[1] }}</strong>
+                    <span>{{ $item[0] }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
     <div class="col-xl-8">
         <div class="card h-100">
