@@ -35,6 +35,7 @@ class PharmaceuticalCareController extends Controller
         $lmes = collect();
         $apacs = collect();
         $documents = collect();
+        $events = collect();
 
         if ($selectedPatient) {
             $medications = DB::table('sigh_patient_medications')
@@ -66,6 +67,16 @@ class PharmaceuticalCareController extends Controller
                 ->orderByDesc('document_date')
                 ->orderByDesc('id')
                 ->get();
+
+            $events = DB::table('sigh_care_events as e')
+                ->leftJoin('users as u', 'u.id', '=', 'e.user_id')
+                ->where('e.patient_id', $selectedPatient->id)
+                ->orderByDesc('e.occurred_at')
+                ->limit(30)
+                ->get([
+                    'e.*',
+                    'u.name as user_name',
+                ]);
         }
 
         $stats = [
@@ -95,6 +106,7 @@ class PharmaceuticalCareController extends Controller
             'lmes',
             'apacs',
             'documents',
+            'events',
             'stats',
             'q'
         ));
@@ -128,7 +140,17 @@ class PharmaceuticalCareController extends Controller
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
-        DB::table('sigh_patient_medications')->insert($data);
+        $id = DB::table('sigh_patient_medications')->insertGetId($data);
+
+        $this->recordEvent(
+            (int) $data['patient_id'],
+            'medication',
+            $id,
+            'created',
+            null,
+            'active',
+            $request->user()?->id
+        );
 
         return back()->with('success', 'Medicamento incluído no acompanhamento do paciente.');
     }
@@ -155,7 +177,17 @@ class PharmaceuticalCareController extends Controller
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
-        DB::table('sigh_pmc_controls')->insert($data);
+        $id = DB::table('sigh_pmc_controls')->insertGetId($data);
+
+        $this->recordEvent(
+            (int) $data['patient_id'],
+            'pmc',
+            $id,
+            'snapshot_created',
+            null,
+            'active',
+            $request->user()?->id
+        );
 
         return back()->with('success', 'PMC registrado com sucesso.');
     }
@@ -183,7 +215,17 @@ class PharmaceuticalCareController extends Controller
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
-        DB::table('sigh_lme_requests')->insert($data);
+        $id = DB::table('sigh_lme_requests')->insertGetId($data);
+
+        $this->recordEvent(
+            (int) $data['patient_id'],
+            'lme',
+            $id,
+            'created',
+            null,
+            $data['status'],
+            $request->user()?->id
+        );
 
         return back()->with('success', 'LME incluída no acompanhamento.');
     }
@@ -208,7 +250,17 @@ class PharmaceuticalCareController extends Controller
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
-        DB::table('sigh_apac_authorizations')->insert($data);
+        $id = DB::table('sigh_apac_authorizations')->insertGetId($data);
+
+        $this->recordEvent(
+            (int) $data['patient_id'],
+            'apac',
+            $id,
+            'created',
+            null,
+            $data['status'],
+            $request->user()?->id
+        );
 
         return back()->with('success', 'APAC incluída no acompanhamento.');
     }
@@ -233,7 +285,7 @@ class PharmaceuticalCareController extends Controller
 
         Storage::disk('local')->put($path, $file->get());
 
-        DB::table('sigh_patient_documents')->insert([
+        $documentId = DB::table('sigh_patient_documents')->insertGetId([
             'patient_id' => $data['patient_id'],
             'category' => $data['category'],
             'title' => trim($data['title']),
@@ -250,7 +302,123 @@ class PharmaceuticalCareController extends Controller
             'updated_at' => now(),
         ]);
 
+        $this->recordEvent(
+            (int) $data['patient_id'],
+            'document',
+            $documentId,
+            'uploaded',
+            null,
+            null,
+            $request->user()?->id,
+            trim($data['title'])
+        );
+
         return back()->with('success', 'Documento anexado ao paciente.');
+    }
+
+    public function updateMedicationStatus(Request $request, int $medication)
+    {
+        $row = DB::table('sigh_patient_medications')->where('id', $medication)->first();
+
+        abort_unless($row, 404);
+
+        $data = $request->validate([
+            'is_active' => ['required','boolean'],
+        ]);
+
+        DB::table('sigh_patient_medications')
+            ->where('id', $medication)
+            ->update([
+                'is_active' => (bool) $data['is_active'],
+                'ended_at' => $data['is_active'] ? null : ($row->ended_at ?: now()->toDateString()),
+                'updated_by' => $request->user()->id,
+                'updated_at' => now(),
+            ]);
+
+        $this->recordEvent(
+            (int) $row->patient_id,
+            'medication',
+            $medication,
+            'status_changed',
+            $row->is_active ? 'active' : 'closed',
+            $data['is_active'] ? 'active' : 'closed',
+            $request->user()?->id
+        );
+
+        return back()->with('success', $data['is_active'] ? 'Medicamento reativado.' : 'Medicamento encerrado.');
+    }
+
+    public function updateLmeStatus(Request $request, int $lme)
+    {
+        $row = DB::table('sigh_lme_requests')->where('id', $lme)->first();
+
+        abort_unless($row, 404);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in([
+                'draft','pending_documents','submitted','under_review',
+                'approved','denied','dispensing','renewal_due','closed',
+            ])],
+            'protocol_number' => ['nullable','string','max:100'],
+            'valid_until' => ['nullable','date'],
+            'renewal_due_at' => ['nullable','date'],
+        ]);
+
+        DB::table('sigh_lme_requests')
+            ->where('id', $lme)
+            ->update([
+                'status' => $data['status'],
+                'protocol_number' => $data['protocol_number'] ?? $row->protocol_number,
+                'valid_until' => $data['valid_until'] ?? $row->valid_until,
+                'renewal_due_at' => $data['renewal_due_at'] ?? $row->renewal_due_at,
+                'updated_at' => now(),
+            ]);
+
+        $this->recordEvent(
+            (int) $row->patient_id,
+            'lme',
+            $lme,
+            'status_changed',
+            $row->status,
+            $data['status'],
+            $request->user()?->id
+        );
+
+        return back()->with('success', 'Situação da LME atualizada.');
+    }
+
+    public function updateApacStatus(Request $request, int $apac)
+    {
+        $row = DB::table('sigh_apac_authorizations')->where('id', $apac)->first();
+
+        abort_unless($row, 404);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['draft','pending','active','expired','closed','denied'])],
+            'authorization_number' => ['nullable','string','max:100'],
+            'authorized_until' => ['nullable','date'],
+        ]);
+
+        DB::table('sigh_apac_authorizations')
+            ->where('id', $apac)
+            ->update([
+                'status' => $data['status'],
+                'authorization_number' => $data['authorization_number'] ?? $row->authorization_number,
+                'authorized_until' => $data['authorized_until'] ?? $row->authorized_until,
+                'updated_at' => now(),
+            ]);
+
+        $this->recordEvent(
+            (int) $row->patient_id,
+            'apac',
+            $apac,
+            'status_changed',
+            $row->status,
+            $data['status'],
+            $request->user()?->id
+        );
+
+        return back()->with('success', 'Situação da APAC atualizada.');
     }
 
     public function downloadDocument(int $document)
@@ -265,6 +433,32 @@ class PharmaceuticalCareController extends Controller
             $row->original_name,
             ['Content-Type' => $row->mime_type ?: 'application/octet-stream']
         );
+    }
+
+
+    private function recordEvent(
+        int $patientId,
+        string $subjectType,
+        ?int $subjectId,
+        string $eventType,
+        ?string $fromStatus,
+        ?string $toStatus,
+        ?int $userId,
+        ?string $notes = null
+    ): void {
+        DB::table('sigh_care_events')->insert([
+            'patient_id' => $patientId,
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'event_type' => $eventType,
+            'from_status' => $fromStatus,
+            'to_status' => $toStatus,
+            'notes' => $notes,
+            'user_id' => $userId,
+            'occurred_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
 }
