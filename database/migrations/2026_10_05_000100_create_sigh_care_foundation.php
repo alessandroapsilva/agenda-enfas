@@ -33,6 +33,12 @@ return new class extends Migration
             $table->date('ended_at')->nullable();
             $table->string('prescriber_name', 160)->nullable();
             $table->string('prescriber_registry', 80)->nullable();
+            $table->boolean('requires_special_control')->default(false)->index();
+            $table->string('control_category', 80)->nullable();
+            $table->string('prescription_number', 100)->nullable();
+            $table->string('prescription_type', 80)->nullable();
+            $table->date('prescription_issued_at')->nullable();
+            $table->date('prescription_valid_until')->nullable()->index();
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
