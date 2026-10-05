@@ -2929,3 +2929,33 @@ body.enfas-shell,
         grid-template-columns:repeat(2,minmax(0,1fr));
     }
 }
+
+
+/* ==========================================================
+   Agenda ENFAS · Prontuário por atendimento
+   ========================================================== */
+.ea-record-shell{display:grid;grid-template-columns:300px minmax(0,1fr);gap:1.25rem;align-items:start}
+.ea-record-summary{position:sticky;top:86px}
+.ea-record-main{min-width:0}
+.ea-record-section{padding:1.25rem 0;border-bottom:1px solid #edf1f5}
+.ea-record-section:first-child{padding-top:.25rem}
+.ea-record-section h6{margin:0 0 1rem;color:#1e293b;font-size:.78rem;font-weight:850;letter-spacing:.03em;text-transform:uppercase}
+.ea-record-actions{display:flex;justify-content:flex-end;padding-top:1.25rem}
+.ea-record-status{display:flex;align-items:center;gap:.75rem;padding:.85rem;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}
+.ea-record-status>i{font-size:1.25rem;color:#64748b}
+.ea-record-status strong,.ea-record-status span{display:block}
+.ea-record-status span{margin-top:.1rem;color:#64748b;font-size:.7rem}
+.ea-record-status.is-draft{border-color:#fde68a;background:#fffbeb}
+.ea-record-status.is-draft>i{color:#d97706}
+.ea-record-status.is-finalized{border-color:#bbf7d0;background:#f0fdf4}
+.ea-record-status.is-finalized>i{color:#16a34a}
+.ea-record-readonly section{padding:1rem 0;border-bottom:1px solid #edf1f5}
+.ea-record-readonly section h6{margin:0 0 .45rem;color:#64748b;font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.ea-record-readonly section>div{white-space:pre-wrap;color:#1e293b;line-height:1.65}
+.ea-vitals-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:.65rem;white-space:normal!important}
+.ea-vitals-grid>div{padding:.7rem;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+.ea-vitals-grid span,.ea-vitals-grid strong{display:block}
+.ea-vitals-grid span{color:#64748b;font-size:.62rem;text-transform:uppercase}
+.ea-vitals-grid strong{margin-top:.2rem;font-size:.9rem}
+.ea-record-addendum{padding:.9rem 0;border-bottom:1px solid #edf1f5;white-space:pre-wrap}
+@media(max-width:991.98px){.ea-record-shell{grid-template-columns:1fr}.ea-record-summary{position:static}.ea-vitals-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
