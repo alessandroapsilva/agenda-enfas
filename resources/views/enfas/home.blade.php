@@ -236,8 +236,9 @@
                 ['Atividades vencidas',$engagement['overdue_tasks'],'bi-clock-history'],
                 ['Conversas urgentes',$engagement['urgent_conversations'],'bi-exclamation-diamond'],
                 ['Em follow-up',$engagement['follow_up'],'bi-arrow-repeat'],
+                ['1ª resposta',$engagement['avg_first_response_minutes'] === null ? '—' : number_format($engagement['avg_first_response_minutes'],1,',','.').' min','bi-speedometer2'],
             ] as $item)
-            <div class="col-6 col-md-4 col-xl-2">
+            <div class="col-6 col-md-4 col-xl">
                 <div class="ea-mini-metric h-100">
                     <i class="bi {{ $item[2] }} mb-2 text-primary"></i>
                     <strong>{{ $item[1] }}</strong>
