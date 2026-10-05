@@ -1,9 +1,9 @@
 @extends('enfas.layout')
 
 @section('title','Visão geral')
-@section('page_kicker','CENTRAL OPERACIONAL')
+@section('page_kicker','SIGH ENFAS · CENTRAL OPERACIONAL')
 @section('page_title','Visão geral')
-@section('page_subtitle','Agenda, confirmações e atendimento em uma única experiência.')
+@section('page_subtitle','Agenda, pacientes, assistência e comunicação em uma única experiência.')
 
 @section('page_actions')
 <form method="GET" class="ea-unit-context">
@@ -254,6 +254,9 @@
             </div>
             <div class="card-body v92-quick-list">
                 <a href="{{ route('patients.index') }}"><i class="bi bi-people"></i>Pacientes</a>
+                @can('pharmacy.view')
+                <a href="{{ route('sigh.pharmacy.index') }}"><i class="bi bi-capsule"></i>Assistência Farmacêutica</a>
+                @endcan
                 <a href="{{ route('v9.locations.index') }}"><i class="bi bi-buildings"></i>Unidades</a>
                 <a href="{{ route('services.index') }}"><i class="bi bi-grid"></i>Serviços</a>
                 <a href="{{ route('v92.reports') }}"><i class="bi bi-bar-chart"></i>Relatórios</a>
