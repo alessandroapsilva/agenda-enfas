@@ -260,6 +260,28 @@ Route::middleware('auth')->group(function () {
         [PharmaceuticalCareController::class, 'storeDocument']
     )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.documents.store');
 
+    Route::patch(
+        '/assistencia-farmaceutica/medicamentos/{medication}/status',
+        [PharmaceuticalCareController::class, 'updateMedicationStatus']
+    )->whereNumber('medication')
+     ->middleware('permission:pharmacy.manage')
+     ->name('sigh.pharmacy.medications.status');
+
+    Route::patch(
+        '/assistencia-farmaceutica/lme/{lme}/status',
+        [PharmaceuticalCareController::class, 'updateLmeStatus']
+    )->whereNumber('lme')
+     ->middleware('permission:pharmacy.manage')
+     ->name('sigh.pharmacy.lme.status');
+
+    Route::patch(
+        '/assistencia-farmaceutica/apac/{apac}/status',
+        [PharmaceuticalCareController::class, 'updateApacStatus']
+    )->whereNumber('apac')
+     ->middleware('permission:pharmacy.manage')
+     ->name('sigh.pharmacy.apac.status');
+
+
     Route::get(
         '/assistencia-farmaceutica/documentos/{document}',
         [PharmaceuticalCareController::class, 'downloadDocument']
