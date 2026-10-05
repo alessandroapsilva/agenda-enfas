@@ -33,6 +33,12 @@ class PharmaceuticalCareController extends Controller
             ? $access->patients(Patient::query(), $request->user())->find($patientId)
             : null;
 
+        $catalog = DB::table('sigh_medications')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->limit(500)
+            ->get();
+
         $medications = collect();
         $pmc = collect();
         $lmes = collect();
@@ -104,6 +110,7 @@ class PharmaceuticalCareController extends Controller
         return view('sigh.pharmacy.index', compact(
             'patients',
             'selectedPatient',
+            'catalog',
             'medications',
             'pmc',
             'lmes',
@@ -115,10 +122,53 @@ class PharmaceuticalCareController extends Controller
         ));
     }
 
+    public function storeCatalogMedication(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required','string','max:180'],
+            'active_ingredient' => ['nullable','string','max:180'],
+            'presentation' => ['nullable','string','max:160'],
+            'concentration' => ['nullable','string','max:120'],
+            'pharmaceutical_form' => ['nullable','string','max:120'],
+            'requires_special_control' => ['nullable','boolean'],
+            'control_category' => ['nullable','string','max:80'],
+        ]);
+
+        $exists = DB::table('sigh_medications')
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($data['name']))])
+            ->whereRaw(
+                'LOWER(COALESCE(concentration, \'\')) = ?',
+                [mb_strtolower(trim((string) ($data['concentration'] ?? '')))]
+            )
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors([
+                'name' => 'Já existe medicamento com este nome e concentração no catálogo.',
+            ]);
+        }
+
+        DB::table('sigh_medications')->insert([
+            'name' => trim($data['name']),
+            'active_ingredient' => $data['active_ingredient'] ?? null,
+            'presentation' => $data['presentation'] ?? null,
+            'concentration' => $data['concentration'] ?? null,
+            'pharmaceutical_form' => $data['pharmaceutical_form'] ?? null,
+            'requires_special_control' => (bool) ($data['requires_special_control'] ?? false),
+            'control_category' => $data['control_category'] ?? null,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Medicamento adicionado ao catálogo SIGH.');
+    }
+
     public function storeMedication(Request $request, AccessScopeService $access)
     {
         $data = $request->validate([
             'patient_id' => ['required','exists:patients,id'],
+            'medication_id' => ['nullable','exists:sigh_medications,id'],
             'medication_name' => ['required','string','max:180'],
             'dosage' => ['nullable','string','max:120'],
             'route' => ['nullable','string','max:80'],
@@ -138,6 +188,24 @@ class PharmaceuticalCareController extends Controller
 
         $patient = Patient::findOrFail((int) $data['patient_id']);
         abort_unless($access->canViewPatient($request->user(), $patient), 403);
+
+        if (empty($data['medication_id'])) {
+            $catalogMedication = DB::table('sigh_medications')
+                ->where('is_active', true)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($data['medication_name']))])
+                ->first();
+
+            if ($catalogMedication) {
+                $data['medication_id'] = $catalogMedication->id;
+
+                if (! array_key_exists('requires_special_control', $data)) {
+                    $data['requires_special_control'] = (bool) $catalogMedication->requires_special_control;
+                }
+
+                $data['control_category'] = $data['control_category']
+                    ?? $catalogMedication->control_category;
+            }
+        }
 
         $data['requires_special_control'] = (bool) ($data['requires_special_control'] ?? false);
         $data['is_active'] = true;
@@ -181,6 +249,26 @@ class PharmaceuticalCareController extends Controller
 
         $patient = Patient::findOrFail((int) $data['patient_id']);
         abort_unless($access->canViewPatient($request->user(), $patient), 403);
+
+        if (
+            empty($data['estimated_end_at'])
+            && isset($data['quantity_at_home'], $data['daily_consumption'])
+            && (float) $data['daily_consumption'] > 0
+        ) {
+            $days = (int) ceil(
+                (float) $data['quantity_at_home']
+                / (float) $data['daily_consumption']
+            );
+
+            $baseDate = ! empty($data['last_delivery_at'])
+                ? \Illuminate\Support\Carbon::parse($data['last_delivery_at'])
+                : today();
+
+            $data['estimated_end_at'] = $baseDate
+                ->copy()
+                ->addDays(max(0, $days - 1))
+                ->toDateString();
+        }
 
         $data['is_active'] = true;
         $data['created_by'] = $request->user()->id;
