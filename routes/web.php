@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AppointmentRecordController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\CepLookupController;
@@ -173,6 +174,26 @@ Route::middleware('auth')->group(function () {
         '/agendamentos/{appointment}/contato',
         [AppointmentController::class, 'contact']
     )->middleware('permission:agenda.manage')->name('appointments.contact');
+
+    Route::get(
+        '/agendamentos/{appointment}/prontuario',
+        [AppointmentRecordController::class, 'show']
+    )->middleware('permission:records.view')->name('appointments.record');
+
+    Route::put(
+        '/agendamentos/{appointment}/prontuario',
+        [AppointmentRecordController::class, 'save']
+    )->middleware('permission:records.manage')->name('appointments.record.save');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/finalizar',
+        [AppointmentRecordController::class, 'finalize']
+    )->middleware('permission:records.manage')->name('appointments.record.finalize');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/complementacoes',
+        [AppointmentRecordController::class, 'addendum']
+    )->middleware('permission:records.manage')->name('appointments.record.addendum');
 
 
     Route::get(
