@@ -40,6 +40,9 @@
                             </div>
                             <div class="text-muted small mt-1">
                                 {{ $professional->specialty ?: 'Profissional' }}
+                                @if($professional->council_type || $professional->council_number)
+                                    · {{ trim(($professional->council_type ?: '').' '.($professional->council_number ?: '').' '.($professional->council_state ?: '')) }}
+                                @endif
                                 @if($professional->phone) · {{ $professional->phone }} @endif
                             </div>
                             <div class="d-flex flex-wrap gap-1 mt-2">
@@ -92,6 +95,9 @@
                             @csrf @method('PATCH')
                             <div class="col-md-5"><label class="form-label">Nome</label><input name="name" class="form-control" value="{{ $professional->name }}" required></div>
                             <div class="col-md-3"><label class="form-label">Especialidade</label><input name="specialty" class="form-control" value="{{ $professional->specialty }}"></div>
+                            <div class="col-md-2"><label class="form-label">Conselho</label><input name="council_type" class="form-control text-uppercase" value="{{ $professional->council_type }}" placeholder="COREN"></div>
+                            <div class="col-md-3"><label class="form-label">Nº conselho</label><input name="council_number" class="form-control" value="{{ $professional->council_number }}"></div>
+                            <div class="col-md-1"><label class="form-label">UF</label><input name="council_state" maxlength="2" class="form-control text-uppercase" value="{{ $professional->council_state }}"></div>
                             <div class="col-md-2"><label class="form-label">Início</label><input type="time" name="work_start" class="form-control" value="{{ substr($professional->work_start,0,5) }}" required></div>
                             <div class="col-md-2"><label class="form-label">Fim</label><input type="time" name="work_end" class="form-control" value="{{ substr($professional->work_end,0,5) }}" required></div>
                             <div class="col-md-4"><label class="form-label">WhatsApp</label><input name="phone" class="form-control" value="{{ $professional->phone }}"></div>
@@ -234,6 +240,9 @@
                 <div class="row g-3">
                     <div class="col-md-7"><label class="form-label">Nome</label><input name="name" class="form-control" required></div>
                     <div class="col-md-5"><label class="form-label">Especialidade</label><input name="specialty" class="form-control"></div>
+                    <div class="col-md-2"><label class="form-label">Conselho</label><input name="council_type" class="form-control text-uppercase" placeholder="COREN"></div>
+                    <div class="col-md-3"><label class="form-label">Nº conselho</label><input name="council_number" class="form-control"></div>
+                    <div class="col-md-2"><label class="form-label">UF</label><input name="council_state" maxlength="2" class="form-control text-uppercase"></div>
                     <div class="col-md-6"><label class="form-label">WhatsApp</label><input name="phone" class="form-control"></div>
                     <div class="col-md-6"><label class="form-label">E-mail</label><input type="email" name="email" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Início</label><input type="time" name="work_start" value="08:00" class="form-control" required></div>
