@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sigh;
 
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
+use App\Services\Enfas\AccessScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,12 +13,12 @@ use Illuminate\Validation\Rule;
 
 class PharmaceuticalCareController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, AccessScopeService $access)
     {
         $q = trim((string) $request->get('q'));
         $patientId = $request->integer('patient_id');
 
-        $patients = Patient::query()
+        $patients = $access->patients(Patient::query(), $request->user())
             ->when($q, fn ($query) => $query->where(function ($inner) use ($q) {
                 $inner->where('name', 'like', "%{$q}%")
                     ->orWhere('preferred_name', 'like', "%{$q}%")
@@ -28,7 +29,9 @@ class PharmaceuticalCareController extends Controller
             ->limit(50)
             ->get();
 
-        $selectedPatient = $patientId ? Patient::find($patientId) : null;
+        $selectedPatient = $patientId
+            ? $access->patients(Patient::query(), $request->user())->find($patientId)
+            : null;
 
         $medications = collect();
         $pmc = collect();
@@ -112,7 +115,7 @@ class PharmaceuticalCareController extends Controller
         ));
     }
 
-    public function storeMedication(Request $request)
+    public function storeMedication(Request $request, AccessScopeService $access)
     {
         $data = $request->validate([
             'patient_id' => ['required','exists:patients,id'],
@@ -132,6 +135,9 @@ class PharmaceuticalCareController extends Controller
             'prescription_valid_until' => ['nullable','date','after_or_equal:prescription_issued_at'],
             'notes' => ['nullable','string','max:5000'],
         ]);
+
+        $patient = Patient::findOrFail((int) $data['patient_id']);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data['requires_special_control'] = (bool) ($data['requires_special_control'] ?? false);
         $data['is_active'] = true;
@@ -155,7 +161,7 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'Medicamento incluído no acompanhamento do paciente.');
     }
 
-    public function storePmc(Request $request)
+    public function storePmc(Request $request, AccessScopeService $access)
     {
         $data = $request->validate([
             'patient_id' => ['required','exists:patients,id'],
@@ -172,6 +178,9 @@ class PharmaceuticalCareController extends Controller
             'next_supply_at' => ['nullable','date'],
             'notes' => ['nullable','string','max:5000'],
         ]);
+
+        $patient = Patient::findOrFail((int) $data['patient_id']);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data['is_active'] = true;
         $data['created_at'] = now();
@@ -192,7 +201,7 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'PMC registrado com sucesso.');
     }
 
-    public function storeLme(Request $request)
+    public function storeLme(Request $request, AccessScopeService $access)
     {
         $data = $request->validate([
             'patient_id' => ['required','exists:patients,id'],
@@ -212,6 +221,9 @@ class PharmaceuticalCareController extends Controller
             'notes' => ['nullable','string','max:5000'],
         ]);
 
+        $patient = Patient::findOrFail((int) $data['patient_id']);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
+
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
@@ -230,7 +242,7 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'LME incluída no acompanhamento.');
     }
 
-    public function storeApac(Request $request)
+    public function storeApac(Request $request, AccessScopeService $access)
     {
         $data = $request->validate([
             'patient_id' => ['required','exists:patients,id'],
@@ -246,6 +258,9 @@ class PharmaceuticalCareController extends Controller
             'status' => ['required', Rule::in(['draft','pending','active','expired','closed','denied'])],
             'notes' => ['nullable','string','max:5000'],
         ]);
+
+        $patient = Patient::findOrFail((int) $data['patient_id']);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data['created_at'] = now();
         $data['updated_at'] = now();
@@ -265,7 +280,7 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'APAC incluída no acompanhamento.');
     }
 
-    public function storeDocument(Request $request)
+    public function storeDocument(Request $request, AccessScopeService $access)
     {
         $data = $request->validate([
             'patient_id' => ['required','exists:patients,id'],
@@ -278,6 +293,9 @@ class PharmaceuticalCareController extends Controller
             'notes' => ['nullable','string','max:5000'],
             'file' => ['required','file','mimes:pdf,jpg,jpeg,png','max:15360'],
         ]);
+
+        $patient = Patient::findOrFail((int) $data['patient_id']);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $file = $request->file('file');
         $extension = strtolower($file->getClientOriginalExtension());
@@ -316,11 +334,14 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'Documento anexado ao paciente.');
     }
 
-    public function updateMedicationStatus(Request $request, int $medication)
+    public function updateMedicationStatus(Request $request, int $medication, AccessScopeService $access)
     {
         $row = DB::table('sigh_patient_medications')->where('id', $medication)->first();
 
         abort_unless($row, 404);
+
+        $patient = Patient::findOrFail((int) $row->patient_id);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data = $request->validate([
             'is_active' => ['required','boolean'],
@@ -348,11 +369,14 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', $data['is_active'] ? 'Medicamento reativado.' : 'Medicamento encerrado.');
     }
 
-    public function updateLmeStatus(Request $request, int $lme)
+    public function updateLmeStatus(Request $request, int $lme, AccessScopeService $access)
     {
         $row = DB::table('sigh_lme_requests')->where('id', $lme)->first();
 
         abort_unless($row, 404);
+
+        $patient = Patient::findOrFail((int) $row->patient_id);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data = $request->validate([
             'status' => ['required', Rule::in([
@@ -387,11 +411,14 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'Situação da LME atualizada.');
     }
 
-    public function updateApacStatus(Request $request, int $apac)
+    public function updateApacStatus(Request $request, int $apac, AccessScopeService $access)
     {
         $row = DB::table('sigh_apac_authorizations')->where('id', $apac)->first();
 
         abort_unless($row, 404);
+
+        $patient = Patient::findOrFail((int) $row->patient_id);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['draft','pending','active','expired','closed','denied'])],
@@ -421,11 +448,14 @@ class PharmaceuticalCareController extends Controller
         return back()->with('success', 'Situação da APAC atualizada.');
     }
 
-    public function downloadDocument(int $document)
+    public function downloadDocument(Request $request, int $document, AccessScopeService $access)
     {
         $row = DB::table('sigh_patient_documents')->where('id', $document)->first();
 
         abort_unless($row, 404);
+        $patient = Patient::findOrFail((int) $row->patient_id);
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
+
         abort_unless(Storage::disk($row->disk)->exists($row->path), 404);
 
         return Storage::disk($row->disk)->download(
