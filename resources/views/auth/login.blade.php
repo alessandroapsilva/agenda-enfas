@@ -9,7 +9,7 @@
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
 
-    <title>Entrar | ENFAS Agenda</title>
+    <title>Entrar | SIGH ENFAS</title>
 
     @vite([
         'resources/css/adminlte.css',
@@ -29,13 +29,13 @@
             <img
                 class="enfas-login-logo"
                 src="{{ asset('assets/brand/enfas-agenda.svg') }}"
-                alt="ENFAS Agenda"
+                alt="SIGH ENFAS"
             >
 
-            <h1>ENFAS Agenda</h1>
+            <h1>SIGH ENFAS</h1>
 
             <p>
-                Central interna de agendamentos
+                Sistema Integrado de Gestão em Saúde
             </p>
 
         </div>
