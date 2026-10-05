@@ -7,10 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ClinicalAttachment extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'scan_metadata' => 'array',
+        ];
+    }
+
     protected $fillable = [
         'patient_id','appointment_id','clinical_record_id','clinical_document_id',
         'category','title','original_name','disk','path','mime_type','size_bytes',
-        'sha256','source','ocr_text','created_by',
+        'sha256','source','scan_metadata','ocr_text','created_by',
     ];
 
     public function patient(): BelongsTo { return $this->belongsTo(Patient::class); }
