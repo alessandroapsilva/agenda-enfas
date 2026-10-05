@@ -39,6 +39,9 @@ class ProfessionalController extends Controller
         $professional = Professional::create([
             'name' => trim($data['name']),
             'specialty' => $data['specialty'] ?? null,
+            'council_type' => $data['council_type'] ?? null,
+            'council_number' => $data['council_number'] ?? null,
+            'council_state' => isset($data['council_state']) ? strtoupper($data['council_state']) : null,
             'phone' => $data['phone'] ?? null,
             'email' => $data['email'] ?? null,
             'work_start' => $data['work_start'],
@@ -62,6 +65,9 @@ class ProfessionalController extends Controller
         $professional->update([
             'name' => trim($data['name']),
             'specialty' => $data['specialty'] ?? null,
+            'council_type' => $data['council_type'] ?? null,
+            'council_number' => $data['council_number'] ?? null,
+            'council_state' => isset($data['council_state']) ? strtoupper($data['council_state']) : null,
             'phone' => $data['phone'] ?? null,
             'email' => $data['email'] ?? null,
             'work_start' => $data['work_start'],
@@ -186,6 +192,9 @@ class ProfessionalController extends Controller
         return $request->validate([
             'name' => ['required','string','max:160'],
             'specialty' => ['nullable','string','max:160'],
+            'council_type' => ['nullable','string','max:30'],
+            'council_number' => ['nullable','string','max:60'],
+            'council_state' => ['nullable','string','size:2'],
             'phone' => ['nullable','string','max:30'],
             'email' => ['nullable','email','max:190'],
             'work_start' => ['required','date_format:H:i'],
