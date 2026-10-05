@@ -32,6 +32,7 @@ class PremiumVisualSmokeTest extends TestCase
             'enfas.whatsapp',
             'v9.templates.index',
             'enfas.v6.automations',
+            'activities.index',
             'users.index',
             'v92.alerts',
             'v92.settings',
