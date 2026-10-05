@@ -2826,3 +2826,46 @@ body.enfas-shell,
 .ea-ops-strip,.ea-professional-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1rem;border:1px solid #e2e8f0;border-radius:14px;background:#fff}
 .ea-status-legend{display:flex;flex-wrap:wrap;gap:.7rem}.ea-status-legend span{display:inline-flex;align-items:center;gap:.35rem;color:#64748b;font-size:.68rem;font-weight:650}.ea-status-legend i{width:8px;height:8px;border-radius:50%}
 @media(max-width:575px){.ea-ops-strip,.ea-professional-head{align-items:stretch;flex-direction:column}}
+
+
+/* SIGH ENFAS · Assistência Farmacêutica */
+.sigh-care-tabs{
+    gap:.5rem;
+    padding:.45rem;
+    border:1px solid var(--ea-border,#e5eaf1);
+    border-radius:14px;
+    background:#fff;
+    box-shadow:var(--ea-shadow-sm,0 8px 24px rgba(15,23,42,.045));
+}
+.sigh-care-tabs .nav-link{
+    display:inline-flex;
+    align-items:center;
+    min-height:40px;
+    padding:.55rem .8rem;
+    border-radius:10px;
+    color:#64748b;
+    font-size:.8rem;
+    font-weight:750;
+}
+.sigh-care-tabs .nav-link:hover{
+    color:#1d4ed8;
+    background:#eff6ff;
+}
+.sigh-care-tabs .nav-link.active{
+    color:#fff;
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    box-shadow:0 7px 16px rgba(37,99,235,.18);
+}
+.sigh-care-tabs + .tab-content .card{
+    min-height:340px;
+}
+@media(max-width:575.98px){
+    .sigh-care-tabs{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    .sigh-care-tabs .nav-item,
+    .sigh-care-tabs .nav-link{
+        width:100%;
+    }
+}
