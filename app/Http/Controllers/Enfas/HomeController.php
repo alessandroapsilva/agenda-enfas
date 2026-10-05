@@ -259,6 +259,62 @@ class HomeController extends Controller
                 ->sum('unread_count');
         }
 
+        $engagement = [
+            'waiting' => 0,
+            'waiting_15' => 0,
+            'open_tasks' => 0,
+            'overdue_tasks' => 0,
+            'urgent_conversations' => 0,
+            'follow_up' => 0,
+        ];
+
+        if (Schema::hasTable('wa_conversations')) {
+            $engagement['waiting'] = DB::table('wa_conversations')
+                ->where('status', 'active')
+                ->whereNotNull('last_inbound_at')
+                ->where(function ($q) {
+                    $q->whereNull('last_outbound_at')
+                        ->orWhereColumn('last_inbound_at', '>', 'last_outbound_at');
+                })
+                ->count();
+
+            $engagement['waiting_15'] = DB::table('wa_conversations')
+                ->where('status', 'active')
+                ->whereNotNull('last_inbound_at')
+                ->where('last_inbound_at', '<=', now()->subMinutes(15))
+                ->where(function ($q) {
+                    $q->whereNull('last_outbound_at')
+                        ->orWhereColumn('last_inbound_at', '>', 'last_outbound_at');
+                })
+                ->count();
+
+            if (Schema::hasColumn('wa_conversations', 'priority')) {
+                $engagement['urgent_conversations'] = DB::table('wa_conversations')
+                    ->where('status', 'active')
+                    ->where('priority', 'urgent')
+                    ->count();
+            }
+
+            if (Schema::hasColumn('wa_conversations', 'lead_stage')) {
+                $engagement['follow_up'] = DB::table('wa_conversations')
+                    ->where('status', 'active')
+                    ->where('lead_stage', 'follow_up')
+                    ->count();
+            }
+        }
+
+        if (Schema::hasTable('clinic_tasks')) {
+            $engagement['open_tasks'] = DB::table('clinic_tasks')
+                ->where('status', 'open')
+                ->count();
+
+            $engagement['overdue_tasks'] = DB::table('clinic_tasks')
+                ->where('status', 'open')
+                ->whereNotNull('due_at')
+                ->where('due_at', '<', now())
+                ->count();
+        }
+
         $weekStart = now()->copy()->startOfWeek();
         $weekEnd = now()->copy()->endOfWeek();
 
@@ -350,7 +406,8 @@ class HomeController extends Controller
                 'week',
                 'experience',
                 'locations',
-                'locationId'
+                'locationId',
+                'engagement'
             )
         );
     }
