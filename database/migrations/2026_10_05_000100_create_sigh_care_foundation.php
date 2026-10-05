@@ -79,6 +79,24 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('sigh_patient_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
+            $table->string('category', 60)->index();
+            $table->string('title', 180);
+            $table->string('original_name', 255);
+            $table->string('disk', 30)->default('local');
+            $table->string('path', 500);
+            $table->string('mime_type', 120)->nullable();
+            $table->unsignedBigInteger('size_bytes')->nullable();
+            $table->date('document_date')->nullable()->index();
+            $table->date('valid_until')->nullable()->index();
+            $table->text('notes')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+            $table->index(['patient_id','category']);
+        });
+
         Schema::create('sigh_apac_authorizations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
@@ -100,6 +118,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('sigh_apac_authorizations');
+        Schema::dropIfExists('sigh_patient_documents');
         Schema::dropIfExists('sigh_lme_requests');
         Schema::dropIfExists('sigh_pmc_controls');
         Schema::dropIfExists('sigh_patient_medications');
