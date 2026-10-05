@@ -33,6 +33,9 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('enfas.whatsapp.thread.tasks.store'));
         $this->assertTrue(Route::has('enfas.whatsapp.tasks.complete'));
         $this->assertTrue(Route::has('enfas.whatsapp.quick-replies.store'));
+        $this->assertTrue(Route::has('activities.index'));
+        $this->assertTrue(Route::has('activities.store'));
+        $this->assertTrue(Route::has('activities.complete'));
 
         $dashboard = Route::getRoutes()->getByName('dashboard');
         $whatsapp = Route::getRoutes()->getByName('enfas.whatsapp');
