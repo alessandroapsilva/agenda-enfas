@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Appointment extends Model
@@ -143,6 +144,11 @@ class Appointment extends Model
             User::class,
             'updated_by'
         );
+    }
+
+    public function clinicalRecord(): HasOne
+    {
+        return $this->hasOne(AppointmentClinicalRecord::class);
     }
 
     public function events(): HasMany
