@@ -183,6 +183,8 @@ class PharmaceuticalCareController extends Controller
         abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
         $data['is_active'] = true;
+        $data['created_by'] = $request->user()->id;
+        $data['updated_by'] = $request->user()->id;
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
@@ -224,6 +226,8 @@ class PharmaceuticalCareController extends Controller
         $patient = Patient::findOrFail((int) $data['patient_id']);
         abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
+        $data['created_by'] = $request->user()->id;
+        $data['updated_by'] = $request->user()->id;
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
@@ -262,6 +266,8 @@ class PharmaceuticalCareController extends Controller
         $patient = Patient::findOrFail((int) $data['patient_id']);
         abort_unless($access->canViewPatient($request->user(), $patient), 403);
 
+        $data['created_by'] = $request->user()->id;
+        $data['updated_by'] = $request->user()->id;
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
@@ -395,6 +401,7 @@ class PharmaceuticalCareController extends Controller
                 'protocol_number' => $data['protocol_number'] ?? $row->protocol_number,
                 'valid_until' => $data['valid_until'] ?? $row->valid_until,
                 'renewal_due_at' => $data['renewal_due_at'] ?? $row->renewal_due_at,
+                'updated_by' => $request->user()->id,
                 'updated_at' => now(),
             ]);
 
@@ -432,6 +439,7 @@ class PharmaceuticalCareController extends Controller
                 'status' => $data['status'],
                 'authorization_number' => $data['authorization_number'] ?? $row->authorization_number,
                 'authorized_until' => $data['authorized_until'] ?? $row->authorized_until,
+                'updated_by' => $request->user()->id,
                 'updated_at' => now(),
             ]);
 
