@@ -233,4 +233,79 @@
         </div>
     </main>
 </div>
+
+<div class="card mt-4">
+    <div class="card-header d-flex align-items-center justify-content-between gap-3">
+        <div>
+            <strong class="d-block">Documentos do atendimento</strong>
+            <span class="small text-secondary">Arquivos privados vinculados ao paciente e ao agendamento.</span>
+        </div>
+        @can('documents.manage')
+        <button class="btn btn-light border" type="button" data-bs-toggle="modal" data-bs-target="#uploadAttachmentModal">
+            <i class="bi bi-upload"></i>Anexar documento
+        </button>
+        @endcan
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Documento</th><th>Origem</th><th>Tipo</th><th>Integridade</th><th class="text-end">Ação</th></tr></thead>
+            <tbody>
+            @forelse($attachments as $attachment)
+                <tr>
+                    <td><strong>{{ $attachment->title }}</strong><div class="small text-secondary">{{ $attachment->original_name }}</div></td>
+                    <td>{{ match($attachment->source) {'scanner'=>'Scanner','camera'=>'Câmera',default=>'Upload'} }}</td>
+                    <td>{{ mb_strtoupper($attachment->category) }}</td>
+                    <td><code class="small">{{ substr($attachment->sha256,0,12) }}…</code></td>
+                    <td class="text-end"><a href="{{ route('clinical-attachments.download',$attachment) }}" class="btn btn-sm btn-light border"><i class="bi bi-download"></i>Baixar</a></td>
+                </tr>
+            @empty
+                <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhum documento anexado</strong><div>Uploads e digitalizações deste atendimento aparecerão aqui.</div></div></td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@can('documents.manage')
+<div class="modal fade" id="uploadAttachmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ route('clinical-attachments.store') }}" enctype="multipart/form-data" class="modal-content">
+            @csrf
+            <input type="hidden" name="patient_id" value="{{ $appointment->patient_id }}">
+            <input type="hidden" name="appointment_id" value="{{ $appointment->id }}">
+            <input type="hidden" name="clinical_record_id" value="{{ $record?->id }}">
+            <input type="hidden" name="source" value="upload">
+            <div class="modal-header">
+                <div><h5 class="modal-title">Anexar documento</h5><span class="small text-secondary">PDF, JPG, PNG ou TIFF · até 30 MB</span></div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Categoria *</label>
+                        <select name="category" class="form-select" required>
+                            <option value="exam">Exame</option>
+                            <option value="report">Laudo / relatório</option>
+                            <option value="prescription">Receita</option>
+                            <option value="referral">Encaminhamento</option>
+                            <option value="consent">Termo / consentimento</option>
+                            <option value="authorization">Autorização</option>
+                            <option value="identity">Documento pessoal</option>
+                            <option value="image">Imagem</option>
+                            <option value="other">Outro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8"><label class="form-label">Título *</label><input name="title" class="form-control" required></div>
+                    <div class="col-12"><label class="form-label">Arquivo *</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" required></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary"><i class="bi bi-shield-lock"></i>Salvar com segurança</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endcan
+
 @stop
