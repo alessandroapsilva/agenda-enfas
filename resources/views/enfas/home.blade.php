@@ -85,6 +85,38 @@
     @endforeach
 </div>
 
+@can('pharmacy.view')
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between gap-3">
+        <div>
+            <strong class="d-block">Assistência Farmacêutica</strong>
+            <span class="small text-secondary">Medicamentos, PMC, LME e APAC que precisam de acompanhamento.</span>
+        </div>
+        <a href="{{ route('sigh.pharmacy.index') }}" class="btn btn-light border">
+            Abrir módulo <i class="bi bi-arrow-up-right"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            @foreach([
+                ['Medicamentos ativos',$care['medications'],'bi-capsule'],
+                ['PMC em atenção',$care['pmc_attention'],'bi-house-heart'],
+                ['LME pendentes',$care['lme_attention'],'bi-file-earmark-medical'],
+                ['APAC em atenção',$care['apac_attention'],'bi-file-earmark-check'],
+            ] as $item)
+            <div class="col-6 col-xl-3">
+                <div class="ea-mini-metric h-100">
+                    <i class="bi {{ $item[2] }} mb-2 text-primary"></i>
+                    <strong>{{ $item[1] }}</strong>
+                    <span>{{ $item[0] }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endcan
+
 <div class="row g-4 mb-4">
     <div class="col-xl-8">
         <div class="card h-100">
