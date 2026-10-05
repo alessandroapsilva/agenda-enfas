@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AppointmentClinicalAddendum extends Model
 {
+    protected $table = 'appointment_clinical_addenda';
+
     protected $fillable = [
         'clinical_record_id',
         'body',
