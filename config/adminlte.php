@@ -286,6 +286,14 @@ return [
         ['header' => 'ATENDIMENTO'],
 
         [
+            'text' => 'Documentos clínicos',
+            'route' => 'clinical-documents.index',
+            'icon' => 'bi bi-file-earmark-medical',
+            'can' => 'documents.view',
+        ],
+
+
+        [
             'text' => 'Central WhatsApp',
             'route' => 'enfas.whatsapp',
             'icon' => 'bi bi-whatsapp',
