@@ -96,6 +96,7 @@
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pmc"><i class="bi bi-house-heart me-1"></i>PMC</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#lme"><i class="bi bi-file-earmark-medical me-1"></i>LME</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#apac"><i class="bi bi-file-earmark-check me-1"></i>APAC</button></li>
+<li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#documents"><i class="bi bi-folder2-open me-1"></i>Documentos</button></li>
 </ul>
 
 <div class="tab-content">
@@ -230,6 +231,47 @@
             </div>
         </div>
     </div>
+
+
+    <div class="tab-pane fade" id="documents">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div>
+                    <strong>Documentos do paciente</strong>
+                    <div class="small text-secondary">Receitas, LME, APAC, laudos, exames e autorizações em armazenamento privado.</div>
+                </div>
+                @can('pharmacy.manage')
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#documentModal"><i class="bi bi-upload"></i>Anexar documento</button>
+                @endcan
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead><tr><th>Documento</th><th>Categoria</th><th>Data</th><th>Validade</th><th class="text-end">Ação</th></tr></thead>
+                    <tbody>
+                    @forelse($documents as $row)
+                        <tr>
+                            <td>
+                                <strong>{{ $row->title }}</strong>
+                                <div class="small text-secondary">{{ $row->original_name }}</div>
+                            </td>
+                            <td>{{ mb_strtoupper($row->category) }}</td>
+                            <td>{{ $row->document_date ? IlluminateSupportCarbon::parse($row->document_date)->format('d/m/Y') : '—' }}</td>
+                            <td>{{ $row->valid_until ? IlluminateSupportCarbon::parse($row->valid_until)->format('d/m/Y') : '—' }}</td>
+                            <td class="text-end">
+                                <a href="{{ route('sigh.pharmacy.documents.download',$row->id) }}" class="btn btn-sm btn-light border">
+                                    <i class="bi bi-download"></i>Baixar
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhum documento anexado</strong><div>Os arquivos ficam armazenados de forma privada e exigem autenticação para download.</div></div></td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @can('pharmacy.manage')
@@ -310,6 +352,21 @@
 <div class="col-12"><label class="form-label">Observações</label><textarea name="notes" class="form-control" rows="3"></textarea></div>
 </div></div><div class="modal-footer"><button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary">Salvar APAC</button></div>
 </form></div></div>
+
+
+<div class="modal fade" id="documentModal" tabindex="-1"><div class="modal-dialog modal-lg"><form method="POST" action="{{ route('sigh.pharmacy.documents.store') }}" enctype="multipart/form-data" class="modal-content">@csrf
+<input type="hidden" name="patient_id" value="{{ $selectedPatient->id }}">
+<div class="modal-header"><div><h5 class="modal-title">Anexar documento</h5><small class="text-secondary">PDF, JPG ou PNG · até 15 MB</small></div><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body"><div class="row g-3">
+<div class="col-md-4"><label class="form-label">Categoria *</label><select name="category" class="form-select" required><option value="prescription">Receita</option><option value="lme">LME</option><option value="apac">APAC</option><option value="exam">Exame</option><option value="report">Laudo/Relatório</option><option value="authorization">Autorização</option><option value="identity">Documento pessoal</option><option value="other">Outro</option></select></div>
+<div class="col-md-8"><label class="form-label">Título *</label><input name="title" class="form-control" required></div>
+<div class="col-md-6"><label class="form-label">Data do documento</label><input type="date" name="document_date" class="form-control"></div>
+<div class="col-md-6"><label class="form-label">Validade</label><input type="date" name="valid_until" class="form-control"></div>
+<div class="col-12"><label class="form-label">Arquivo *</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required></div>
+<div class="col-12"><label class="form-label">Observações</label><textarea name="notes" class="form-control" rows="3"></textarea></div>
+</div></div><div class="modal-footer"><button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary"><i class="bi bi-shield-lock"></i>Salvar documento</button></div>
+</form></div></div>
+
 @endcan
 
 @else
