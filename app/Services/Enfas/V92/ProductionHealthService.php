@@ -136,6 +136,12 @@ class ProductionHealthService
             'appointments.record.save',
             'appointments.record.finalize',
             'appointments.record.addendum',
+            'clinical-documents.index',
+            'clinical-documents.store',
+            'clinical-documents.show',
+            'clinical-documents.update',
+            'clinical-documents.sign',
+            'clinical-documents.print',
             'v9.templates.index',
             'enfas.v6.automations',
             'professional.workspace',
@@ -168,6 +174,9 @@ class ProductionHealthService
             'quick_replies',
             'appointment_clinical_records',
             'appointment_clinical_addenda',
+            'clinical_document_templates',
+            'clinical_documents',
+            'clinical_document_signatures',
             'waitlist_entries',
             'locations',
         ] as $table) {
@@ -194,6 +203,9 @@ class ProductionHealthService
             ['wa_conversations','tags'],
             ['wa_conversations','first_inbound_at'],
             ['wa_conversations','first_response_at'],
+            ['professionals','council_type'],
+            ['professionals','council_number'],
+            ['professionals','council_state'],
         ] as [$table,$column]) {
             $this->add(
                 $checks,
