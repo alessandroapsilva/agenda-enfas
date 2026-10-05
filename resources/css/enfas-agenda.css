@@ -2826,3 +2826,106 @@ body.enfas-shell,
 .ea-ops-strip,.ea-professional-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1rem;border:1px solid #e2e8f0;border-radius:14px;background:#fff}
 .ea-status-legend{display:flex;flex-wrap:wrap;gap:.7rem}.ea-status-legend span{display:inline-flex;align-items:center;gap:.35rem;color:#64748b;font-size:.68rem;font-weight:650}.ea-status-legend i{width:8px;height:8px;border-radius:50%}
 @media(max-width:575px){.ea-ops-strip,.ea-professional-head{align-items:stretch;flex-direction:column}}
+
+
+/* ==========================================================
+   Agenda ENFAS · Patient Engagement / CRM
+   ========================================================== */
+
+.ea-inbox-kpis{
+    grid-template-columns:repeat(6,minmax(0,1fr));
+}
+
+.ea-stage-pill,
+.ea-priority-pill{
+    display:inline-flex;
+    align-items:center;
+    min-height:22px;
+    padding:.18rem .42rem;
+    border-radius:999px;
+    font-size:.6rem;
+    font-weight:800;
+    line-height:1;
+}
+
+.ea-stage-pill{
+    color:#475569;
+    background:#f1f5f9;
+}
+
+.ea-priority-pill.is-high{
+    color:#b45309;
+    background:#fffbeb;
+}
+
+.ea-priority-pill.is-urgent{
+    color:#b91c1c;
+    background:#fef2f2;
+}
+
+.ea-quick-replies{
+    display:flex;
+    gap:.4rem;
+    overflow:auto;
+    padding-bottom:.15rem;
+}
+
+.ea-quick-reply{
+    flex:0 0 auto;
+    padding:.38rem .62rem;
+    border:1px solid #dbe3ee;
+    border-radius:999px;
+    color:#475569;
+    background:#fff;
+    font-size:.68rem;
+    font-weight:750;
+    cursor:pointer;
+}
+
+.ea-quick-reply:hover{
+    color:#1d4ed8;
+    border-color:#bfdbfe;
+    background:#eff6ff;
+}
+
+.ea-task-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.65rem;
+    padding:.65rem 0;
+    border-bottom:1px solid #edf1f5;
+}
+
+.ea-task-item:first-child{
+    padding-top:0;
+}
+
+.ea-task-item strong{
+    color:#334155;
+    font-size:.76rem;
+}
+
+.ea-task-item small{
+    display:block;
+    margin-top:.15rem;
+    font-size:.64rem;
+}
+
+.ea-task-create{
+    margin-top:.8rem;
+    padding-top:.8rem;
+    border-top:1px solid #edf1f5;
+}
+
+@media(max-width:1399.98px){
+    .ea-inbox-kpis{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+}
+
+@media(max-width:767.98px){
+    .ea-inbox-kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
