@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\AppointmentClinicalAddendum;
 use App\Models\AppointmentClinicalRecord;
+use App\Models\ClinicalAttachment;
 use App\Models\AppointmentEvent;
 use App\Services\Enfas\AccessScopeService;
 use Illuminate\Http\Request;
@@ -29,7 +30,17 @@ class AppointmentRecordController extends Controller
 
         $record = $appointment->clinicalRecord;
 
-        return view('appointments.record', compact('appointment', 'record'));
+        $attachments = ClinicalAttachment::query()
+            ->where('patient_id', $appointment->patient_id)
+            ->where(function ($query) use ($appointment) {
+                $query->where('appointment_id', $appointment->id)
+                    ->orWhereNull('appointment_id');
+            })
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get();
+
+        return view('appointments.record', compact('appointment', 'record', 'attachments'));
     }
 
     public function save(Request $request, Appointment $appointment, AccessScopeService $access)
