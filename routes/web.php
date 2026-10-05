@@ -255,6 +255,19 @@ Route::middleware('auth')->group(function () {
     )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.apac.store');
 
 
+    Route::post(
+        '/assistencia-farmaceutica/documentos',
+        [PharmaceuticalCareController::class, 'storeDocument']
+    )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.documents.store');
+
+    Route::get(
+        '/assistencia-farmaceutica/documentos/{document}',
+        [PharmaceuticalCareController::class, 'downloadDocument']
+    )->whereNumber('document')
+     ->middleware('permission:pharmacy.view')
+     ->name('sigh.pharmacy.documents.download');
+
+
     /*
     |--------------------------------------------------------------------------
     | PROFISSIONAIS
