@@ -2869,3 +2869,12 @@ body.enfas-shell,
         width:100%;
     }
 }
+
+
+.sigh-timeline{position:relative;display:grid;gap:.9rem}
+.sigh-timeline::before{content:"";position:absolute;left:17px;top:8px;bottom:8px;width:2px;background:#e8edf4}
+.sigh-timeline-item{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);gap:.85rem}
+.sigh-timeline-dot{z-index:1;width:36px;height:36px;display:grid;place-items:center;border:1px solid #dbeafe;border-radius:11px;color:#2563eb;background:#fff;box-shadow:0 6px 16px rgba(37,99,235,.08)}
+.sigh-timeline-card{padding:.85rem 1rem;border:1px solid #e5eaf1;border-radius:13px;background:#fbfdff}
+.sigh-timeline-card strong{color:#1e293b;font-size:.82rem}
+.sigh-timeline-card time{color:#94a3b8;font-size:.66rem;white-space:nowrap}
