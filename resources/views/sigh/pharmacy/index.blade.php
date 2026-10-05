@@ -155,8 +155,8 @@
                         <tr>
                             <td>{{ $row->medication_name ?: 'Não vinculado' }}</td>
                             <td>{{ $row->quantity_at_home !== null ? rtrim(rtrim(number_format($row->quantity_at_home,3,',','.'),'0'),',').' '.($row->unit ?: '') : '—' }}</td>
-                            <td>{{ $row->estimated_end_at ? IlluminateSupportCarbon::parse($row->estimated_end_at)->format('d/m/Y') : '—' }}</td>
-                            <td>{{ $row->next_supply_at ? IlluminateSupportCarbon::parse($row->next_supply_at)->format('d/m/Y') : '—' }}</td>
+                            <td>{{ $row->estimated_end_at ? date('d/m/Y', strtotime((string) $row->estimated_end_at)) : '—' }}</td>
+                            <td>{{ $row->next_supply_at ? date('d/m/Y', strtotime((string) $row->next_supply_at)) : '—' }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="4"><div class="enfas-empty py-4"><strong>Nenhum PMC cadastrado</strong><div>Registre quando houver acompanhamento de medicamento em domicílio.</div></div></td></tr>
@@ -188,7 +188,7 @@
                             <td>{{ $row->cid10 ?: '—' }}</td>
                             <td>{{ $row->protocol_number ?: '—' }}</td>
                             <td><span class="badge text-bg-light border">{{ str_replace('_',' ',mb_strtoupper($row->status)) }}</span></td>
-                            <td>{{ $row->renewal_due_at ? IlluminateSupportCarbon::parse($row->renewal_due_at)->format('d/m/Y') : '—' }}</td>
+                            <td>{{ $row->renewal_due_at ? date('d/m/Y', strtotime((string) $row->renewal_due_at)) : '—' }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhuma LME em acompanhamento</strong></div></td></tr>
@@ -220,7 +220,7 @@
                             <td>{{ $row->procedure_code ?: '—' }}</td>
                             <td>{{ $row->authorization_number ?: '—' }}</td>
                             <td>{{ $row->competence ?: '—' }}</td>
-                            <td>{{ $row->authorized_until ? IlluminateSupportCarbon::parse($row->authorized_until)->format('d/m/Y') : '—' }}</td>
+                            <td>{{ $row->authorized_until ? date('d/m/Y', strtotime((string) $row->authorized_until)) : '—' }}</td>
                             <td><span class="badge text-bg-light border">{{ mb_strtoupper($row->status) }}</span></td>
                         </tr>
                     @empty
@@ -255,8 +255,8 @@
                                 <div class="small text-secondary">{{ $row->original_name }}</div>
                             </td>
                             <td>{{ mb_strtoupper($row->category) }}</td>
-                            <td>{{ $row->document_date ? IlluminateSupportCarbon::parse($row->document_date)->format('d/m/Y') : '—' }}</td>
-                            <td>{{ $row->valid_until ? IlluminateSupportCarbon::parse($row->valid_until)->format('d/m/Y') : '—' }}</td>
+                            <td>{{ $row->document_date ? date('d/m/Y', strtotime((string) $row->document_date)) : '—' }}</td>
+                            <td>{{ $row->valid_until ? date('d/m/Y', strtotime((string) $row->valid_until)) : '—' }}</td>
                             <td class="text-end">
                                 <a href="{{ route('sigh.pharmacy.documents.download',$row->id) }}" class="btn btn-sm btn-light border">
                                     <i class="bi bi-download"></i>Baixar
