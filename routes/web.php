@@ -235,6 +235,11 @@ Route::middleware('auth')->group(function () {
     )->middleware('permission:pharmacy.view')->name('sigh.pharmacy.index');
 
     Route::post(
+        '/assistencia-farmaceutica/catalogo',
+        [PharmaceuticalCareController::class, 'storeCatalogMedication']
+    )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.catalog.store');
+
+    Route::post(
         '/assistencia-farmaceutica/medicamentos',
         [PharmaceuticalCareController::class, 'storeMedication']
     )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.medications.store');
