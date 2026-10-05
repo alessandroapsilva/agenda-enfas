@@ -5,6 +5,7 @@ namespace App\Services\Enfas;
 use App\Models\MetaIntegration;
 use App\Models\WaMessage;
 use App\Models\WaTemplate;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -871,17 +872,31 @@ class MetaWhatsAppService
             }
         }
 
-        $message = WaMessage::create([
-            'appointment_id' => $appointmentId,
-            'patient_id' => $patientId,
-            'direction' => 'outbound',
-            'message_type' => $type,
-            'status' => 'sending',
-            'recipient' => $to,
-            'body' => $body,
-            'payload' => $payload,
-            'dedupe_key' => $dedupeKey,
-        ]);
+        try {
+            $message = WaMessage::create([
+                'appointment_id' => $appointmentId,
+                'patient_id' => $patientId,
+                'direction' => 'outbound',
+                'message_type' => $type,
+                'status' => 'sending',
+                'recipient' => $to,
+                'body' => $body,
+                'payload' => $payload,
+                'dedupe_key' => $dedupeKey,
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            if (! $dedupeKey) {
+                throw $e;
+            }
+
+            $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            throw $e;
+        }
 
         $response = $this->client($integration)->post(
             $this->base($integration).'/'.$integration->phone_number_id.'/messages',
