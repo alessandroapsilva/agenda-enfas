@@ -46,6 +46,8 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('clinical-documents.update'));
         $this->assertTrue(Route::has('clinical-documents.sign'));
         $this->assertTrue(Route::has('clinical-documents.print'));
+        $this->assertTrue(Route::has('clinical-attachments.store'));
+        $this->assertTrue(Route::has('clinical-attachments.download'));
 
         $dashboard = Route::getRoutes()->getByName('dashboard');
         $whatsapp = Route::getRoutes()->getByName('enfas.whatsapp');
