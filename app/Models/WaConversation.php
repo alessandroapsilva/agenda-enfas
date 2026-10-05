@@ -28,6 +28,7 @@ class WaConversation extends Model
         'lead_stage',
         'priority',
         'tags',
+        'first_inbound_at',
         'first_response_at',
     ];
 
@@ -41,6 +42,7 @@ class WaConversation extends Model
             'human_taken_at' => 'datetime',
             'expires_at' => 'datetime',
             'closed_at' => 'datetime',
+            'first_inbound_at' => 'datetime',
             'first_response_at' => 'datetime',
             'tags' => 'array',
         ];
