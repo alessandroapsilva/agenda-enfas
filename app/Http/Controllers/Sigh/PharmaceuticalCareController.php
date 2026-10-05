@@ -102,9 +102,16 @@ class PharmaceuticalCareController extends Controller
             'ended_at' => ['nullable','date','after_or_equal:started_at'],
             'prescriber_name' => ['nullable','string','max:160'],
             'prescriber_registry' => ['nullable','string','max:80'],
+            'requires_special_control' => ['nullable','boolean'],
+            'control_category' => ['nullable','string','max:80'],
+            'prescription_number' => ['nullable','string','max:100'],
+            'prescription_type' => ['nullable','string','max:80'],
+            'prescription_issued_at' => ['nullable','date'],
+            'prescription_valid_until' => ['nullable','date','after_or_equal:prescription_issued_at'],
             'notes' => ['nullable','string','max:5000'],
         ]);
 
+        $data['requires_special_control'] = (bool) ($data['requires_special_control'] ?? false);
         $data['is_active'] = true;
         $data['created_by'] = $request->user()->id;
         $data['updated_by'] = $request->user()->id;
