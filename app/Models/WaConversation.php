@@ -25,6 +25,10 @@ class WaConversation extends Model
         'last_outbound_at',
         'expires_at',
         'closed_at',
+        'lead_stage',
+        'priority',
+        'tags',
+        'first_response_at',
     ];
 
     protected function casts(): array
@@ -37,6 +41,8 @@ class WaConversation extends Model
             'human_taken_at' => 'datetime',
             'expires_at' => 'datetime',
             'closed_at' => 'datetime',
+            'first_response_at' => 'datetime',
+            'tags' => 'array',
         ];
     }
 
