@@ -256,6 +256,7 @@
 
 @include('appointments.partials.clinical-profile')
 @include('appointments.partials.clinical-care')
+@include('appointments.partials.clinical-workflows')
 @include('appointments.partials.clinical-timeline')
 
 <div class="card mt-4">

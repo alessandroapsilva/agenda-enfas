@@ -9,6 +9,7 @@ use App\Http\Controllers\ClinicalDocumentController;
 use App\Http\Controllers\ClinicalAttachmentController;
 use App\Http\Controllers\ClinicalPrescriptionController;
 use App\Http\Controllers\ClinicalProfileController;
+use App\Http\Controllers\ClinicalWorkflowController;
 use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
@@ -248,6 +249,26 @@ Route::middleware('auth')->group(function () {
         '/agendamentos/{appointment}/prontuario/plano-terapeutico/{plan}/status',
         [ClinicalProfileController::class, 'updateCarePlanStatus']
     )->middleware('permission:records.manage')->name('clinical-profile.care-plans.status');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/evolucoes',
+        [ClinicalWorkflowController::class, 'storeEvolution']
+    )->middleware('permission:records.manage')->name('clinical-workflow.evolutions.store');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/protocolos',
+        [ClinicalWorkflowController::class, 'startProtocol']
+    )->middleware('permission:records.manage')->name('clinical-workflow.protocols.start');
+
+    Route::patch(
+        '/agendamentos/{appointment}/prontuario/protocolos/{run}',
+        [ClinicalWorkflowController::class, 'updateProtocol']
+    )->middleware('permission:records.manage')->name('clinical-workflow.protocols.update');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/protocolos/{run}/concluir',
+        [ClinicalWorkflowController::class, 'completeProtocol']
+    )->middleware('permission:records.manage')->name('clinical-workflow.protocols.complete');
 
 
     Route::get(

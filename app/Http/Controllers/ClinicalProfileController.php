@@ -248,6 +248,7 @@ class ClinicalProfileController extends Controller
         AccessScopeService $access
     ) {
         $this->authorizeAppointment($request, $appointment, $access);
+        $this->ensureEncounterOpen($appointment);
 
         $data = $request->validate([
             'scale_name' => ['required', 'string', 'max:160'],
@@ -295,6 +296,7 @@ class ClinicalProfileController extends Controller
         AccessScopeService $access
     ) {
         $this->authorizeAppointment($request, $appointment, $access);
+        $this->ensureEncounterOpen($appointment);
 
         $data = $request->validate([
             'goal' => ['required', 'string', 'max:500'],
@@ -360,6 +362,17 @@ class ClinicalProfileController extends Controller
         );
 
         return back()->with('success', 'Status do plano terapêutico atualizado.');
+    }
+
+    private function ensureEncounterOpen(Appointment $appointment): void
+    {
+        $record = AppointmentClinicalRecord::where('appointment_id', $appointment->id)->first();
+
+        if ($record?->isFinalized()) {
+            throw ValidationException::withMessages([
+                'record' => 'O prontuário principal está finalizado. Registre uma evolução/complementação separada.',
+            ]);
+        }
     }
 
     private function authorizeAppointment(

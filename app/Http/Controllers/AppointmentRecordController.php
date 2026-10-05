@@ -6,6 +6,9 @@ use App\Models\Appointment;
 use App\Models\AppointmentClinicalAddendum;
 use App\Models\AppointmentClinicalRecord;
 use App\Models\AppointmentClinicalScale;
+use App\Models\AppointmentClinicalEvolution;
+use App\Models\AppointmentProtocolRun;
+use App\Models\ClinicalProtocolTemplate;
 use App\Models\ClinicalAttachment;
 use App\Models\ClinicalCarePlan;
 use App\Models\PatientAllergy;
@@ -89,6 +92,26 @@ class AppointmentRecordController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $evolutions = AppointmentClinicalEvolution::query()
+            ->with('author')
+            ->where('appointment_id', $appointment->id)
+            ->orderByDesc('signed_at')
+            ->limit(30)
+            ->get();
+
+        $protocolTemplates = ClinicalProtocolTemplate::query()
+            ->with('items')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $protocolRuns = AppointmentProtocolRun::query()
+            ->with(['template.items', 'responses'])
+            ->where('appointment_id', $appointment->id)
+            ->orderByDesc('id')
+            ->get();
+
         $timeline = $timelineService->forPatient(
             $appointment->patient,
             $request->user()
@@ -104,6 +127,9 @@ class AppointmentRecordController extends Controller
             'medications',
             'scales',
             'carePlans',
+            'evolutions',
+            'protocolTemplates',
+            'protocolRuns',
             'timeline'
         ));
     }
@@ -221,7 +247,7 @@ class AppointmentRecordController extends Controller
             'evolution' => $record->evolution,
             'follow_up_plan' => $record->follow_up_plan,
             'care_plan_summary' => $record->care_plan_summary,
-            'finalized_at' => now()->toIso8601String(),
+            'finalized_at' => $record->finalized_at?->toIso8601String(),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         $record->save();
 
