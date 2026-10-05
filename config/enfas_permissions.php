@@ -16,6 +16,8 @@ return [
         'whatsapp.manage' => 'Gerenciar mensagens, modelos e automações',
         'activities.view' => 'Ver atividades e pendências',
         'activities.manage' => 'Criar, atribuir e concluir atividades',
+        'records.view' => 'Ver prontuários de atendimento',
+        'records.manage' => 'Registrar, finalizar e complementar prontuários',
         'reports.view' => 'Ver relatórios',
         'users.manage' => 'Gerenciar usuários e acessos',
         'settings.manage' => 'Gerenciar configurações do sistema',
@@ -31,11 +33,13 @@ return [
             'services.view','services.manage',
             'whatsapp.view','whatsapp.manage',
             'activities.view','activities.manage',
+            'records.view','records.manage',
             'reports.view','audit.view',
         ],
         'professional' => [
             'dashboard.view',
             'professional.workspace',
+            'records.view','records.manage',
         ],
         'attendant' => [
             'dashboard.view','agenda.view','agenda.manage',
