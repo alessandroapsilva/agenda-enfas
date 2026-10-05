@@ -4,17 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Services\Enfas\MetaWhatsAppService;
+use App\Services\Enfas\AccessScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class PatientController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, AccessScopeService $access)
     {
         $search = trim((string) $request->get('q'));
 
-        $patients = Patient::query()
+        $patients = $access->patients(Patient::query(), $request->user())
             ->withCount('appointments')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
@@ -35,11 +36,12 @@ class PatientController extends Controller
         return view('patients.index', compact('patients', 'search'));
     }
 
-    public function show(Patient $patient)
+    public function show(Request $request, Patient $patient, AccessScopeService $access)
     {
+        abort_unless($access->canViewPatient($request->user(), $patient), 403);
         $patient->load([
             'appointments' => fn ($query) => $query
-                ->with(['professional', 'service'])
+                ->with(['professional', 'service', 'clinicalRecord'])
                 ->orderByDesc('start_at')
                 ->limit(20),
             'messages' => fn ($query) => $query
