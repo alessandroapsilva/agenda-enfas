@@ -5,6 +5,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AppointmentRecordController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomFieldController;
+use App\Http\Controllers\ClinicalDocumentController;
 use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
@@ -203,6 +204,43 @@ Route::middleware('auth')->group(function () {
         ->where('cep', '[0-9-]{8,9}')
         ->middleware('throttle:30,1')
         ->name('cep.lookup');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOCUMENTOS CLÍNICOS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/documentos-clinicos',
+        [ClinicalDocumentController::class, 'index']
+    )->middleware('permission:documents.view')->name('clinical-documents.index');
+
+    Route::post(
+        '/documentos-clinicos',
+        [ClinicalDocumentController::class, 'store']
+    )->middleware('permission:documents.manage')->name('clinical-documents.store');
+
+    Route::get(
+        '/documentos-clinicos/{document}',
+        [ClinicalDocumentController::class, 'show']
+    )->middleware('permission:documents.view')->name('clinical-documents.show');
+
+    Route::patch(
+        '/documentos-clinicos/{document}',
+        [ClinicalDocumentController::class, 'update']
+    )->middleware('permission:documents.manage')->name('clinical-documents.update');
+
+    Route::post(
+        '/documentos-clinicos/{document}/assinar',
+        [ClinicalDocumentController::class, 'sign']
+    )->middleware('permission:documents.sign')->name('clinical-documents.sign');
+
+    Route::get(
+        '/documentos-clinicos/{document}/imprimir',
+        [ClinicalDocumentController::class, 'print']
+    )->middleware('permission:documents.view')->name('clinical-documents.print');
 
 
     /*
