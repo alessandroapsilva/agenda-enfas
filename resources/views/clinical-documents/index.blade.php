@@ -135,9 +135,22 @@
                     </div>
                     <input type="hidden" name="professional_id" value="{{ $appointment?->professional_id }}">
 
+                    @if($templateOptions->isNotEmpty())
+                    <div class="col-12">
+                        <label class="form-label">Modelo</label>
+                        <select id="clinicalTemplateSelect" name="template_id" class="form-select">
+                            <option value="">Documento em branco</option>
+                            @foreach($templateOptions as $template)
+                                <option value="{{ $template['id'] }}">{{ $template['name'] }}</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">O modelo preenche o conteúdo automaticamente e você pode revisar antes de salvar.</div>
+                    </div>
+                    @endif
+
                     <div class="col-md-4">
                         <label class="form-label">Tipo *</label>
-                        <select name="document_type" class="form-select" required>
+                        <select id="clinicalDocumentType" name="document_type" class="form-select" required>
                             <option value="prescription">Receita</option>
                             <option value="certificate">Atestado</option>
                             <option value="declaration">Declaração</option>
@@ -150,11 +163,11 @@
                     </div>
                     <div class="col-md-8">
                         <label class="form-label">Título *</label>
-                        <input name="title" class="form-control" required placeholder="Ex.: Receita do atendimento">
+                        <input id="clinicalDocumentTitle" name="title" class="form-control" required placeholder="Ex.: Receita do atendimento">
                     </div>
                     <div class="col-12">
                         <label class="form-label">Conteúdo *</label>
-                        <textarea name="content" class="form-control ea-document-editor" rows="16" required placeholder="Digite o conteúdo do documento..."></textarea>
+                        <textarea id="clinicalDocumentBody" name="content" class="form-control ea-document-editor" rows="16" required placeholder="Digite o conteúdo do documento..."></textarea>
                     </div>
                 </div>
             </div>
@@ -166,4 +179,27 @@
     </div>
 </div>
 @endcan
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const select = document.getElementById('clinicalTemplateSelect');
+    if (!select) return;
+
+    const templates = @json($templateOptions);
+    const type = document.getElementById('clinicalDocumentType');
+    const title = document.getElementById('clinicalDocumentTitle');
+    const body = document.getElementById('clinicalDocumentBody');
+
+    select.addEventListener('change', () => {
+        const template = templates.find((item) => String(item.id) === String(select.value));
+        if (!template) return;
+
+        if (type) type.value = template.type;
+        if (title) title.value = template.title;
+        if (body) body.value = template.body;
+    });
+});
+</script>
+@endpush
 @stop
