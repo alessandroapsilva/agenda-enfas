@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfessionalWorkspaceController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WaitlistController;
+use App\Http\Controllers\Sigh\PharmaceuticalCareController;
 use Illuminate\Support\Facades\Route;
 
 /* ENFAS Agenda V11.1 */
@@ -220,6 +221,38 @@ Route::middleware('auth')->group(function () {
         '/meu-painel',
         [ProfessionalWorkspaceController::class, 'index']
     )->middleware('permission:professional.workspace')->name('professional.workspace');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SIGH · ASSISTÊNCIA FARMACÊUTICA
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/assistencia-farmaceutica',
+        [PharmaceuticalCareController::class, 'index']
+    )->middleware('permission:pharmacy.view')->name('sigh.pharmacy.index');
+
+    Route::post(
+        '/assistencia-farmaceutica/medicamentos',
+        [PharmaceuticalCareController::class, 'storeMedication']
+    )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.medications.store');
+
+    Route::post(
+        '/assistencia-farmaceutica/pmc',
+        [PharmaceuticalCareController::class, 'storePmc']
+    )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.pmc.store');
+
+    Route::post(
+        '/assistencia-farmaceutica/lme',
+        [PharmaceuticalCareController::class, 'storeLme']
+    )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.lme.store');
+
+    Route::post(
+        '/assistencia-farmaceutica/apac',
+        [PharmaceuticalCareController::class, 'storeApac']
+    )->middleware('permission:pharmacy.manage')->name('sigh.pharmacy.apac.store');
 
 
     /*
