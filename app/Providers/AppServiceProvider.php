@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Contracts\ClinicalSignatureProvider;
 use App\Models\User;
+use App\Services\Clinical\InternalElectronicSignatureProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -10,7 +12,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(
+            ClinicalSignatureProvider::class,
+            InternalElectronicSignatureProvider::class
+        );
     }
 
     public function boot(): void
