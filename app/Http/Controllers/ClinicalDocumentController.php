@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\ClinicalSignatureProvider;
 use App\Models\Appointment;
 use App\Models\ClinicalDocument;
-use App\Models\ClinicalDocumentSignature;
 use App\Models\ClinicalDocumentTemplate;
 use App\Models\Patient;
 use App\Services\Enfas\AccessScopeService;
@@ -173,8 +173,12 @@ class ClinicalDocumentController extends Controller
         return back()->with('success', 'Documento atualizado.');
     }
 
-    public function sign(Request $request, ClinicalDocument $document, AccessScopeService $access)
-    {
+    public function sign(
+        Request $request,
+        ClinicalDocument $document,
+        AccessScopeService $access,
+        ClinicalSignatureProvider $signatures
+    ) {
         $document->load(['patient','appointment','professional']);
         abort_unless($access->canViewPatient($request->user(), $document->patient), 403);
         if ($document->professional_id) {
@@ -191,36 +195,18 @@ class ClinicalDocumentController extends Controller
             ]);
         }
 
-        $hash = hash('sha256', $document->content);
-
-        ClinicalDocumentSignature::create([
-            'clinical_document_id' => $document->id,
-            'signature_type' => 'electronic',
-            'user_id' => $request->user()->id,
-            'signer_name' => $request->user()->name,
-            'signer_registry' => $document->professional
-                ? trim(implode(' ', array_filter([
-                    $document->professional->council_type,
-                    $document->professional->council_number,
-                    $document->professional->council_state,
-                ])))
-                : null,
-            'ip_address' => $request->ip(),
-            'user_agent' => mb_substr((string) $request->userAgent(), 0, 2000),
-            'document_hash' => $hash,
-            'provider' => 'agenda_enfas',
-            'metadata' => [
-                'auth_user_id' => $request->user()->id,
-                'document_version' => $document->version,
-            ],
-            'signed_at' => now(),
-        ]);
+        $signature = $signatures->sign(
+            $document,
+            $request->user(),
+            $request
+        );
 
         $document->update([
             'status' => 'signed',
-            'signed_at' => now(),
-            'issued_at' => now(),
-            'content_hash' => $hash,
+            'signed_at' => $signature->signed_at,
+            'issued_at' => $signature->signed_at,
+            'content_hash' => $signature->document_hash,
+            'external_provider' => $signatures->name(),
             'updated_by' => $request->user()->id,
         ]);
 
