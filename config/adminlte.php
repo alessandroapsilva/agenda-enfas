@@ -265,6 +265,12 @@ return [
             'can' => 'patients.view',
         ],
         [
+            'text' => 'Atividades',
+            'route' => 'activities.index',
+            'icon' => 'bi bi-list-check',
+            'can' => 'activities.view',
+        ],
+        [
             'text' => 'Lista de espera',
             'route' => 'waitlist.index',
             'icon' => 'bi bi-hourglass-split',
