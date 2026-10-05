@@ -245,9 +245,9 @@
             <button class="btn btn-light border" type="button" data-bs-toggle="modal" data-bs-target="#uploadAttachmentModal">
                 <i class="bi bi-upload"></i>Anexar documento
             </button>
-            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#scannerModal">
+            <a class="btn btn-primary" href="#scannerStation">
                 <i class="bi bi-printer"></i>Digitalizar
-            </button>
+            </a>
         </div>
         @endcan
     </div>
@@ -313,97 +313,8 @@
 
 </div>
 
-<div class="modal fade" id="scannerModal" tabindex="-1"
-     data-enfas-scan
-     data-agent-url="{{ config('enfas_scan.agent_url') }}"
-     data-upload-url="{{ route('clinical-attachments.store') }}"
-     data-csrf="{{ csrf_token() }}"
-     data-patient-id="{{ $appointment->patient_id }}"
-     data-appointment-id="{{ $appointment->id }}"
-     data-record-id="{{ $record?->id }}">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div>
-                    <h5 class="modal-title">ENFAS Scan</h5>
-                    <span class="small text-secondary" data-scan-status>Verificando agente local...</span>
-                </div>
-                <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <label class="form-label">Scanner</label>
-                        <select class="form-select" data-scan-device></select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Driver</label>
-                        <select class="form-select" data-scan-driver>
-                            <option value="twain">TWAIN</option>
-                            <option value="wia">WIA</option>
-                            <option value="escl">eSCL</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Origem</label>
-                        <select class="form-select" data-scan-source>
-                            <option value="duplex">Duplex</option>
-                            <option value="feeder">Alimentador</option>
-                            <option value="glass">Mesa</option>
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label">DPI</label>
-                        <select class="form-select" data-scan-dpi>
-                            <option>200</option>
-                            <option selected>300</option>
-                            <option>600</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Cor</label>
-                        <select class="form-select" data-scan-color>
-                            <option value="color">Colorido</option>
-                            <option value="gray">Cinza</option>
-                            <option value="bw">P&B</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Categoria</label>
-                        <select class="form-select" data-scan-category>
-                            <option value="exam">Exame</option>
-                            <option value="report">Laudo / relatório</option>
-                            <option value="prescription">Receita</option>
-                            <option value="referral">Encaminhamento</option>
-                            <option value="consent">Termo / consentimento</option>
-                            <option value="other">Outro</option>
-                        </select>
-                    </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Título</label>
-                        <input class="form-control" data-scan-title value="Documento digitalizado">
-                    </div>
-                    <div class="col-12">
-                        <div class="ea-scan-panel">
-                            <i class="bi bi-printer"></i>
-                            <div>
-                                <strong>Digitalização local</strong>
-                                <span>TWAIN, WIA ou eSCL via ENFAS Scan Agent. O PDF é salvo no storage privado do atendimento.</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light border" data-scan-refresh>
-                    <i class="bi bi-arrow-clockwise"></i>Atualizar scanners
-                </button>
-                <button type="button" class="btn btn-primary" data-scan-start>
-                    <i class="bi bi-printer"></i>Digitalizar e anexar
-                </button>
-            </div>
-        </div>
-    </div>
+<div id="scannerStation">
+    @include('appointments.partials.dynamsoft-scanner')
 </div>
 @endcan
 
