@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Enfas\HomeController;
+use App\Http\Controllers\Enfas\ActivitiesController;
 use App\Http\Controllers\Enfas\ModuleController;
 use App\Http\Controllers\Enfas\SettingsController;
 use App\Http\Controllers\Enfas\WhatsAppController;
@@ -8,6 +9,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard',[HomeController::class,'index'])->middleware('permission:dashboard.view')->name('dashboard');
+
+    Route::get('/atividades',[ActivitiesController::class,'index'])->middleware('permission:activities.view')->name('activities.index');
+    Route::post('/atividades',[ActivitiesController::class,'store'])->middleware('permission:activities.manage')->name('activities.store');
+    Route::patch('/atividades/{task}/concluir',[ActivitiesController::class,'complete'])->whereNumber('task')->middleware('permission:activities.view')->name('activities.complete');
 
     Route::get('/locais',[ModuleController::class,'locations'])->middleware('permission:professionals.view')->name('enfas.locations');
     Route::get('/alertas',[ModuleController::class,'alerts'])->middleware('permission:reports.view')->name('enfas.alerts');
