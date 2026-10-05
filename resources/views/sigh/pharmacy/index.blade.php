@@ -116,7 +116,12 @@
                     <tbody>
                     @forelse($medications as $row)
                         <tr>
-                            <td><strong>{{ $row->medication_name }}</strong></td>
+                            <td>
+    <strong>{{ $row->medication_name }}</strong>
+    @if($row->requires_special_control)
+        <div class="mt-1"><span class="badge text-bg-warning"><i class="bi bi-shield-exclamation me-1"></i>Controle especial</span></div>
+    @endif
+</td>
                             <td>{{ collect([$row->dosage,$row->route,$row->frequency])->filter()->implode(' · ') ?: '—' }}</td>
                             <td>{{ $row->prescriber_name ?: '—' }} @if($row->prescriber_registry)<div class="small text-secondary">{{ $row->prescriber_registry }}</div>@endif</td>
                             <td><span class="badge text-bg-{{ $row->is_active ? 'success':'secondary' }}">{{ $row->is_active ? 'Ativo':'Encerrado' }}</span></td>
@@ -238,6 +243,17 @@
 <div class="col-md-4"><label class="form-label">Frequência</label><input name="frequency" class="form-control" placeholder="Ex.: 1x ao dia"></div>
 <div class="col-md-6"><label class="form-label">Prescritor</label><input name="prescriber_name" class="form-control"></div>
 <div class="col-md-6"><label class="form-label">Registro profissional</label><input name="prescriber_registry" class="form-control"></div>
+<div class="col-12">
+    <label class="form-check">
+        <input type="hidden" name="requires_special_control" value="0">
+        <input class="form-check-input" type="checkbox" name="requires_special_control" value="1">
+        <span class="form-check-label">Medicamento sujeito a controle especial</span>
+    </label>
+</div>
+<div class="col-md-3"><label class="form-label">Categoria de controle</label><input name="control_category" class="form-control" placeholder="Ex.: categoria interna"></div>
+<div class="col-md-3"><label class="form-label">Tipo de receituário</label><input name="prescription_type" class="form-control"></div>
+<div class="col-md-3"><label class="form-label">Nº receituário</label><input name="prescription_number" class="form-control"></div>
+<div class="col-md-3"><label class="form-label">Validade do receituário</label><input type="date" name="prescription_valid_until" class="form-control"></div>
 <div class="col-md-6"><label class="form-label">Início</label><input type="date" name="started_at" class="form-control"></div>
 <div class="col-md-6"><label class="form-label">Término</label><input type="date" name="ended_at" class="form-control"></div>
 <div class="col-12"><label class="form-label">Observações</label><textarea name="notes" class="form-control" rows="3"></textarea></div>
