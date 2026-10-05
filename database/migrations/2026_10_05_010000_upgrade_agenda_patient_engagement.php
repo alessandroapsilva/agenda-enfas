@@ -19,6 +19,9 @@ return new class extends Migration
                 if (! Schema::hasColumn('wa_conversations', 'tags')) {
                     $table->json('tags')->nullable();
                 }
+                if (! Schema::hasColumn('wa_conversations', 'first_inbound_at')) {
+                    $table->timestamp('first_inbound_at')->nullable()->index();
+                }
                 if (! Schema::hasColumn('wa_conversations', 'first_response_at')) {
                     $table->timestamp('first_response_at')->nullable()->index();
                 }
@@ -64,7 +67,7 @@ return new class extends Migration
 
         if (Schema::hasTable('wa_conversations')) {
             Schema::table('wa_conversations', function (Blueprint $table) {
-                foreach (['lead_stage','priority','tags','first_response_at'] as $column) {
+                foreach (['lead_stage','priority','tags','first_inbound_at','first_response_at'] as $column) {
                     if (Schema::hasColumn('wa_conversations', $column)) {
                         $table->dropColumn($column);
                     }
