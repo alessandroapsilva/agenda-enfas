@@ -157,6 +157,18 @@ class Appointment extends Model
             ->orderByDesc('occurred_at');
     }
 
+    public function clinicalScales(): HasMany
+    {
+        return $this->hasMany(AppointmentClinicalScale::class)
+            ->orderByDesc('recorded_at');
+    }
+
+    public function carePlans(): HasMany
+    {
+        return $this->hasMany(ClinicalCarePlan::class)
+            ->orderByDesc('id');
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {

@@ -16,12 +16,15 @@ class AppointmentClinicalRecord extends Model
         'version',
         'reason_for_visit',
         'history',
+        'physical_exam',
         'vitals',
         'assessment',
+        'clinical_impression',
         'interventions',
         'guidance',
         'evolution',
         'follow_up_plan',
+        'care_plan_summary',
         'started_at',
         'finalized_at',
         'finalized_by',
@@ -67,6 +70,18 @@ class AppointmentClinicalRecord extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function scales(): HasMany
+    {
+        return $this->hasMany(AppointmentClinicalScale::class, 'clinical_record_id')
+            ->orderByDesc('recorded_at');
+    }
+
+    public function carePlans(): HasMany
+    {
+        return $this->hasMany(ClinicalCarePlan::class, 'clinical_record_id')
+            ->orderByDesc('id');
     }
 
     public function addenda(): HasMany

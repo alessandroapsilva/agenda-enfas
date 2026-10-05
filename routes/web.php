@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\ClinicalDocumentController;
 use App\Http\Controllers\ClinicalAttachmentController;
 use App\Http\Controllers\ClinicalPrescriptionController;
+use App\Http\Controllers\ClinicalProfileController;
 use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientJourneyController;
@@ -197,6 +198,56 @@ Route::middleware('auth')->group(function () {
         '/agendamentos/{appointment}/prontuario/complementacoes',
         [AppointmentRecordController::class, 'addendum']
     )->middleware('permission:records.manage')->name('appointments.record.addendum');
+
+    Route::put(
+        '/agendamentos/{appointment}/prontuario/antecedentes',
+        [ClinicalProfileController::class, 'updateHistory']
+    )->middleware('permission:records.manage')->name('clinical-profile.history.update');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/alergias',
+        [ClinicalProfileController::class, 'storeAllergy']
+    )->middleware('permission:records.manage')->name('clinical-profile.allergies.store');
+
+    Route::patch(
+        '/agendamentos/{appointment}/prontuario/alergias/{allergy}/resolver',
+        [ClinicalProfileController::class, 'resolveAllergy']
+    )->middleware('permission:records.manage')->name('clinical-profile.allergies.resolve');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/problemas',
+        [ClinicalProfileController::class, 'storeProblem']
+    )->middleware('permission:records.manage')->name('clinical-profile.problems.store');
+
+    Route::patch(
+        '/agendamentos/{appointment}/prontuario/problemas/{problem}/resolver',
+        [ClinicalProfileController::class, 'resolveProblem']
+    )->middleware('permission:records.manage')->name('clinical-profile.problems.resolve');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/medicamentos',
+        [ClinicalProfileController::class, 'storeMedication']
+    )->middleware('permission:records.manage')->name('clinical-profile.medications.store');
+
+    Route::patch(
+        '/agendamentos/{appointment}/prontuario/medicamentos/{medication}/suspender',
+        [ClinicalProfileController::class, 'stopMedication']
+    )->middleware('permission:records.manage')->name('clinical-profile.medications.stop');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/escalas',
+        [ClinicalProfileController::class, 'storeScale']
+    )->middleware('permission:records.manage')->name('clinical-profile.scales.store');
+
+    Route::post(
+        '/agendamentos/{appointment}/prontuario/plano-terapeutico',
+        [ClinicalProfileController::class, 'storeCarePlan']
+    )->middleware('permission:records.manage')->name('clinical-profile.care-plans.store');
+
+    Route::patch(
+        '/agendamentos/{appointment}/prontuario/plano-terapeutico/{plan}/status',
+        [ClinicalProfileController::class, 'updateCarePlanStatus']
+    )->middleware('permission:records.manage')->name('clinical-profile.care-plans.status');
 
 
     Route::get(

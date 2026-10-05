@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Patient extends Model
 {
@@ -55,6 +56,31 @@ class Patient extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(WaMessage::class, 'patient_id');
+    }
+
+    public function clinicalHistory(): HasOne
+    {
+        return $this->hasOne(PatientClinicalHistory::class);
+    }
+
+    public function allergies(): HasMany
+    {
+        return $this->hasMany(PatientAllergy::class);
+    }
+
+    public function problems(): HasMany
+    {
+        return $this->hasMany(PatientProblem::class);
+    }
+
+    public function medications(): HasMany
+    {
+        return $this->hasMany(PatientMedication::class);
+    }
+
+    public function clinicalEvents(): HasMany
+    {
+        return $this->hasMany(PatientClinicalEvent::class);
     }
 
     public function displayName(): string

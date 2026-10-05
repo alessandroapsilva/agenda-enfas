@@ -5,16 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\AppointmentClinicalAddendum;
 use App\Models\AppointmentClinicalRecord;
+use App\Models\AppointmentClinicalScale;
 use App\Models\ClinicalAttachment;
+use App\Models\ClinicalCarePlan;
+use App\Models\PatientAllergy;
+use App\Models\PatientClinicalHistory;
+use App\Models\PatientMedication;
+use App\Models\PatientProblem;
 use App\Models\AppointmentEvent;
+use App\Services\Clinical\ClinicalTimelineService;
 use App\Services\Enfas\AccessScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class AppointmentRecordController extends Controller
 {
-    public function show(Request $request, Appointment $appointment, AccessScopeService $access)
-    {
+    public function show(
+        Request $request,
+        Appointment $appointment,
+        AccessScopeService $access,
+        ClinicalTimelineService $timelineService
+    ) {
         abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
 
         $appointment->load([
@@ -40,7 +51,61 @@ class AppointmentRecordController extends Controller
             ->limit(50)
             ->get();
 
-        return view('appointments.record', compact('appointment', 'record', 'attachments'));
+        $clinicalHistory = PatientClinicalHistory::firstOrNew([
+            'patient_id' => $appointment->patient_id,
+        ]);
+
+        $allergies = PatientAllergy::query()
+            ->where('patient_id', $appointment->patient_id)
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByDesc('recorded_at')
+            ->limit(30)
+            ->get();
+
+        $problems = PatientProblem::query()
+            ->where('patient_id', $appointment->patient_id)
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByDesc('id')
+            ->limit(40)
+            ->get();
+
+        $medications = PatientMedication::query()
+            ->where('patient_id', $appointment->patient_id)
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByDesc('id')
+            ->limit(40)
+            ->get();
+
+        $scales = AppointmentClinicalScale::query()
+            ->where('appointment_id', $appointment->id)
+            ->orderByDesc('recorded_at')
+            ->limit(30)
+            ->get();
+
+        $carePlans = ClinicalCarePlan::query()
+            ->with('responsibleProfessional')
+            ->where('appointment_id', $appointment->id)
+            ->orderByRaw("CASE status WHEN 'in_progress' THEN 0 WHEN 'planned' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END")
+            ->orderByDesc('id')
+            ->get();
+
+        $timeline = $timelineService->forPatient(
+            $appointment->patient,
+            $request->user()
+        );
+
+        return view('appointments.record', compact(
+            'appointment',
+            'record',
+            'attachments',
+            'clinicalHistory',
+            'allergies',
+            'problems',
+            'medications',
+            'scales',
+            'carePlans',
+            'timeline'
+        ));
     }
 
     public function save(Request $request, Appointment $appointment, AccessScopeService $access)
@@ -60,11 +125,14 @@ class AppointmentRecordController extends Controller
         $data = $request->validate([
             'reason_for_visit' => ['nullable','string','max:8000'],
             'history' => ['nullable','string','max:12000'],
+            'physical_exam' => ['nullable','string','max:12000'],
             'assessment' => ['nullable','string','max:12000'],
+            'clinical_impression' => ['nullable','string','max:12000'],
             'interventions' => ['nullable','string','max:12000'],
             'guidance' => ['nullable','string','max:12000'],
             'evolution' => ['nullable','string','max:12000'],
             'follow_up_plan' => ['nullable','string','max:8000'],
+            'care_plan_summary' => ['nullable','string','max:8000'],
             'vitals' => ['nullable','array'],
             'vitals.systolic_bp' => ['nullable','integer','between:40,300'],
             'vitals.diastolic_bp' => ['nullable','integer','between:20,200'],
@@ -75,6 +143,7 @@ class AppointmentRecordController extends Controller
             'vitals.weight' => ['nullable','numeric','between:0.5,500'],
             'vitals.height' => ['nullable','numeric','between:20,250'],
             'vitals.glucose' => ['nullable','numeric','between:10,1000'],
+            'vitals.pain_score' => ['nullable','numeric','between:0,10'],
         ]);
 
         $vitals = collect($data['vitals'] ?? [])
@@ -117,11 +186,14 @@ class AppointmentRecordController extends Controller
         $hasContent = collect([
             $record->reason_for_visit,
             $record->history,
+            $record->physical_exam,
             $record->assessment,
+            $record->clinical_impression,
             $record->interventions,
             $record->guidance,
             $record->evolution,
             $record->follow_up_plan,
+            $record->care_plan_summary,
         ])->contains(fn ($value) => filled($value)) || ! empty($record->vitals);
 
         if (! $hasContent) {
@@ -140,12 +212,15 @@ class AppointmentRecordController extends Controller
             'professional_id' => $record->professional_id,
             'reason_for_visit' => $record->reason_for_visit,
             'history' => $record->history,
+            'physical_exam' => $record->physical_exam,
             'vitals' => $record->vitals,
             'assessment' => $record->assessment,
+            'clinical_impression' => $record->clinical_impression,
             'interventions' => $record->interventions,
             'guidance' => $record->guidance,
             'evolution' => $record->evolution,
             'follow_up_plan' => $record->follow_up_plan,
+            'care_plan_summary' => $record->care_plan_summary,
             'finalized_at' => now()->toIso8601String(),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         $record->save();
