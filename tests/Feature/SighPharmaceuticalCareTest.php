@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SighPharmaceuticalCareTest extends TestCase
@@ -83,6 +85,17 @@ class SighPharmaceuticalCareTest extends TestCase
             ])
             ->assertSessionHasNoErrors();
 
+        Storage::fake('local');
+
+        $this->actingAs($admin)
+            ->post(route('sigh.pharmacy.documents.store'), [
+                'patient_id' => $patient->id,
+                'category' => 'lme',
+                'title' => 'LME teste',
+                'file' => UploadedFile::fake()->create('lme.pdf', 100, 'application/pdf'),
+            ])
+            ->assertSessionHasNoErrors();
+
         $this->assertDatabaseHas('sigh_patient_medications', [
             'patient_id' => $patient->id,
             'medication_name' => 'Medicamento de Teste',
@@ -102,6 +115,13 @@ class SighPharmaceuticalCareTest extends TestCase
             'patient_id' => $patient->id,
             'procedure_code' => '0300000000',
         ]);
+
+        $document = DB::table('sigh_patient_documents')
+            ->where('patient_id', $patient->id)
+            ->first();
+
+        $this->assertNotNull($document);
+        Storage::disk('local')->assertExists($document->path);
     }
 
     public function test_attendant_can_view_but_cannot_manage_pharmaceutical_care(): void
