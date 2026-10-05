@@ -132,6 +132,13 @@ class ProductionHealthService
             'patient-journey.show',
             'patient-journey.satisfaction',
             'cep.lookup',
+            'sigh.pharmacy.index',
+            'sigh.pharmacy.medications.store',
+            'sigh.pharmacy.pmc.store',
+            'sigh.pharmacy.lme.store',
+            'sigh.pharmacy.apac.store',
+            'sigh.pharmacy.documents.store',
+            'sigh.pharmacy.documents.download',
         ] as $route) {
             $this->add(
                 $checks,
@@ -155,6 +162,12 @@ class ProductionHealthService
             'wa_webhook_events',
             'waitlist_entries',
             'locations',
+            'sigh_medications',
+            'sigh_patient_medications',
+            'sigh_pmc_controls',
+            'sigh_lme_requests',
+            'sigh_apac_authorizations',
+            'sigh_patient_documents',
         ] as $table) {
             $this->add(
                 $checks,
