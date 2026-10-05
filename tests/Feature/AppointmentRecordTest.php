@@ -14,10 +14,13 @@ class AppointmentRecordTest extends TestCase
 
     private function makeAppointment(): Appointment
     {
+        static $seq = 0;
+        $seq++;
+
         $patientId = DB::table('patients')->insertGetId([
             'name' => 'Paciente Prontuário',
             'phone' => '11999999999',
-            'rgea_number' => 'RGEA-PEP-001',
+            'rgea_number' => 'RGEA-PEP-'.str_pad((string) $seq, 3, '0', STR_PAD_LEFT),
             'preferred_contact_channel' => 'whatsapp',
             'is_active' => true,
             'created_at' => now(),
@@ -25,7 +28,7 @@ class AppointmentRecordTest extends TestCase
         ]);
 
         $professionalId = DB::table('professionals')->insertGetId([
-            'name' => 'Profissional Prontuário',
+            'name' => 'Profissional Prontuário '.$seq,
             'work_start' => '08:00:00',
             'work_end' => '18:00:00',
             'active_days' => json_encode([0,1,2,3,4,5,6]),
