@@ -93,6 +93,7 @@
 
 <ul class="nav nav-pills sigh-care-tabs mb-3" role="tablist">
     <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#medications"><i class="bi bi-capsule me-1"></i>Medicamentos</button></li>
+<li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#catalog"><i class="bi bi-journal-medical me-1"></i>Catálogo</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pmc"><i class="bi bi-house-heart me-1"></i>PMC</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#lme"><i class="bi bi-file-earmark-medical me-1"></i>LME</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#apac"><i class="bi bi-file-earmark-check me-1"></i>APAC</button></li>
@@ -142,6 +143,67 @@
                         </tr>
                     @empty
                         <tr><td colspan="5"><div class="enfas-empty py-4"><strong>Nenhum medicamento cadastrado</strong><div>Inclua os medicamentos acompanhados para este paciente.</div></div></td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="catalog">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div>
+                    <strong>Catálogo de medicamentos</strong>
+                    <div class="small text-secondary">Referência interna para padronizar nomes, apresentações e controle especial.</div>
+                </div>
+                @can('pharmacy.manage')
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#catalogModal">
+                    <i class="bi bi-plus-lg"></i>Novo medicamento
+                </button>
+                @endcan
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Medicamento</th>
+                            <th>Princípio ativo</th>
+                            <th>Apresentação</th>
+                            <th>Controle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @forelse($catalog as $item)
+                        <tr>
+                            <td>
+                                <strong>{{ $item->name }}</strong>
+                                @if($item->concentration)
+                                    <div class="small text-secondary">{{ $item->concentration }}</div>
+                                @endif
+                            </td>
+                            <td>{{ $item->active_ingredient ?: '—' }}</td>
+                            <td>{{ collect([$item->pharmaceutical_form,$item->presentation])->filter()->implode(' · ') ?: '—' }}</td>
+                            <td>
+                                @if($item->requires_special_control)
+                                    <span class="badge text-bg-warning">
+                                        <i class="bi bi-shield-exclamation me-1"></i>
+                                        {{ $item->control_category ?: 'Especial' }}
+                                    </span>
+                                @else
+                                    <span class="badge text-bg-light border">Comum</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4">
+                                <div class="enfas-empty py-4">
+                                    <strong>Catálogo vazio</strong>
+                                    <div>Cadastre medicamentos para padronizar os registros do SIGH.</div>
+                                </div>
+                            </td>
+                        </tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -379,11 +441,56 @@
 </div>
 
 @can('pharmacy.manage')
+<div class="modal fade" id="catalogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ route('sigh.pharmacy.catalog.store') }}" class="modal-content">
+            @csrf
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title">Novo medicamento no catálogo</h5>
+                    <small class="text-secondary">Padronização interna do SIGH ENFAS</small>
+                </div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-7"><label class="form-label">Nome *</label><input name="name" class="form-control" required></div>
+                    <div class="col-md-5"><label class="form-label">Princípio ativo</label><input name="active_ingredient" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Concentração</label><input name="concentration" class="form-control" placeholder="Ex.: 20 mg"></div>
+                    <div class="col-md-4"><label class="form-label">Forma farmacêutica</label><input name="pharmaceutical_form" class="form-control" placeholder="Comprimido, solução..."></div>
+                    <div class="col-md-4"><label class="form-label">Apresentação</label><input name="presentation" class="form-control" placeholder="Caixa com 30..."></div>
+                    <div class="col-12">
+                        <label class="form-check">
+                            <input type="hidden" name="requires_special_control" value="0">
+                            <input class="form-check-input" type="checkbox" name="requires_special_control" value="1">
+                            <span class="form-check-label">Sujeito a controle especial</span>
+                        </label>
+                    </div>
+                    <div class="col-md-6"><label class="form-label">Categoria de controle</label><input name="control_category" class="form-control"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary">Salvar no catálogo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal fade" id="medicationModal" tabindex="-1"><div class="modal-dialog modal-lg"><form method="POST" action="{{ route('sigh.pharmacy.medications.store') }}" class="modal-content">@csrf
 <input type="hidden" name="patient_id" value="{{ $selectedPatient->id }}">
 <div class="modal-header"><div><h5 class="modal-title">Adicionar medicamento</h5><small class="text-secondary">{{ $selectedPatient->displayName() }}</small></div><button class="btn-close" data-bs-dismiss="modal"></button></div>
 <div class="modal-body"><div class="row g-3">
-<div class="col-12"><label class="form-label">Medicamento *</label><input name="medication_name" class="form-control" required></div>
+<div class="col-12">
+    <label class="form-label">Medicamento *</label>
+    <input name="medication_name" class="form-control" list="sighMedicationCatalog" required>
+    <datalist id="sighMedicationCatalog">
+        @foreach($catalog as $item)
+            <option value="{{ $item->name }}">{{ collect([$item->concentration,$item->presentation])->filter()->implode(' · ') }}</option>
+        @endforeach
+    </datalist>
+    <div class="form-text">Selecione do catálogo quando existir ou informe o medicamento manualmente.</div>
+</div>
 <div class="col-md-4"><label class="form-label">Dose</label><input name="dosage" class="form-control" placeholder="Ex.: 20 mg"></div>
 <div class="col-md-4"><label class="form-label">Via</label><input name="route" class="form-control" placeholder="Ex.: oral"></div>
 <div class="col-md-4"><label class="form-label">Frequência</label><input name="frequency" class="form-control" placeholder="Ex.: 1x ao dia"></div>
