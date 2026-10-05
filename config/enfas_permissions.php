@@ -42,7 +42,6 @@ return [
             'records.view','records.manage',
             'documents.view','documents.manage','documents.sign',
             'prescriptions.view','prescriptions.manage','prescriptions.sign',
-            'prescriptions.view','prescriptions.manage','prescriptions.sign',
             'reports.view','audit.view',
         ],
         'professional' => [
@@ -50,6 +49,7 @@ return [
             'professional.workspace',
             'records.view','records.manage',
             'documents.view','documents.manage','documents.sign',
+            'prescriptions.view','prescriptions.manage','prescriptions.sign',
         ],
         'attendant' => [
             'dashboard.view','agenda.view','agenda.manage',
