@@ -6,11 +6,6 @@
 @section('page_subtitle', 'Cadastro, histórico de atendimentos e comunicação em um só lugar.')
 
 @section('page_actions')
-@can('pharmacy.view')
-<a href="{{ route('sigh.pharmacy.index',['patient_id'=>$patient->id]) }}" class="btn btn-primary">
-    <i class="bi bi-capsule me-1"></i>Assistência Farmacêutica
-</a>
-@endcan
 <a href="{{ route('patients.index') }}" class="btn btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Pacientes
 </a>
@@ -142,7 +137,7 @@
                             placeholder="Informe o RGEA"
                             required
                             autocomplete="off">
-                        <div class="form-text">Gerado no sistema de origem. O SIGH ENFAS apenas registra este número.</div>
+                        <div class="form-text">Gerado no sistema de origem. O Agenda ENFAS apenas registra este número.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Nascimento</label>
