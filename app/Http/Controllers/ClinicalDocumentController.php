@@ -34,6 +34,9 @@ class ClinicalDocumentController extends Controller
 
         $documents = ClinicalDocument::query()
             ->with(['patient','professional','signatures'])
+            ->when($request->user()->role === 'professional', function ($query) use ($request) {
+                $query->where('professional_id', $request->user()->professional_id);
+            })
             ->when($patient, fn ($q) => $q->where('patient_id', $patient->id))
             ->when($appointment, fn ($q) => $q->where('appointment_id', $appointment->id))
             ->orderByDesc('id')
@@ -103,6 +106,13 @@ class ClinicalDocumentController extends Controller
             abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
         }
 
+        if ($request->user()->role === 'professional') {
+            abort_unless($request->user()->professional_id, 403);
+            $data['professional_id'] = $request->user()->professional_id;
+        } elseif (! empty($data['professional_id'])) {
+            abort_unless($access->canUseProfessional($request->user(), (int) $data['professional_id']), 403);
+        }
+
         $document = ClinicalDocument::create([
             ...$data,
             'status' => 'draft',
@@ -127,6 +137,10 @@ class ClinicalDocumentController extends Controller
             abort_unless($access->canViewAppointment($request->user(), $document->appointment), 403);
         }
 
+        if ($document->professional_id) {
+            abort_unless($access->canUseProfessional($request->user(), (int) $document->professional_id), 403);
+        }
+
         return view('clinical-documents.show', compact('document'));
     }
 
@@ -134,6 +148,9 @@ class ClinicalDocumentController extends Controller
     {
         $document->load(['patient','appointment']);
         abort_unless($access->canViewPatient($request->user(), $document->patient), 403);
+        if ($document->professional_id) {
+            abort_unless($access->canUseProfessional($request->user(), (int) $document->professional_id), 403);
+        }
 
         if ($document->isLocked()) {
             throw ValidationException::withMessages([
@@ -160,6 +177,9 @@ class ClinicalDocumentController extends Controller
     {
         $document->load(['patient','appointment','professional']);
         abort_unless($access->canViewPatient($request->user(), $document->patient), 403);
+        if ($document->professional_id) {
+            abort_unless($access->canUseProfessional($request->user(), (int) $document->professional_id), 403);
+        }
 
         if ($document->isLocked()) {
             return back()->with('success', 'Documento já está assinado/emitido.');
@@ -211,6 +231,9 @@ class ClinicalDocumentController extends Controller
     {
         $document->load(['patient','appointment','professional','signatures.user']);
         abort_unless($access->canViewPatient($request->user(), $document->patient), 403);
+        if ($document->professional_id) {
+            abort_unless($access->canUseProfessional($request->user(), (int) $document->professional_id), 403);
+        }
 
         return view('clinical-documents.print', compact('document'));
     }
