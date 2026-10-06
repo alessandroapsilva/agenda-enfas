@@ -16,7 +16,6 @@ class WhatsAppConversationEngine
         private AvailabilityService $availability,
         private PatientNotificationService $patientNotifications,
         private ProfessionalNotificationService $professionalNotifications,
-        private WhatsAppAutomationEngine $automation,
         private WaitlistService $waitlist,
     ) {
     }
