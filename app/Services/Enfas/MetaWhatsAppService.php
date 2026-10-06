@@ -696,19 +696,41 @@ class MetaWhatsAppService
             ],
         ];
 
-        $message = WaMessage::create([
-            'appointment_id' => $appointmentId,
-            'patient_id' => $appointment->patient_id,
-            'template_id' => $template->id,
-            'automation_id' => $automationId,
-            'direction' => 'outbound',
-            'message_type' => 'template',
-            'status' => 'sending',
-            'recipient' => $phone,
-            'body' => $template->body,
-            'payload' => $payload,
-            'dedupe_key' => $dedupeKey,
-        ]);
+        if ($dedupeKey) {
+            $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        try {
+            $message = WaMessage::create([
+                'appointment_id' => $appointmentId,
+                'patient_id' => $appointment->patient_id,
+                'template_id' => $template->id,
+                'automation_id' => $automationId,
+                'direction' => 'outbound',
+                'message_type' => 'template',
+                'status' => 'sending',
+                'recipient' => $phone,
+                'body' => $template->body,
+                'payload' => $payload,
+                'dedupe_key' => $dedupeKey,
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            if (! $dedupeKey) {
+                throw $e;
+            }
+
+            $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            throw $e;
+        }
 
         $response = $this->client($integration)->post(
             $this->base($integration)
