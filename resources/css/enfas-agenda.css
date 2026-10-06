@@ -3200,3 +3200,65 @@ body.enfas-shell,
         padding:.4rem!important;
     }
 }
+
+
+/* AGENDA — DRAWER OPERACIONAL */
+
+.ea-appointment-actions{
+    padding:1rem;
+    border:1px solid #e5eaf1;
+    border-radius:14px;
+    background:#fbfcfe;
+}
+
+.ea-appointment-actions-head{
+    margin-bottom:.75rem;
+}
+
+.ea-appointment-actions-head strong{
+    display:block;
+    color:#1f2937;
+    font-size:.82rem;
+    font-weight:800;
+}
+
+.ea-appointment-actions-head small{
+    display:block;
+    margin-top:.12rem;
+    color:#8a96a8;
+    font-size:.69rem;
+}
+
+.ea-appointment-actions-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.5rem;
+}
+
+.ea-appointment-actions-grid .btn{
+    width:100%;
+}
+
+.ea-appointment-actions-grid .btn.is-current{
+    opacity:.55;
+    cursor:default;
+    transform:none!important;
+}
+
+.ea-message-card{
+    margin-bottom:.55rem;
+    padding:.8rem .85rem;
+    border:1px solid #e5eaf1;
+    border-radius:11px;
+    background:#fbfcfe;
+}
+
+.ea-message-card:last-child{
+    margin-bottom:0;
+}
+
+@media (max-width:420px){
+    .ea-appointment-actions-grid{
+        grid-template-columns:1fr;
+    }
+}
