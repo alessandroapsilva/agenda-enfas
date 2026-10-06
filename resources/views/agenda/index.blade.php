@@ -1339,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.refetchEvents();
     });
 
-    ['agendaFilterProfessional','agendaFilterService','agendaFilterStatus'].forEach(function(id) {
+    ['agendaFilterProfessional','agendaFilterService','agendaFilterLocation','agendaFilterStatus'].forEach(function(id) {
         document.getElementById(id)?.addEventListener('change', function () {
             calendar.refetchEvents();
         });
