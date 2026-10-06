@@ -33,14 +33,52 @@
 <div class="ea-ops-strip mb-3">
     <div>
         <strong class="d-block">Mapa operacional da agenda</strong>
-        <span class="small text-secondary">Use os filtros para reduzir o calendário ao contexto da equipe.</span>
+        <span class="small text-secondary">Indicadores acompanham o período visível e os filtros aplicados.</span>
     </div>
-    <div class="ea-status-legend">
-        <span><i style="background:#f59e0b"></i>Aguardando</span>
-        <span><i style="background:#16a34a"></i>Confirmado</span>
-        <span><i style="background:#2563eb"></i>Concluído</span>
-        <span><i style="background:#dc2626"></i>Falta</span>
-        <span><i style="background:#94a3b8"></i>Cancelado</span>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="ea-status-legend">
+            <span><i style="background:#f59e0b"></i>Aguardando</span>
+            <span><i style="background:#16a34a"></i>Confirmado</span>
+            <span><i style="background:#2563eb"></i>Concluído</span>
+            <span><i style="background:#dc2626"></i>Falta</span>
+            <span><i style="background:#94a3b8"></i>Cancelado</span>
+        </div>
+        <button id="agendaRefresh" type="button" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-clockwise me-1"></i>Atualizar
+        </button>
+    </div>
+</div>
+
+<div class="row g-2 mb-3" id="agendaOperationalSummary">
+    <div class="col-6 col-xl">
+        <div class="card h-100"><div class="card-body py-3">
+            <span class="small text-secondary d-block">No período</span>
+            <strong class="fs-4" id="agendaCountTotal">0</strong>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card h-100"><div class="card-body py-3">
+            <span class="small text-secondary d-block">Aguardando</span>
+            <strong class="fs-4" id="agendaCountAwaiting">0</strong>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card h-100"><div class="card-body py-3">
+            <span class="small text-secondary d-block">Confirmados</span>
+            <strong class="fs-4" id="agendaCountConfirmed">0</strong>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card h-100"><div class="card-body py-3">
+            <span class="small text-secondary d-block">Concluídos</span>
+            <strong class="fs-4" id="agendaCountCompleted">0</strong>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card h-100"><div class="card-body py-3">
+            <span class="small text-secondary d-block">Faltas</span>
+            <strong class="fs-4" id="agendaCountNoShow">0</strong>
+        </div></div>
     </div>
 </div>
 
@@ -971,6 +1009,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (! await moveAppointment(info)) {
                     info.revert();
                 }
+            },
+
+            eventsSet: function(events) {
+                updateOperationalSummary(events);
             }
         }
     );
@@ -1334,6 +1376,33 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
 
+
+    function updateOperationalSummary(events) {
+        const counts = {
+            total: events.length,
+            awaiting_confirmation: 0,
+            confirmed: 0,
+            completed: 0,
+            no_show: 0
+        };
+
+        events.forEach(function(event) {
+            const status = event.extendedProps?.status;
+            if (Object.prototype.hasOwnProperty.call(counts, status)) {
+                counts[status]++;
+            }
+        });
+
+        document.getElementById('agendaCountTotal').textContent = counts.total;
+        document.getElementById('agendaCountAwaiting').textContent = counts.awaiting_confirmation;
+        document.getElementById('agendaCountConfirmed').textContent = counts.confirmed;
+        document.getElementById('agendaCountCompleted').textContent = counts.completed;
+        document.getElementById('agendaCountNoShow').textContent = counts.no_show;
+    }
+
+    document.getElementById('agendaRefresh')?.addEventListener('click', function () {
+        calendar.refetchEvents();
+    });
 
     document.getElementById('agendaApplyFilters')?.addEventListener('click', function () {
         calendar.refetchEvents();
