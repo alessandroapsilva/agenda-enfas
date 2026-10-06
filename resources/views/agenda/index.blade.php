@@ -135,13 +135,17 @@
                 </select>
             </div>
 
-            <div class="col-lg-3 col-md-6 d-flex gap-2">
-                <button id="agendaApplyFilters" type="button" class="btn btn-outline-primary flex-fill">
+            <div class="col-xl-6 col-lg-8 col-md-12 d-flex flex-wrap gap-2">
+                <button id="agendaApplyFilters" type="button" class="btn btn-outline-primary">
                     <i class="bi bi-funnel me-1"></i>Filtrar
                 </button>
-                <button type="button" class="btn btn-primary flex-fill" data-bs-toggle="modal" data-bs-target="#bestSlotModal">
+                <button id="agendaClearFilters" type="button" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Limpar filtros
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bestSlotModal">
                     <i class="bi bi-stars me-1"></i>Encontrar horário
                 </button>
+                <span id="agendaActiveFilters" class="badge text-bg-light border align-self-center d-none"></span>
             </div>
         </div>
     </div>
@@ -1404,15 +1408,48 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.refetchEvents();
     });
 
+    const agendaFilterIds = [
+        'agendaFilterProfessional',
+        'agendaFilterService',
+        'agendaFilterLocation',
+        'agendaFilterStatus'
+    ];
+
+    function updateActiveFilters() {
+        const active = agendaFilterIds.filter(function(id) {
+            return document.getElementById(id)?.value;
+        }).length;
+
+        const badge = document.getElementById('agendaActiveFilters');
+        if (! badge) return;
+
+        badge.textContent = active === 1 ? '1 filtro ativo' : active + ' filtros ativos';
+        badge.classList.toggle('d-none', active === 0);
+    }
+
     document.getElementById('agendaApplyFilters')?.addEventListener('click', function () {
+        updateActiveFilters();
         calendar.refetchEvents();
     });
 
-    ['agendaFilterProfessional','agendaFilterService','agendaFilterLocation','agendaFilterStatus'].forEach(function(id) {
+    document.getElementById('agendaClearFilters')?.addEventListener('click', function () {
+        agendaFilterIds.forEach(function(id) {
+            const field = document.getElementById(id);
+            if (field) field.value = '';
+        });
+
+        updateActiveFilters();
+        calendar.refetchEvents();
+    });
+
+    agendaFilterIds.forEach(function(id) {
         document.getElementById(id)?.addEventListener('change', function () {
+            updateActiveFilters();
             calendar.refetchEvents();
         });
     });
+
+    updateActiveFilters();
 
     const recurrenceToggle = document.getElementById('recurrenceToggle');
     recurrenceToggle?.addEventListener('change', function () {
