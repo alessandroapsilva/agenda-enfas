@@ -30,103 +30,69 @@
 @endif
 
 
-<div class="ea-ops-strip mb-3">
-    <div>
-        <strong class="d-block">Mapa operacional da agenda</strong>
-        <span class="small text-secondary">Indicadores acompanham o período visível e os filtros aplicados.</span>
+<div class="ea-agenda-command mb-3">
+    <div class="ea-agenda-command-copy">
+        <span class="ea-agenda-live"><i></i>Agenda operacional</span>
+        <strong>Visão do período selecionado</strong>
+        <small>Os números abaixo acompanham o calendário e os filtros em tempo real.</small>
     </div>
-    <div class="d-flex flex-wrap align-items-center gap-2">
-        <div class="ea-status-legend">
-            <span><i style="background:#f59e0b"></i>Aguardando</span>
-            <span><i style="background:#16a34a"></i>Confirmado</span>
-            <span><i style="background:#2563eb"></i>Concluído</span>
-            <span><i style="background:#dc2626"></i>Falta</span>
-            <span><i style="background:#94a3b8"></i>Cancelado</span>
-        </div>
-        <button id="agendaRefresh" type="button" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-clockwise me-1"></i>Atualizar
+
+    <div class="ea-agenda-command-actions">
+        <button type="button" class="ea-agenda-status-chip" data-agenda-status="">
+            <span>Todos</span><strong id="agendaCountTotal">0</strong>
+        </button>
+        <button type="button" class="ea-agenda-status-chip is-warning" data-agenda-status="awaiting_confirmation">
+            <span>Aguardando</span><strong id="agendaCountAwaiting">0</strong>
+        </button>
+        <button type="button" class="ea-agenda-status-chip is-success" data-agenda-status="confirmed">
+            <span>Confirmados</span><strong id="agendaCountConfirmed">0</strong>
+        </button>
+        <button type="button" class="ea-agenda-status-chip is-primary" data-agenda-status="completed">
+            <span>Concluídos</span><strong id="agendaCountCompleted">0</strong>
+        </button>
+        <button type="button" class="ea-agenda-status-chip is-danger" data-agenda-status="no_show">
+            <span>Faltas</span><strong id="agendaCountNoShow">0</strong>
         </button>
     </div>
 </div>
 
-<div class="row g-2 mb-3" id="agendaOperationalSummary">
-    <div class="col-6 col-xl">
-        <div class="card h-100"><div class="card-body py-3">
-            <span class="small text-secondary d-block">No período</span>
-            <strong class="fs-4" id="agendaCountTotal">0</strong>
-        </div></div>
-    </div>
-    <div class="col-6 col-xl">
-        <div class="card h-100"><div class="card-body py-3">
-            <span class="small text-secondary d-block">Aguardando</span>
-            <strong class="fs-4" id="agendaCountAwaiting">0</strong>
-        </div></div>
-    </div>
-    <div class="col-6 col-xl">
-        <div class="card h-100"><div class="card-body py-3">
-            <span class="small text-secondary d-block">Confirmados</span>
-            <strong class="fs-4" id="agendaCountConfirmed">0</strong>
-        </div></div>
-    </div>
-    <div class="col-6 col-xl">
-        <div class="card h-100"><div class="card-body py-3">
-            <span class="small text-secondary d-block">Concluídos</span>
-            <strong class="fs-4" id="agendaCountCompleted">0</strong>
-        </div></div>
-    </div>
-    <div class="col-6 col-xl">
-        <div class="card h-100"><div class="card-body py-3">
-            <span class="small text-secondary d-block">Faltas</span>
-            <strong class="fs-4" id="agendaCountNoShow">0</strong>
-        </div></div>
-    </div>
-</div>
-
-
-
-<div class="card mb-3">
-    <div class="card-header">
-        <div>
-            <strong class="d-block">Filtros da agenda</strong>
-            <span class="small text-secondary">Profissional, serviço, unidade e situação.</span>
-        </div>
-    </div>
+<div class="card ea-agenda-filterbar mb-3">
     <div class="card-body">
-        <div class="row g-3 align-items-end">
-            <div class="col-xl-3 col-md-6">
+        <div class="ea-agenda-filter-grid">
+            <div>
                 <label class="form-label">Profissional</label>
                 <select id="agendaFilterProfessional" class="form-select">
-                    <option value="">Todos</option>
+                    <option value="">Todos os profissionais</option>
                     @foreach($professionals as $professional)
                         <option value="{{ $professional->id }}">{{ $professional->name }}</option>
                     @endforeach
                 </select>
             </div>
 
-            <div class="col-xl-3 col-md-6">
+            <div>
                 <label class="form-label">Serviço</label>
                 <select id="agendaFilterService" class="form-select">
-                    <option value="">Todos</option>
+                    <option value="">Todos os serviços</option>
                     @foreach($services as $service)
                         <option value="{{ $service->id }}">{{ $service->name }}</option>
                     @endforeach
                 </select>
             </div>
 
-            <div class="col-xl-3 col-md-6">
+            <div>
                 <label class="form-label">Unidade</label>
                 <select id="agendaFilterLocation" class="form-select">
-                    <option value="">Todas</option>
+                    <option value="">Todas as unidades</option>
                     @foreach($locations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }}</option>
                     @endforeach
                 </select>
             </div>
 
-            <div class="col-xl-3 col-md-6">
-                <label class="form-label">Status</label>
+            <div>
+                <label class="form-label">Situação</label>
                 <select id="agendaFilterStatus" class="form-select">
-                    <option value="">Todos</option>
+                    <option value="">Todos os status</option>
                     <option value="awaiting_confirmation">Aguardando confirmação</option>
                     <option value="confirmed">Confirmado</option>
                     <option value="completed">Concluído</option>
@@ -135,19 +101,25 @@
                 </select>
             </div>
 
-            <div class="col-xl-6 col-lg-8 col-md-12 d-flex flex-wrap gap-2">
-                <button id="agendaApplyFilters" type="button" class="btn btn-outline-primary">
-                    <i class="bi bi-funnel me-1"></i>Filtrar
+            <div class="ea-agenda-filter-actions">
+                <button id="agendaClearFilters" type="button" class="btn btn-light" title="Limpar filtros">
+                    <i class="bi bi-x-lg"></i>
                 </button>
-                <button id="agendaClearFilters" type="button" class="btn btn-outline-secondary">
-                    <i class="bi bi-x-circle me-1"></i>Limpar filtros
+                <button id="agendaRefresh" type="button" class="btn btn-light" title="Atualizar agenda">
+                    <i class="bi bi-arrow-clockwise"></i>
                 </button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bestSlotModal">
-                    <i class="bi bi-stars me-1"></i>Encontrar horário
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bestSlotModal">
+                    <i class="bi bi-search"></i>Encontrar horário
                 </button>
-                <span id="agendaActiveFilters" class="badge text-bg-light border align-self-center d-none"></span>
             </div>
         </div>
+
+        <div class="ea-agenda-filter-meta">
+            <span id="agendaActiveFilters" class="badge text-bg-light border d-none"></span>
+            <span class="text-secondary"><i class="bi bi-info-circle me-1"></i>Alterar um filtro atualiza o calendário automaticamente.</span>
+        </div>
+
+        <button id="agendaApplyFilters" type="button" class="d-none" aria-hidden="true">Filtrar</button>
     </div>
 </div>
 
