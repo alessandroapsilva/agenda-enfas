@@ -182,7 +182,6 @@ class WhatsAppConversationEngine
         ]);
 
         $this->event($appointment->id, 'whatsapp_confirmed', 'Paciente confirmou pelo WhatsApp');
-        $this->automation->trigger('appointment_confirmed', $appointment->id);
         $this->patientNotifications->confirmed($appointment->id, $phone);
         $this->professionalNotifications->appointmentChanged($appointment->id, 'confirmed');
         $this->closeConversation($phone, $appointment->id);
@@ -198,7 +197,6 @@ class WhatsAppConversationEngine
         ]);
 
         $this->event($appointment->id, 'whatsapp_cancelled', 'Paciente cancelou pelo WhatsApp');
-        $this->automation->trigger('appointment_cancelled', $appointment->id);
         $this->patientNotifications->cancelled($appointment->id, $phone);
         $this->professionalNotifications->appointmentChanged($appointment->id, 'cancelled');
 
