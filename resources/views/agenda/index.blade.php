@@ -1414,6 +1414,24 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.refetchEvents();
     });
 
+    document.querySelectorAll('[data-agenda-status]').forEach(function(button) {
+        button.addEventListener('click', function () {
+            const status = this.dataset.agendaStatus || '';
+            const field = document.getElementById('agendaFilterStatus');
+
+            if (field) {
+                field.value = status;
+            }
+
+            document.querySelectorAll('[data-agenda-status]').forEach(function(item) {
+                item.classList.toggle('is-active', item === button);
+            });
+
+            updateActiveFilters();
+            calendar.refetchEvents();
+        });
+    });
+
     agendaFilterIds.forEach(function(id) {
         document.getElementById(id)?.addEventListener('change', function () {
             updateActiveFilters();
