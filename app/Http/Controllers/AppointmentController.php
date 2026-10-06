@@ -465,6 +465,16 @@ class AppointmentController extends Controller
         $oldStatus = $appointment->status;
         $oldLabel = $appointment->statusLabel();
 
+        if ($oldStatus === $data['status']) {
+            return response()->json([
+                'success' => true,
+                'unchanged' => true,
+                'status' => $appointment->status,
+                'label' => $appointment->statusLabel(),
+                'color' => $appointment->statusColor(),
+            ]);
+        }
+
         $appointment->status = $data['status'];
         $appointment->updated_by = auth()->id();
 
