@@ -2997,3 +2997,206 @@ body.enfas-shell,
     color:#64748b;
     font-size:.72rem;
 }
+
+
+/* ==========================================================
+   AGENDA OPERACIONAL — PREMIUM WORKSPACE
+   ========================================================== */
+
+.ea-agenda-command{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1.25rem;
+    padding:1rem 1.1rem;
+    border:1px solid #e4eaf2;
+    border-radius:16px;
+    background:#fff;
+    box-shadow:var(--ea-shadow-sm);
+}
+
+.ea-agenda-command-copy{
+    min-width:210px;
+    display:grid;
+    gap:.18rem;
+}
+
+.ea-agenda-command-copy>strong{
+    color:#172033;
+    font-size:.94rem;
+    font-weight:800;
+}
+
+.ea-agenda-command-copy>small{
+    color:#8491a4;
+    font-size:.72rem;
+}
+
+.ea-agenda-live{
+    display:inline-flex;
+    align-items:center;
+    gap:.42rem;
+    width:max-content;
+    color:#15803d;
+    font-size:.66rem;
+    font-weight:800;
+    letter-spacing:.055em;
+    text-transform:uppercase;
+}
+
+.ea-agenda-live i{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#22c55e;
+    box-shadow:0 0 0 4px rgba(34,197,94,.1);
+}
+
+.ea-agenda-command-actions{
+    display:flex;
+    flex:1;
+    justify-content:flex-end;
+    gap:.45rem;
+}
+
+.ea-agenda-status-chip{
+    min-width:112px;
+    padding:.58rem .7rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.65rem;
+    border:1px solid #e5eaf1;
+    border-radius:11px;
+    color:#64748b;
+    background:#fbfcfe;
+    font-size:.7rem;
+    font-weight:700;
+    transition:border-color .15s ease,background .15s ease,transform .15s ease,box-shadow .15s ease;
+}
+
+.ea-agenda-status-chip strong{
+    color:#172033;
+    font-size:1rem;
+    font-weight:850;
+}
+
+.ea-agenda-status-chip:hover,
+.ea-agenda-status-chip.is-active{
+    transform:translateY(-1px);
+    border-color:#bfdbfe;
+    background:#eff6ff;
+    box-shadow:0 6px 16px rgba(37,99,235,.08);
+}
+
+.ea-agenda-status-chip.is-warning strong{color:#b45309}
+.ea-agenda-status-chip.is-success strong{color:#15803d}
+.ea-agenda-status-chip.is-primary strong{color:#1d4ed8}
+.ea-agenda-status-chip.is-danger strong{color:#b91c1c}
+
+.ea-agenda-filterbar .card-body{
+    padding:.9rem 1rem!important;
+}
+
+.ea-agenda-filter-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(150px,1fr)) auto;
+    align-items:end;
+    gap:.75rem;
+}
+
+.ea-agenda-filter-actions{
+    display:flex;
+    gap:.45rem;
+    white-space:nowrap;
+}
+
+.ea-agenda-filter-meta{
+    min-height:24px;
+    margin-top:.65rem;
+    display:flex;
+    align-items:center;
+    gap:.65rem;
+    font-size:.7rem;
+}
+
+.agenda-card{
+    border-radius:16px!important;
+}
+
+.agenda-card .card-body{
+    padding:.75rem!important;
+}
+
+.agenda-card #calendar{
+    padding:.35rem;
+}
+
+.agenda-card .fc .fc-toolbar{
+    padding:.35rem .35rem .75rem;
+    margin-bottom:.45rem;
+}
+
+.agenda-card .fc .fc-scrollgrid{
+    overflow:hidden;
+    border-radius:12px;
+}
+
+.agenda-card .fc .fc-event{
+    border-left:3px solid rgba(255,255,255,.62)!important;
+    box-shadow:0 3px 10px rgba(15,23,42,.09);
+}
+
+@media (max-width:1199.98px){
+    .ea-agenda-command{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .ea-agenda-command-actions{
+        justify-content:flex-start;
+        overflow-x:auto;
+        padding-bottom:.2rem;
+    }
+
+    .ea-agenda-status-chip{
+        flex:0 0 122px;
+    }
+
+    .ea-agenda-filter-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .ea-agenda-filter-actions{
+        grid-column:1/-1;
+    }
+}
+
+@media (max-width:575.98px){
+    .ea-agenda-command{
+        padding:.85rem;
+        border-radius:14px;
+    }
+
+    .ea-agenda-filter-grid{
+        grid-template-columns:1fr;
+    }
+
+    .ea-agenda-filter-actions{
+        grid-column:auto;
+        flex-wrap:wrap;
+    }
+
+    .ea-agenda-filter-actions .btn-outline-primary{
+        flex:1;
+    }
+
+    .ea-agenda-filter-meta{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .agenda-card .card-body{
+        padding:.4rem!important;
+    }
+}
