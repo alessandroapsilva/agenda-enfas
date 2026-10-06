@@ -1,0 +1,32 @@
+<?php
+
+return [
+    'name' => env('SIGH_NAME', 'SIGH ENFAS'),
+    'subtitle' => 'Sistema de Informação e Gestão Hospitalar',
+    'domain' => env('SIGH_DOMAIN', 'sigh.enfas.com.br'),
+    'organization' => env('SIGH_ORGANIZATION', 'ENFAS'),
+    'modules' => [
+        'cadastro' => ['name' => 'Cadastro / Matrícula', 'enabled' => true],
+        'agenda' => ['name' => 'Agenda', 'enabled' => true],
+        'recepcao' => ['name' => 'Recepção e Filas', 'enabled' => true],
+        'ambulatorio' => ['name' => 'Ambulatório', 'enabled' => true],
+        'pronto_atendimento' => ['name' => 'Pronto Atendimento', 'enabled' => true],
+        'pep' => ['name' => 'Prontuário Eletrônico', 'enabled' => true],
+        'prescricao' => ['name' => 'Prescrição', 'enabled' => true],
+        'enfermagem' => ['name' => 'Enfermagem', 'enabled' => true],
+        'far' => ['name' => 'SIGH FAR', 'enabled' => true],
+        'estoque' => ['name' => 'Estoque e Suprimentos', 'enabled' => true],
+        'sadt' => ['name' => 'SADT / Exames', 'enabled' => true],
+        'laboratorio' => ['name' => 'Laboratório', 'enabled' => true],
+        'internacao' => ['name' => 'Internação e Leitos', 'enabled' => true],
+        'cirurgico' => ['name' => 'Centro Cirúrgico', 'enabled' => true],
+        'cme' => ['name' => 'CME', 'enabled' => true],
+        'faturamento' => ['name' => 'Faturamento', 'enabled' => true],
+        'financeiro' => ['name' => 'Financeiro', 'enabled' => true],
+        'ged' => ['name' => 'GED', 'enabled' => true],
+        'bi' => ['name' => 'BI e Indicadores', 'enabled' => true],
+        'admin' => ['name' => 'Administração e Auditoria', 'enabled' => true],
+        'paciente' => ['name' => 'Portal do Paciente', 'enabled' => true],
+        'integracoes' => ['name' => 'Integrações', 'enabled' => true],
+    ],
+];
