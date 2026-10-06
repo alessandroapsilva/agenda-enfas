@@ -788,41 +788,47 @@
         </div>
 
 
-        <div class="d-flex flex-wrap gap-2 mt-4">
+        <div class="ea-appointment-actions mt-4">
+            <div class="ea-appointment-actions-head">
+                <div>
+                    <strong>Ações do agendamento</strong>
+                    <small>Atualize a situação sem sair da agenda.</small>
+                </div>
+            </div>
 
-            <button
-                class="btn btn-success btn-sm"
-                onclick="setAppointmentStatus('confirmed')">
+            <div class="ea-appointment-actions-grid">
+                <button
+                    class="btn btn-success btn-sm"
+                    data-appointment-status="confirmed"
+                    onclick="setAppointmentStatus('confirmed')">
+                    <i class="bi bi-check2-circle"></i>
+                    Confirmar
+                </button>
 
-                <i class="bi bi-check2-circle me-1"></i>
-                Confirmar
+                <button
+                    class="btn btn-primary btn-sm"
+                    data-appointment-status="completed"
+                    onclick="setAppointmentStatus('completed')">
+                    <i class="bi bi-check2-square"></i>
+                    Concluir
+                </button>
 
-            </button>
+                <button
+                    class="btn btn-outline-danger btn-sm"
+                    data-appointment-status="no_show"
+                    onclick="setAppointmentStatus('no_show')">
+                    <i class="bi bi-person-x"></i>
+                    Falta
+                </button>
 
-            <button
-                class="btn btn-primary btn-sm"
-                onclick="setAppointmentStatus('completed')">
-
-                Concluir
-
-            </button>
-
-            <button
-                class="btn btn-outline-danger btn-sm"
-                onclick="setAppointmentStatus('no_show')">
-
-                Falta
-
-            </button>
-
-            <button
-                class="btn btn-outline-secondary btn-sm"
-                onclick="setAppointmentStatus('cancelled')">
-
-                Cancelar
-
-            </button>
-
+                <button
+                    class="btn btn-outline-secondary btn-sm"
+                    data-appointment-status="cancelled"
+                    onclick="setAppointmentStatus('cancelled')">
+                    <i class="bi bi-x-circle"></i>
+                    Cancelar
+                </button>
+            </div>
         </div>
 
 
@@ -1107,6 +1113,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${appointment.status_label}
                  </span>`;
 
+            document.querySelectorAll('[data-appointment-status]').forEach(function(button) {
+                const isCurrent = button.dataset.appointmentStatus === appointment.status;
+                button.disabled = isCurrent;
+                button.classList.toggle('is-current', isCurrent);
+                button.title = isCurrent ? 'Este já é o status atual.' : '';
+            });
+
 
             document.getElementById(
                 'detailPatient'
@@ -1225,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 data.communications.forEach(message => {
                     const wrapper = document.createElement('div');
-                    wrapper.className = 'border rounded-3 p-3 mb-2 bg-body-tertiary';
+                    wrapper.className = 'ea-message-card';
 
                     const direction =
                         message.direction === 'outbound'
@@ -1298,7 +1311,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.setAppointmentStatus =
         async function(status) {
 
-            if (! window.currentAppointmentId) {
+            if (! window.currentAppointmentId || window.appointmentStatusBusy) {
                 return;
             }
 
@@ -1311,44 +1324,60 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            window.appointmentStatusBusy = true;
+            const statusButtons = document.querySelectorAll('[data-appointment-status]');
+            statusButtons.forEach(function(button) {
+                button.disabled = true;
+            });
 
-            const response =
-                await fetch(
-                    `/agendamentos/${window.currentAppointmentId}/status`,
-                    {
-                        method: 'PATCH',
+            try {
+                const response =
+                    await fetch(
+                        `/agendamentos/${window.currentAppointmentId}/status`,
+                        {
+                            method: 'PATCH',
 
-                        headers: {
-                            'Content-Type':
-                                'application/json',
+                            headers: {
+                                'Content-Type':
+                                    'application/json',
 
-                            'Accept':
-                                'application/json',
+                                'Accept':
+                                    'application/json',
 
-                            'X-CSRF-TOKEN':
-                                csrf
-                        },
+                                'X-CSRF-TOKEN':
+                                    csrf
+                            },
 
-                        body: JSON.stringify({
-                            status: status
-                        })
-                    }
+                            body: JSON.stringify({
+                                status: status
+                            })
+                        }
+                    );
+
+
+                if (! response.ok) {
+                    alert(
+                        'Não foi possível alterar o status.'
+                    );
+                    return;
+                }
+
+
+                calendar.refetchEvents();
+
+                await loadAppointment(
+                    window.currentAppointmentId
                 );
+            } finally {
+                window.appointmentStatusBusy = false;
 
-
-            if (! response.ok) {
-                alert(
-                    'Não foi possível alterar o status.'
-                );
-                return;
+                if (window.currentAppointmentData) {
+                    statusButtons.forEach(function(button) {
+                        button.disabled =
+                            button.dataset.appointmentStatus === window.currentAppointmentData.status;
+                    });
+                }
             }
-
-
-            calendar.refetchEvents();
-
-            await loadAppointment(
-                window.currentAppointmentId
-            );
         };
 
 
