@@ -25,6 +25,18 @@ Route::middleware('auth')
         );
 
         Route::patch(
+            '/confirmacoes/central/{appointment}/ligacao',
+            [
+                OperationsController::class,
+                'recordCall',
+            ]
+        )->whereNumber(
+            'appointment'
+        )->middleware('permission:agenda.manage')->name(
+            'v11.confirmations.call'
+        );
+
+        Route::patch(
             '/confirmacoes/central/{appointment}',
             [
                 OperationsController::class,
