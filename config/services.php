@@ -35,4 +35,30 @@ return [
         ],
     ],
 
+    'voice' => [
+        'enabled' => filter_var(
+            env('VOICE_CALLS_ENABLED', false),
+            FILTER_VALIDATE_BOOL
+        ),
+        'provider' => env('VOICE_PROVIDER', 'twilio'),
+
+        'twilio' => [
+            'account_sid' => env('TWILIO_ACCOUNT_SID'),
+            'auth_token' => env('TWILIO_AUTH_TOKEN'),
+            'from' => env('TWILIO_FROM'),
+            'validate_webhooks' => filter_var(
+                env('TWILIO_VALIDATE_WEBHOOKS', true),
+                FILTER_VALIDATE_BOOL
+            ),
+            'voice' => env(
+                'TWILIO_VOICE',
+                'Polly.Camila-Neural'
+            ),
+            'ring_timeout' => (int) env(
+                'TWILIO_RING_TIMEOUT',
+                25
+            ),
+        ],
+    ],
+
 ];
