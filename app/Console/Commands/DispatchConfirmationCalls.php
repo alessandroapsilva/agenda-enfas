@@ -33,7 +33,8 @@ class DispatchConfirmationCalls extends Command
 
         $this->cancelResolvedAttempts();
 
-        if (! $provider->enabled()) {
+        if (! $this->option('dry-run')
+            && ! $provider->enabled()) {
             $this->info(
                 'Chamadas externas desativadas por configuracao.'
             );
@@ -41,7 +42,8 @@ class DispatchConfirmationCalls extends Command
             return self::SUCCESS;
         }
 
-        if (! $provider->ready()) {
+        if (! $this->option('dry-run')
+            && ! $provider->ready()) {
             $this->warn(
                 'Provedor de voz habilitado, mas incompleto.'
             );
