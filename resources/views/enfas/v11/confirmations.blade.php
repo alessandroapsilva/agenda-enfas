@@ -70,6 +70,21 @@
             'cancelled',
         ],
     ];
+
+    $voiceMap = [
+        'queued' => ['Na fila', 'waiting'],
+        'in_progress' => ['Em ligação', 'sent'],
+        'completed' => ['Concluída', 'confirmed'],
+    ];
+
+    $voiceOutcomeMap = [
+        'confirmed' => 'Confirmou',
+        'cancelled' => 'Cancelou',
+        'no_answer' => 'Não atendeu',
+        'busy' => 'Ocupado',
+        'invalid_number' => 'Número inválido',
+        'callback' => 'Retorno solicitado',
+    ];
 @endphp
 
 @if(session('success'))
@@ -223,6 +238,30 @@
                 Atenção
                 <strong class="ms-1">
                     {{ $stats['attention'] ?? 0 }}
+                </strong>
+            </a>
+
+            <a
+                class="ea-chip {{
+                    $state === 'calls'
+                        ? 'active'
+                        : ''
+                }}"
+                href="{{
+                    route(
+                        'v11.confirmations',
+                        array_filter([
+                            'date' => $day->format('Y-m-d'),
+                            'state' => 'calls',
+                            'q' => $search ?: null,
+                        ])
+                    )
+                }}"
+            >
+                <i class="bi bi-telephone-outbound me-1"></i>
+                Ligações
+                <strong class="ms-1">
+                    {{ $stats['calls'] ?? 0 }}
                 </strong>
             </a>
 
@@ -425,6 +464,23 @@
                             $responseUi[1]
                             === 'waiting';
 
+                        $voiceState =
+                            strtolower(
+                                $row->voice_status
+                                ?? ''
+                            );
+
+                        $voiceUi =
+                            $voiceMap[$voiceState]
+                            ?? ['Sem fila', 'neutral'];
+
+                        $voiceOutcome =
+                            $voiceOutcomeMap[
+                                $row->voice_outcome
+                                ?? ''
+                            ]
+                            ?? null;
+
                         $priorityUi = null;
 
                         if (
@@ -598,6 +654,39 @@
                                         {{ \Illuminate\Support\Str::limit($row->wa_error, 74) }}
                                     </span>
                                 @endif
+
+                                <div class="ea-contact-divider"></div>
+
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="ea-channel-pill is-voice">
+                                        <i class="bi bi-telephone"></i>
+                                        Ligação
+                                    </span>
+
+                                    <span class="ea-status {{ $voiceUi[1] }}">
+                                        {{ $voiceOutcome ?: $voiceUi[0] }}
+                                    </span>
+                                </div>
+
+                                @if((int) ($row->voice_attempts ?? 0) > 0)
+                                    <span class="ea-contact-meta">
+                                        {{ (int) $row->voice_attempts }}
+                                        {{
+                                            (int) $row->voice_attempts === 1
+                                                ? 'tentativa'
+                                                : 'tentativas'
+                                        }}
+
+                                        @if($row->voice_scheduled_at)
+                                            · fila
+                                            {{
+                                                \Illuminate\Support\Carbon::parse(
+                                                    $row->voice_scheduled_at
+                                                )->format('H:i')
+                                            }}
+                                        @endif
+                                    </span>
+                                @endif
                             </div>
                         </td>
 
@@ -612,6 +701,44 @@
                                     >
                                         <i class="bi bi-telephone"></i>
                                     </a>
+
+                                    @if(in_array($voiceState, ['queued','in_progress'], true))
+                                        <form
+                                            method="POST"
+                                            action="{{
+                                                route(
+                                                    'v11.confirmations.call',
+                                                    $row->id
+                                                )
+                                            }}"
+                                            class="ea-call-outcome-form"
+                                        >
+                                            @csrf
+                                            @method('PATCH')
+
+                                            <select
+                                                name="outcome"
+                                                class="form-select form-select-sm"
+                                                required
+                                                title="Resultado da ligação"
+                                            >
+                                                <option value="">Resultado...</option>
+                                                <option value="confirmed">Confirmou</option>
+                                                <option value="no_answer">Não atendeu</option>
+                                                <option value="busy">Ocupado</option>
+                                                <option value="callback">Pediu retorno</option>
+                                                <option value="invalid_number">Número inválido</option>
+                                                <option value="cancelled">Cancelou</option>
+                                            </select>
+
+                                            <button
+                                                class="btn btn-sm btn-outline-primary"
+                                                type="submit"
+                                            >
+                                                Registrar
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endif
 
                                 <a
