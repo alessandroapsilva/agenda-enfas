@@ -563,21 +563,6 @@ class OperationsController extends Controller
                             )
                             ->orWhereRaw(
                                 "(SELECT wm.status FROM wa_messages wm WHERE wm.appointment_id = a.id ORDER BY wm.id DESC LIMIT 1) = 'failed'"
-                            )
-                            ->orWhereNotExists(
-                                function ($sub) {
-                                    $sub
-                                        ->selectRaw('1')
-                                        ->from('wa_messages as wm')
-                                        ->whereColumn(
-                                            'wm.appointment_id',
-                                            'a.id'
-                                        )
-                                        ->where(
-                                            'wm.direction',
-                                            'outbound'
-                                        );
-                                }
                             );
                     }
                 );
@@ -648,21 +633,6 @@ class OperationsController extends Controller
                         )
                         ->orWhereRaw(
                             "(SELECT wm.status FROM wa_messages wm WHERE wm.appointment_id = a.id ORDER BY wm.id DESC LIMIT 1) = 'failed'"
-                        )
-                        ->orWhereNotExists(
-                            function ($sub) {
-                                $sub
-                                    ->selectRaw('1')
-                                    ->from('wa_messages as wm')
-                                    ->whereColumn(
-                                        'wm.appointment_id',
-                                        'a.id'
-                                    )
-                                    ->where(
-                                        'wm.direction',
-                                        'outbound'
-                                    );
-                            }
                         );
                 }
             )
