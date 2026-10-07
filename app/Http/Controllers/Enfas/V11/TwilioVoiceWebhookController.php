@@ -361,6 +361,36 @@ class TwilioVoiceWebhookController extends Controller
             )
         );
 
+        $current = DB::table(
+            'confirmation_attempts'
+        )
+            ->where(
+                'id',
+                $attempt
+            )
+            ->first([
+                'id',
+                'status',
+                'external_id',
+            ]);
+
+        abort_unless(
+            $current,
+            404
+        );
+
+        if ($callSid !== ''
+            && $current->external_id
+            && ! hash_equals(
+                (string) $current->external_id,
+                $callSid
+            )) {
+            abort(
+                409,
+                'CallSid não corresponde à tentativa.'
+            );
+        }
+
         $update = [
             'status' =>
                 'in_progress',
