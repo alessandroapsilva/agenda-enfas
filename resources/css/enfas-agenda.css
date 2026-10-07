@@ -3262,3 +3262,93 @@ body.enfas-shell,
         grid-template-columns:1fr;
     }
 }
+
+
+/* CENTRAL DE CONFIRMACOES — FILA INTELIGENTE */
+
+.ea-chip-attention{
+    gap:.25rem;
+}
+
+.ea-chip-attention.active{
+    border-color:#f0c46c;
+    background:#fff8e8;
+    color:#8a5a00;
+}
+
+.ea-confirmation-row.is-attention > td:first-child{
+    box-shadow:inset 3px 0 0 #d99a25;
+}
+
+.ea-confirmation-priority{
+    display:inline-flex;
+    align-items:center;
+    width:max-content;
+    margin-top:.35rem;
+    padding:.18rem .45rem;
+    border-radius:999px;
+    font-size:.64rem;
+    font-weight:800;
+    letter-spacing:.01em;
+}
+
+.ea-confirmation-priority.warning{
+    background:#fff6df;
+    color:#946200;
+}
+
+.ea-confirmation-priority.danger{
+    background:#fff0f0;
+    color:#a73737;
+}
+
+.ea-contact-stack{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:.28rem;
+    min-width:170px;
+}
+
+.ea-channel-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.32rem;
+    padding:.18rem .42rem;
+    border:1px solid #dce5df;
+    border-radius:999px;
+    background:#f7faf8;
+    color:#315b45;
+    font-size:.66rem;
+    font-weight:800;
+}
+
+.ea-contact-meta{
+    display:block;
+    color:#7b8798;
+    font-size:.69rem;
+    line-height:1.35;
+}
+
+.ea-contact-meta.is-positive{
+    color:#3e7d5b;
+    font-weight:700;
+}
+
+.ea-contact-error{
+    display:block;
+    max-width:240px;
+    color:#a73737;
+    font-size:.67rem;
+    line-height:1.35;
+}
+
+@media (max-width:991px){
+    .ea-contact-stack{
+        min-width:145px;
+    }
+
+    .ea-contact-error{
+        max-width:190px;
+    }
+}
