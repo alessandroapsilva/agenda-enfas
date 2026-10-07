@@ -237,7 +237,7 @@ class DispatchConfirmationCalls extends Command
 
     private function cancelResolvedAttempts(): void
     {
-        DB::table(
+        $resolvedIds = DB::table(
             'confirmation_attempts as ca'
         )
             ->join(
@@ -270,14 +270,27 @@ class DispatchConfirmationCalls extends Command
                         ]
                     );
             })
+            ->pluck('ca.id');
+
+        if ($resolvedIds->isEmpty()) {
+            return;
+        }
+
+        DB::table(
+            'confirmation_attempts'
+        )
+            ->whereIn(
+                'id',
+                $resolvedIds->all()
+            )
             ->update([
-                'ca.status' =>
+                'status' =>
                     'completed',
-                'ca.outcome' =>
+                'outcome' =>
                     'resolved_elsewhere',
-                'ca.completed_at' =>
+                'completed_at' =>
                     now(),
-                'ca.updated_at' =>
+                'updated_at' =>
                     now(),
             ]);
     }
