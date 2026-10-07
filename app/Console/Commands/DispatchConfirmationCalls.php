@@ -31,7 +31,9 @@ class DispatchConfirmationCalls extends Command
 
         $provider = $manager->driver();
 
-        $this->cancelResolvedAttempts();
+        if (! $this->option('dry-run')) {
+            $this->cancelResolvedAttempts();
+        }
 
         if (! $this->option('dry-run')
             && ! $provider->enabled()) {
