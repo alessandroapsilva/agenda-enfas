@@ -84,6 +84,9 @@
         'busy' => 'Ocupado',
         'invalid_number' => 'Número inválido',
         'callback' => 'Retorno solicitado',
+        'no_input' => 'Sem resposta',
+        'provider_failed' => 'Falha no provedor',
+        'resolved_elsewhere' => 'Resolvido em outro canal',
     ];
 @endphp
 
