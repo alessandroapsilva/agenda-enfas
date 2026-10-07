@@ -135,6 +135,7 @@ class MetaWhatsAppService
         $params = ['limit' => 100];
         $count = 0;
         $pages = 0;
+        $seen = [];
 
         while ($pages < 50) {
             $response = $this->client($integration)->get(
@@ -173,6 +174,8 @@ class MetaWhatsAppService
                     $remote['components'] ?? []
                 );
 
+                $seen[] = $remote['name'].'|'.$language;
+
                 $template = WaTemplate::query()
                     ->where('name', $remote['name'])
                     ->where('language', $language)
@@ -189,6 +192,8 @@ class MetaWhatsAppService
                         ?? 'UNKNOWN',
                     'last_synced_at' => now(),
                     'header_type' => $parsed['header_type'] ?? 'NONE',
+                    'is_active' => true,
+                    'archived_at' => null,
                 ];
 
                 if (! $template) {
@@ -238,6 +243,23 @@ class MetaWhatsAppService
 
             $pages++;
         }
+
+        WaTemplate::query()
+            ->whereNotNull('meta_template_id')
+            ->get()
+            ->each(function (WaTemplate $template) use ($seen) {
+                $key = $template->name.'|'.$template->language;
+
+                if (! in_array($key, $seen, true)) {
+                    $template->update([
+                        'status' => 'MISSING',
+                        'is_active' => false,
+                        'archived_at' => $template->archived_at ?: now(),
+                        'last_synced_at' => now(),
+                        'last_error' => 'Template não encontrado na Meta durante a sincronização.',
+                    ]);
+                }
+            });
 
         return $count;
     }
