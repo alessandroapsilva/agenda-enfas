@@ -661,27 +661,30 @@ class OperationsController extends Controller
                 );
         }
 
-        if ($state === 'calls'
-            && Schema::hasTable('confirmation_attempts')) {
-            $query->whereExists(
-                function ($sub) {
-                    $sub
-                        ->selectRaw('1')
-                        ->from('confirmation_attempts as ca')
-                        ->whereColumn(
-                            'ca.appointment_id',
-                            'a.id'
-                        )
-                        ->where(
-                            'ca.channel',
-                            'voice'
-                        )
-                        ->whereIn(
-                            'ca.status',
-                            ['queued', 'in_progress']
-                        );
-                }
-            );
+        if ($state === 'calls') {
+            if (Schema::hasTable('confirmation_attempts')) {
+                $query->whereExists(
+                    function ($sub) {
+                        $sub
+                            ->selectRaw('1')
+                            ->from('confirmation_attempts as ca')
+                            ->whereColumn(
+                                'ca.appointment_id',
+                                'a.id'
+                            )
+                            ->where(
+                                'ca.channel',
+                                'voice'
+                            )
+                            ->whereIn(
+                                'ca.status',
+                                ['queued', 'in_progress']
+                            );
+                    }
+                );
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         if ($search !== '') {
