@@ -84,8 +84,17 @@ class ProcessEnfasReminders extends Command
                     (string) ($rule->template->purpose ?? '')
                 );
 
+                $existing = $dedupe
+                    ? WaMessage::where('dedupe_key', $dedupe)->first()
+                    : null;
+
+                $retryWithChangedTemplate = $existing
+                    && $existing->status === 'failed'
+                    && (int) $existing->template_id !== (int) $rule->template_id;
+
                 if ($rule->send_once
-                    && WaMessage::where('dedupe_key', $dedupe)->exists()) {
+                    && $existing
+                    && ! $retryWithChangedTemplate) {
                     $stats['deduped']++;
                     continue;
                 }
