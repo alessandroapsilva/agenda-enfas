@@ -80,7 +80,8 @@ class ProcessEnfasReminders extends Command
                     (int) $rule->id,
                     (int) $appointment->id,
                     (string) $rule->trigger_event,
-                    (int) ($rule->offset_minutes ?? 0)
+                    (int) ($rule->offset_minutes ?? 0),
+                    (string) ($rule->template->purpose ?? '')
                 );
 
                 if ($rule->send_once
@@ -309,8 +310,16 @@ class ProcessEnfasReminders extends Command
         int $ruleId,
         int $appointmentId,
         string $event,
-        int $offset
+        int $offset,
+        string $purpose
     ): string {
+        if ($purpose === 'confirmation') {
+            return 'auto:confirmation:event:'
+                .$event
+                .':appointment:'
+                .$appointmentId;
+        }
+
         return implode(':', [
             'auto',
             $ruleId,
