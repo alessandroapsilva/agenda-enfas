@@ -7,6 +7,7 @@ use App\Models\WaAutomation;
 use App\Models\WaTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class WhatsAppAutomationController extends Controller
 {
@@ -18,6 +19,8 @@ class WhatsAppAutomationController extends Controller
                 ->get(),
 
             'templates' => WaTemplate::where('status', 'APPROVED')
+                ->where('is_active', true)
+                ->whereNull('archived_at')
                 ->orderBy('name')
                 ->get(),
 
@@ -122,8 +125,14 @@ class WhatsAppAutomationController extends Controller
                 'required|in:appointment_created,appointment_before,appointment_confirmed,appointment_rescheduled,appointment_cancelled,appointment_completed,appointment_return_due',
             'offset_minutes' =>
                 'nullable|integer|min:0|max:525600',
-            'template_id' =>
-                'required|exists:wa_templates,id',
+            'template_id' => [
+                'required',
+                Rule::exists('wa_templates', 'id')
+                    ->where(fn ($query) => $query
+                        ->where('status', 'APPROVED')
+                        ->where('is_active', true)
+                        ->whereNull('archived_at')),
+            ],
             'service_id' =>
                 'nullable|exists:services,id',
             'retry_count' =>
