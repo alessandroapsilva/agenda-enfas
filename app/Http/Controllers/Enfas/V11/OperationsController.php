@@ -151,6 +151,57 @@ class OperationsController extends Controller
                 },
                 'wa_message_id_latest'
             );
+
+            $query->selectSub(
+                function ($sub) {
+                    $sub
+                        ->from('wa_messages as wm')
+                        ->selectRaw('COUNT(*)')
+                        ->whereColumn(
+                            'wm.appointment_id',
+                            'a.id'
+                        )
+                        ->where(
+                            'wm.direction',
+                            'outbound'
+                        );
+                },
+                'wa_attempts'
+            );
+
+            $query->selectSub(
+                function ($sub) {
+                    $sub
+                        ->from('wa_messages as wm')
+                        ->selectRaw('MAX(wm.created_at)')
+                        ->whereColumn(
+                            'wm.appointment_id',
+                            'a.id'
+                        )
+                        ->where(
+                            'wm.direction',
+                            'outbound'
+                        );
+                },
+                'wa_last_outbound_at'
+            );
+
+            $query->selectSub(
+                function ($sub) {
+                    $sub
+                        ->from('wa_messages as wm')
+                        ->selectRaw('MAX(wm.created_at)')
+                        ->whereColumn(
+                            'wm.appointment_id',
+                            'a.id'
+                        )
+                        ->where(
+                            'wm.direction',
+                            'inbound'
+                        );
+                },
+                'wa_last_inbound_at'
+            );
         } else {
             $query->addSelect([
                 DB::raw(
@@ -164,6 +215,15 @@ class OperationsController extends Controller
                 ),
                 DB::raw(
                     'NULL as wa_message_id_latest'
+                ),
+                DB::raw(
+                    '0 as wa_attempts'
+                ),
+                DB::raw(
+                    'NULL as wa_last_outbound_at'
+                ),
+                DB::raw(
+                    'NULL as wa_last_inbound_at'
                 ),
             ]);
         }
@@ -417,6 +477,7 @@ class OperationsController extends Controller
                     'waiting',
                     'confirmed',
                     'cancelled',
+                    'attention',
                     'all',
                 ],
                 true
@@ -477,6 +538,51 @@ class OperationsController extends Controller
             );
         }
 
+        if ($state === 'attention') {
+            $query
+                ->where(
+                    function ($q) {
+                        $q
+                            ->where(
+                                'a.confirmation_status',
+                                'pending'
+                            )
+                            ->orWhere(
+                                'a.status',
+                                'awaiting_confirmation'
+                            );
+                    }
+                )
+                ->where(
+                    function ($q) {
+                        $q
+                            ->where(
+                                'a.start_at',
+                                '<=',
+                                now()->addDay()
+                            )
+                            ->orWhereRaw(
+                                "(SELECT wm.status FROM wa_messages wm WHERE wm.appointment_id = a.id ORDER BY wm.id DESC LIMIT 1) = 'failed'"
+                            )
+                            ->orWhereNotExists(
+                                function ($sub) {
+                                    $sub
+                                        ->selectRaw('1')
+                                        ->from('wa_messages as wm')
+                                        ->whereColumn(
+                                            'wm.appointment_id',
+                                            'a.id'
+                                        )
+                                        ->where(
+                                            'wm.direction',
+                                            'outbound'
+                                        );
+                                }
+                            );
+                    }
+                );
+        }
+
         if ($search !== '') {
             $query->where(
                 function ($q) use (
@@ -513,6 +619,56 @@ class OperationsController extends Controller
             $start,
             $end
         );
+
+        $attention = DB::table('appointments as a')
+            ->whereBetween(
+                'a.start_at',
+                [$start, $end]
+            )
+            ->where(
+                function ($q) {
+                    $q
+                        ->where(
+                            'a.confirmation_status',
+                            'pending'
+                        )
+                        ->orWhere(
+                            'a.status',
+                            'awaiting_confirmation'
+                        );
+                }
+            )
+            ->where(
+                function ($q) {
+                    $q
+                        ->where(
+                            'a.start_at',
+                            '<=',
+                            now()->addDay()
+                        )
+                        ->orWhereRaw(
+                            "(SELECT wm.status FROM wa_messages wm WHERE wm.appointment_id = a.id ORDER BY wm.id DESC LIMIT 1) = 'failed'"
+                        )
+                        ->orWhereNotExists(
+                            function ($sub) {
+                                $sub
+                                    ->selectRaw('1')
+                                    ->from('wa_messages as wm')
+                                    ->whereColumn(
+                                        'wm.appointment_id',
+                                        'a.id'
+                                    )
+                                    ->where(
+                                        'wm.direction',
+                                        'outbound'
+                                    );
+                            }
+                        );
+                }
+            )
+            ->count();
+
+        $stats['attention'] = $attention;
 
         return view(
             'enfas.v11.confirmations',
