@@ -2,10 +2,10 @@
 
 @section('title','Confirmações • ENFAS Agenda')
 @section('page_kicker','Agenda ENFAS')
-@section('page_title','Confirmações')
+@section('page_title','Central de Confirmações')
 @section(
     'page_subtitle',
-    'Trate respostas pendentes e acompanhe o estado do WhatsApp de cada horário.'
+    'Priorize respostas, acompanhe tentativas e trate exceções antes que virem faltas.'
 )
 
 @section('page_actions')
@@ -124,15 +124,15 @@
 
     <div class="ea-metric is-danger">
         <div class="ea-metric-icon">
-            <i class="bi bi-x-circle"></i>
+            <i class="bi bi-exclamation-triangle"></i>
         </div>
 
         <div class="ea-metric-value">
-            {{ $stats['cancelled'] }}
+            {{ $stats['attention'] ?? 0 }}
         </div>
 
         <div class="ea-metric-label">
-            Cancelados
+            Precisam de atenção
         </div>
     </div>
 </div>
@@ -196,6 +196,35 @@
         style="border-bottom:1px solid var(--ea-border)"
     >
         <div class="ea-chips">
+
+            <a
+                class="ea-chip ea-chip-attention {{
+                    $state === 'attention'
+                        ? 'active'
+                        : ''
+                }}"
+                href="{{
+                    route(
+                        'v11.confirmations',
+                        array_filter([
+                            'date' =>
+                                $day->format('Y-m-d'),
+
+                            'state' =>
+                                'attention',
+
+                            'q' =>
+                                $search ?: null,
+                        ])
+                    )
+                }}"
+            >
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Atenção
+                <strong class="ms-1">
+                    {{ $stats['attention'] ?? 0 }}
+                </strong>
+            </a>
 
             <a
                 class="ea-chip {{
@@ -333,7 +362,7 @@
                         <th>Paciente</th>
                         <th>Atendimento</th>
                         <th>Resposta</th>
-                        <th>WhatsApp</th>
+                        <th>Contato automático</th>
                         <th class="text-end">
                             Ações
                         </th>
@@ -380,9 +409,62 @@
                                 'Não enviado',
                                 'neutral',
                             ];
+
+                        $startAt =
+                            \Illuminate\Support\Carbon::parse(
+                                $row->start_at
+                            );
+
+                        $minutesUntil =
+                            now()->diffInMinutes(
+                                $startAt,
+                                false
+                            );
+
+                        $isWaiting =
+                            $responseUi[1]
+                            === 'waiting';
+
+                        $priorityUi = null;
+
+                        if (
+                            $isWaiting
+                            && $waState === 'failed'
+                        ) {
+                            $priorityUi = [
+                                'Falha no contato',
+                                'danger',
+                            ];
+                        } elseif (
+                            $isWaiting
+                            && $minutesUntil >= 0
+                            && $minutesUntil <= 120
+                        ) {
+                            $priorityUi = [
+                                'Urgente',
+                                'danger',
+                            ];
+                        } elseif (
+                            $isWaiting
+                            && $minutesUntil >= 0
+                            && $minutesUntil <= 1440
+                        ) {
+                            $priorityUi = [
+                                'Prioridade',
+                                'warning',
+                            ];
+                        } elseif (
+                            $isWaiting
+                            && (int) ($row->wa_attempts ?? 0) === 0
+                        ) {
+                            $priorityUi = [
+                                'Sem contato',
+                                'warning',
+                            ];
+                        }
                     @endphp
 
-                    <tr>
+                    <tr class="ea-confirmation-row {{ $priorityUi ? 'is-attention' : '' }}">
                         <td>
                             <span class="ea-time">
                                 {{
@@ -395,6 +477,12 @@
                             <span class="ea-code">
                                 {{ $row->code }}
                             </span>
+
+                            @if($priorityUi)
+                                <span class="ea-confirmation-priority {{ $priorityUi[1] }}">
+                                    {{ $priorityUi[0] }}
+                                </span>
+                            @endif
                         </td>
 
                         <td>
@@ -405,12 +493,19 @@
                                 }}
                             </span>
 
-                            <span class="ea-row-meta">
-                                {{
-                                    $row->patient_phone
-                                    ?: 'Telefone não informado'
-                                }}
-                            </span>
+                            @if($row->patient_phone)
+                                <a
+                                    class="ea-row-meta text-decoration-none"
+                                    href="tel:{{ preg_replace('/\\D+/', '', $row->patient_phone) }}"
+                                >
+                                    <i class="bi bi-telephone me-1"></i>
+                                    {{ $row->patient_phone }}
+                                </a>
+                            @else
+                                <span class="ea-row-meta">
+                                    Telefone não informado
+                                </span>
+                            @endif
                         </td>
 
                         <td>
@@ -452,28 +547,80 @@
                         </td>
 
                         <td>
-                            <span
-                                class="ea-status {{ $waUi[1] }}"
-                                @if($row->wa_error)
-                                    title="{{ $row->wa_error }}"
-                                @endif
-                            >
-                                {{ $waUi[0] }}
-                            </span>
+                            <div class="ea-contact-stack">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="ea-channel-pill">
+                                        <i class="bi bi-whatsapp"></i>
+                                        WhatsApp
+                                    </span>
 
-                            @if($row->wa_updated_at)
-                                <span class="ea-row-meta">
-                                    {{
-                                        \Illuminate\Support\Carbon::parse(
-                                            $row->wa_updated_at
-                                        )->format('H:i')
-                                    }}
+                                    <span
+                                        class="ea-status {{ $waUi[1] }}"
+                                        @if($row->wa_error)
+                                            title="{{ $row->wa_error }}"
+                                        @endif
+                                    >
+                                        {{ $waUi[0] }}
+                                    </span>
+                                </div>
+
+                                <span class="ea-contact-meta">
+                                    {{ (int) ($row->wa_attempts ?? 0) }}
+                                    {{ (int) ($row->wa_attempts ?? 0) === 1 ? 'tentativa' : 'tentativas' }}
+
+                                    @if($row->wa_last_outbound_at)
+                                        · última
+                                        {{
+                                            \Illuminate\Support\Carbon::parse(
+                                                $row->wa_last_outbound_at
+                                            )->format('H:i')
+                                        }}
+                                    @endif
                                 </span>
-                            @endif
+
+                                @if($row->wa_last_inbound_at)
+                                    <span class="ea-contact-meta is-positive">
+                                        <i class="bi bi-reply-fill"></i>
+                                        Resposta recebida
+                                        {{
+                                            \Illuminate\Support\Carbon::parse(
+                                                $row->wa_last_inbound_at
+                                            )->format('H:i')
+                                        }}
+                                    </span>
+                                @endif
+
+                                @if($row->wa_error)
+                                    <span
+                                        class="ea-contact-error"
+                                        title="{{ $row->wa_error }}"
+                                    >
+                                        {{ \Illuminate\Support\Str::limit($row->wa_error, 74) }}
+                                    </span>
+                                @endif
+                            </div>
                         </td>
 
                         <td class="ea-action-cell">
                             <div class="ea-actions">
+
+                                @if($row->patient_phone)
+                                    <a
+                                        href="tel:{{ preg_replace('/\\D+/', '', $row->patient_phone) }}"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="Ligar para o paciente"
+                                    >
+                                        <i class="bi bi-telephone"></i>
+                                    </a>
+                                @endif
+
+                                <a
+                                    href="{{ url('/whatsapp/mensagens') }}"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    title="Abrir histórico de mensagens"
+                                >
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
 
                                 @if(
                                     ($row->confirmation_status ?? null)
