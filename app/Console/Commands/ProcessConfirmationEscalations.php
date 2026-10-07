@@ -92,7 +92,13 @@ class ProcessConfirmationEscalations extends Command
             if ($lastAttempt
                 && in_array(
                     $lastAttempt->outcome,
-                    ['confirmed', 'cancelled'],
+                    [
+                        'confirmed',
+                        'cancelled',
+                        'callback',
+                        'invalid_number',
+                        'resolved_elsewhere',
+                    ],
                     true
                 )) {
                 $stats['deduped']++;
