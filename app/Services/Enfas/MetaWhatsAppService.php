@@ -718,40 +718,90 @@ class MetaWhatsAppService
             ],
         ];
 
-        if ($dedupeKey) {
-            $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
+        $message = null;
 
-            if ($existing) {
-                return $existing;
+        if ($dedupeKey) {
+            $dedupeState = DB::transaction(function () use (
+                $dedupeKey,
+                $template,
+                $automationId,
+                $appointmentId,
+                $appointment,
+                $phone,
+                $payload
+            ) {
+                $existing = WaMessage::where('dedupe_key', $dedupeKey)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $existing) {
+                    return ['message' => null, 'retry' => false];
+                }
+
+                $retryWithChangedTemplate = $existing->status === 'failed'
+                    && (int) $existing->template_id !== (int) $template->id;
+
+                if (! $retryWithChangedTemplate) {
+                    return ['message' => $existing, 'retry' => false];
+                }
+
+                $existing->update([
+                    'appointment_id' => $appointmentId,
+                    'patient_id' => $appointment->patient_id,
+                    'template_id' => $template->id,
+                    'automation_id' => $automationId,
+                    'status' => 'sending',
+                    'recipient' => $phone,
+                    'body' => $template->body,
+                    'payload' => $payload,
+                    'meta_message_id' => null,
+                    'sent_at' => null,
+                    'delivered_at' => null,
+                    'read_at' => null,
+                    'failed_at' => null,
+                    'error_message' => null,
+                ]);
+
+                return ['message' => $existing->fresh(), 'retry' => true];
+            });
+
+            if ($dedupeState['message'] && ! $dedupeState['retry']) {
+                return $dedupeState['message'];
+            }
+
+            if ($dedupeState['retry']) {
+                $message = $dedupeState['message'];
             }
         }
 
-        try {
-            $message = WaMessage::create([
-                'appointment_id' => $appointmentId,
-                'patient_id' => $appointment->patient_id,
-                'template_id' => $template->id,
-                'automation_id' => $automationId,
-                'direction' => 'outbound',
-                'message_type' => 'template',
-                'status' => 'sending',
-                'recipient' => $phone,
-                'body' => $template->body,
-                'payload' => $payload,
-                'dedupe_key' => $dedupeKey,
-            ]);
-        } catch (UniqueConstraintViolationException $e) {
-            if (! $dedupeKey) {
+        if (! $message) {
+            try {
+                $message = WaMessage::create([
+                    'appointment_id' => $appointmentId,
+                    'patient_id' => $appointment->patient_id,
+                    'template_id' => $template->id,
+                    'automation_id' => $automationId,
+                    'direction' => 'outbound',
+                    'message_type' => 'template',
+                    'status' => 'sending',
+                    'recipient' => $phone,
+                    'body' => $template->body,
+                    'payload' => $payload,
+                    'dedupe_key' => $dedupeKey,
+                ]);
+            } catch (UniqueConstraintViolationException $e) {
+                if (! $dedupeKey) {
+                    throw $e;
+                }
+
+                $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
+
+                if ($existing) {
+                    return $existing;
+                }
+
                 throw $e;
             }
-
-            $existing = WaMessage::where('dedupe_key', $dedupeKey)->first();
-
-            if ($existing) {
-                return $existing;
-            }
-
-            throw $e;
         }
 
         $response = $this->client($integration)->post(
