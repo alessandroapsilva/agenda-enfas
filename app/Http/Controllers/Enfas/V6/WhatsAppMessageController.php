@@ -10,11 +10,30 @@ use Illuminate\Support\Facades\DB;
 
 class WhatsAppMessageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $selectedAppointment = $request->integer('appointment_id') ?: null;
+
+        $rows = WaMessage::with('template')
+            ->when(
+                $selectedAppointment,
+                fn ($query) => $query->where(
+                    'appointment_id',
+                    $selectedAppointment
+                )
+            )
+            ->orderByDesc('id')
+            ->paginate(80)
+            ->withQueryString();
+
         return view('enfas.v6.whatsapp.messages',[
-            'rows'=>WaMessage::with('template')->orderByDesc('id')->paginate(80),
-            'templates'=>WaTemplate::where('status','APPROVED')->orderBy('name')->get(),
+            'rows'=>$rows,
+            'selectedAppointment'=>$selectedAppointment,
+            'templates'=>WaTemplate::where('status','APPROVED')
+                ->where('is_active',true)
+                ->whereNull('archived_at')
+                ->orderBy('name')
+                ->get(),
             'appointments'=>DB::table('appointments')
                 ->join('patients','patients.id','=','appointments.patient_id')
                 ->orderByDesc('appointments.start_at')->limit(100)
