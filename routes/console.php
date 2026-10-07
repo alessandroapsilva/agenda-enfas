@@ -11,3 +11,6 @@ Schedule::command('enfas:reminders')->everyMinute()->withoutOverlapping();
 Schedule::command('enfas:confirmation-escalations')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+Schedule::command('enfas:dispatch-confirmation-calls')
+    ->everyMinute()
+    ->withoutOverlapping();
