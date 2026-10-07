@@ -3352,3 +3352,60 @@ body.enfas-shell,
         max-width:190px;
     }
 }
+
+
+/* CENTRAL DE CONFIRMACOES — ESCALONAMENTO POR VOZ */
+
+.ea-channel-pill.is-voice{
+    border-color:#dbe4f2;
+    background:#f7f9fd;
+    color:#445d82;
+}
+
+.ea-contact-divider{
+    width:100%;
+    height:1px;
+    margin:.15rem 0;
+    background:#edf1f5;
+}
+
+.ea-call-outcome-form{
+    display:flex;
+    align-items:center;
+    gap:.35rem;
+    min-width:220px;
+}
+
+.ea-call-outcome-form .form-select{
+    width:128px;
+    min-height:31px!important;
+    padding-top:.22rem;
+    padding-bottom:.22rem;
+    font-size:.68rem;
+}
+
+.ea-call-outcome-form .btn{
+    white-space:nowrap;
+}
+
+[data-bs-theme="dark"] .ea-channel-pill.is-voice{
+    border-color:#344157;
+    color:#b8c8df;
+    background:#172130;
+}
+
+[data-bs-theme="dark"] .ea-contact-divider{
+    background:#2a3648;
+}
+
+@media (max-width:767.98px){
+    .ea-call-outcome-form{
+        width:100%;
+        min-width:0;
+    }
+
+    .ea-call-outcome-form .form-select{
+        width:auto;
+        flex:1;
+    }
+}
