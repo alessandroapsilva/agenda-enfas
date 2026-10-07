@@ -1,13 +1,9 @@
 <?php
 
 use App\Http\Controllers\Enfas\V11\TwilioVoiceWebhookController;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('webhooks/voice/twilio')
-    ->withoutMiddleware([
-        ValidateCsrfToken::class,
-    ])
     ->middleware('throttle:120,1')
     ->group(function () {
 
