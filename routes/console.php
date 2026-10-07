@@ -8,3 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 Schedule::command('enfas:reminders')->everyMinute()->withoutOverlapping();
+Schedule::command('enfas:confirmation-escalations')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
