@@ -615,7 +615,7 @@
                                 @endif
 
                                 <a
-                                    href="{{ url('/whatsapp/mensagens') }}"
+                                    href="{{ url('/whatsapp/mensagens?appointment_id='.$row->id) }}"
                                     class="btn btn-sm btn-outline-secondary"
                                     title="Abrir histórico de mensagens"
                                 >
