@@ -251,6 +251,36 @@ class WhatsAppDispatchPolicy
             ->exists();
     }
 
+    public function journeyDedupeKey(
+        object $appointment,
+        string $intent
+    ): string {
+        $slot = Carbon::parse(
+            $appointment->start_at
+        )->format('YmdHi');
+
+        $intent = preg_replace(
+            '/[^a-z0-9_-]+/',
+            '-',
+            strtolower(
+                trim($intent)
+            )
+        );
+
+        return implode(
+            ':',
+            [
+                'wa',
+                'journey',
+                $intent ?: 'event',
+                'appointment',
+                $appointment->id,
+                'slot',
+                $slot,
+            ]
+        );
+    }
+
     public function manualTextDedupeKey(
         ?int $appointmentId,
         ?int $patientId,
