@@ -3739,7 +3739,7 @@ body.enfas-shell,
 
 .ea-settings-grid{
     display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-columns:repeat(4,minmax(0,1fr));
     gap:.8rem;
 }
 
@@ -3777,6 +3777,11 @@ body.enfas-shell,
 .ea-settings-summary-icon.is-voice{
     background:#eef3fb;
     color:#4e6588;
+}
+
+.ea-settings-summary-icon.is-multichannel{
+    background:#fff6e7;
+    color:#98670f;
 }
 
 .ea-settings-summary>div:last-child{
@@ -3990,6 +3995,10 @@ body.enfas-shell,
 }
 
 @media (max-width:1199.98px){
+    .ea-settings-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
     .ea-settings-layout{
         grid-template-columns:1fr;
     }
