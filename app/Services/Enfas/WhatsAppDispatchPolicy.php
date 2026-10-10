@@ -9,6 +9,33 @@ use Illuminate\Support\Facades\DB;
 
 class WhatsAppDispatchPolicy
 {
+    public function reminderWindow(
+        int $offsetMinutes,
+        ?Carbon $now = null,
+        int $graceMinutes = 5
+    ): array {
+        $now = $now
+            ? $now->copy()
+            : now();
+
+        $target = $now->copy()->addMinutes(
+            max(
+                0,
+                $offsetMinutes
+            )
+        );
+
+        return [
+            $target->copy()->subMinutes(
+                max(
+                    1,
+                    $graceMinutes
+                )
+            ),
+            $target->copy()->addMinute(),
+        ];
+    }
+
     public function isScheduledEvent(
         string $event
     ): bool {
