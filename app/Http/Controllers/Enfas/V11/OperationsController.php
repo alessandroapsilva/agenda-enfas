@@ -28,6 +28,8 @@ class OperationsController extends Controller
                 'p.name as patient_name',
                 'p.phone as patient_phone',
                 'p.email as patient_email',
+                'p.contact_consent',
+                'p.do_not_contact',
             ]);
 
         if (Schema::hasTable('professionals')) {
