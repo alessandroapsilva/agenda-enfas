@@ -115,7 +115,7 @@
                                 {{ $a->code }}
                                 · {{ $a->patient_name }}
                                 · {{
-                                    IlluminateSupportCarbon::parse(
+                                    \Illuminate\Support\Carbon::parse(
                                         $a->start_at
                                     )->format('d/m/Y H:i')
                                 }}
