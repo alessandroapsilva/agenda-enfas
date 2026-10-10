@@ -8,6 +8,7 @@ use App\Models\WaitlistEntry;
 use App\Services\Enfas\AvailabilityService;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\WaitlistService;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -95,7 +96,8 @@ class PremiumWaitlistFlowTest extends TestCase
 
         $waitlist = new WaitlistService(
             app(AvailabilityService::class),
-            $meta
+            $meta,
+            app(WhatsAppDispatchPolicy::class)
         );
 
         $offered = $waitlist->offerFreedSlot($cancelled);
