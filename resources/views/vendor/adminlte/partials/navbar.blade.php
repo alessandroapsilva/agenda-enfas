@@ -2,84 +2,65 @@
 $unreadAlerts = 0;
 
 try {
-    if (\Illuminate\Support\Facades\Schema::hasTable('system_alerts')) {
-        $unreadAlerts = \Illuminate\Support\Facades\DB::table('system_alerts')
+    if (IlluminateSupportFacadesSchema::hasTable('system_alerts')) {
+        $unreadAlerts = IlluminateSupportFacadesDB::table('system_alerts')
             ->where('is_read', false)
             ->count();
     }
-} catch (\Throwable) {
+} catch (Throwable) {
 }
 @endphp
 
 <nav class="app-header navbar navbar-expand bg-body">
-<div class="container-fluid">
+<div class="container-fluid ea-topbar-shell">
 
-<ul class="navbar-nav align-items-center">
+<ul class="navbar-nav align-items-center ea-topbar-left">
   <li class="nav-item">
     <a
-      class="nav-link"
+      class="nav-link ea-topbar-menu"
       data-lte-toggle="sidebar"
       href="#"
       aria-label="Expandir ou recolher menu"
-      title="Expandir ou recolher menu">
-      <i class="bi bi-list fs-5"></i>
+      title="Menu">
+      <i class="bi bi-list"></i>
     </a>
   </li>
 
-  <li class="nav-item">
-    <button
-      id="ea-sidebar-pin"
-      class="nav-link btn border-0"
-      type="button"
-      title="Fixar menu aberto">
-      <i class="bi bi-pin-angle"></i>
-    </button>
-  </li>
+  <li class="nav-item d-none d-md-flex ea-topbar-product">
+    <span class="ea-topbar-product-mark"></span>
 
-  <li class="nav-item d-none d-md-block">
-    <a href="{{ url('/dashboard') }}" class="nav-link">
-      <span class="fw-semibold">ENFAS Agenda</span>
-    </a>
+    <div>
+      <strong>ENFAS Agenda</strong>
+      <small>Workspace operacional</small>
+    </div>
   </li>
 </ul>
 
-<ul class="navbar-nav ms-auto align-items-center gap-1">
+<ul class="navbar-nav ms-auto align-items-center ea-topbar-actions">
 
   <li class="nav-item d-none d-lg-block">
     <button
       type="button"
       data-adminlte-search
-      class="btn btn-sm ea-nav-pill d-flex align-items-center gap-2 px-3 text-body-secondary">
+      class="ea-global-search">
       <i class="bi bi-search"></i>
-      <span>Pesquisar</span>
-      <kbd class="small ms-2 border rounded px-1">⌘K</kbd>
+      <span>Pesquisar no sistema</span>
+      <kbd>⌘K</kbd>
     </button>
   </li>
 
   <li class="nav-item">
     <a
       href="{{ url('/alertas') }}"
-      class="nav-link position-relative"
+      class="ea-topbar-icon position-relative"
       title="Alertas">
       <i class="bi bi-bell"></i>
+
       @if($unreadAlerts > 0)
-        <span
-          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-          style="font-size:.56rem">
+        <span class="ea-alert-badge">
           {{ min($unreadAlerts, 99) }}
         </span>
       @endif
-    </a>
-  </li>
-
-  <li class="nav-item">
-    <a
-      class="nav-link"
-      href="#"
-      data-lte-toggle="fullscreen"
-      title="Tela cheia">
-      <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
-      <i data-lte-icon="minimize" class="bi bi-fullscreen-exit d-none"></i>
     </a>
   </li>
 
