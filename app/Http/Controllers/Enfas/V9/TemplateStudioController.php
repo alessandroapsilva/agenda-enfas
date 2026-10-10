@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class TemplateStudioController extends Controller
@@ -92,6 +93,11 @@ class TemplateStudioController extends Controller
             $data['header_media_id'] =
                 $brandMedia->defaultLogo()?->id;
         }
+
+        $data = $this->normalizeHeader(
+            $data
+        );
+
         [$keys,$samples,$buttons]=$this->arrays($data);
 
         $this->validateVariables(
@@ -156,6 +162,11 @@ class TemplateStudioController extends Controller
             $data['header_media_id'] =
                 $brandMedia->defaultLogo()?->id;
         }
+
+        $data = $this->normalizeHeader(
+            $data
+        );
+
         [$keys,$samples,$buttons]=$this->arrays($data);
 
         $this->validateVariables(
@@ -588,6 +599,73 @@ class TemplateStudioController extends Controller
                 'sync'=>$e->getMessage(),
             ]);
         }
+    }
+
+    private function normalizeHeader(
+        array $data
+    ): array {
+        $type = strtoupper(
+            (string) (
+                $data['header_type']
+                ?? 'NONE'
+            )
+        );
+
+        if ($type === 'IMAGE') {
+            if (empty(
+                $data['header_media_id']
+            )) {
+                throw ValidationException::withMessages([
+                    'header_media_id' =>
+                        'Selecione uma imagem ou configure o logo oficial em Aparência.',
+                ]);
+            }
+
+            $activeMedia = DB::table(
+                'media_assets'
+            )
+                ->where(
+                    'id',
+                    (int) $data['header_media_id']
+                )
+                ->where(
+                    'is_active',
+                    true
+                )
+                ->when(
+                    Schema::hasColumn(
+                        'media_assets',
+                        'deleted_at'
+                    ),
+                    fn ($query) =>
+                        $query->whereNull(
+                            'deleted_at'
+                        )
+                )
+                ->exists();
+
+            if (! $activeMedia) {
+                throw ValidationException::withMessages([
+                    'header_media_id' =>
+                        'A imagem selecionada não está disponível para uso.',
+                ]);
+            }
+
+            $data['header_text'] =
+                null;
+
+            return $data;
+        }
+
+        $data['header_media_id'] =
+            null;
+
+        if ($type !== 'TEXT') {
+            $data['header_text'] =
+                null;
+        }
+
+        return $data;
     }
 
     private function apply(
