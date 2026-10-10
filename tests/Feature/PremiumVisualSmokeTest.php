@@ -24,6 +24,7 @@ class PremiumVisualSmokeTest extends TestCase
             'agenda.index',
             'appointments.index',
             'waitlist.index',
+            'v11.confirmations',
             'patients.index',
             'professionals.index',
             'services.index',
@@ -33,10 +34,10 @@ class PremiumVisualSmokeTest extends TestCase
             'v9.templates.index',
             'enfas.v6.automations',
             'activities.index',
-            'clinical-documents.index',
             'users.index',
             'v92.alerts',
-            'v92.settings',
+            'enfas.agenda-settings',
+            'enfas.branding',
             'v92.health.dashboard',
         ];
 
