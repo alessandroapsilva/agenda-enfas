@@ -36,12 +36,138 @@ class AgendaController extends Controller
 
         $professionals = $access->professionals(
                 Professional::query()
-                    ->with('services:id'),
+                    ->with([
+                        'services:id',
+                        'availabilities',
+                    ]),
                 $request->user()
             )
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+
+        $professionalAvailability =
+            $professionals->mapWithKeys(
+                function ($professional) {
+                    $ranges = collect();
+
+                    if (
+                        $professional
+                            ->availabilities
+                            ->where(
+                                'is_active',
+                                true
+                            )
+                            ->isNotEmpty()
+                    ) {
+                        foreach (
+                            $professional
+                                ->availabilities
+                                ->where(
+                                    'is_active',
+                                    true
+                                )
+                                ->sortBy(
+                                    'day_of_week'
+                                )
+                            as $row
+                        ) {
+                            $day =
+                                (int) $row->day_of_week;
+
+                            $start =
+                                substr(
+                                    (string) $row->start_time,
+                                    0,
+                                    5
+                                );
+
+                            $end =
+                                substr(
+                                    (string) $row->end_time,
+                                    0,
+                                    5
+                                );
+
+                            $breakStart =
+                                $row->break_start
+                                    ? substr(
+                                        (string) $row->break_start,
+                                        0,
+                                        5
+                                    )
+                                    : null;
+
+                            $breakEnd =
+                                $row->break_end
+                                    ? substr(
+                                        (string) $row->break_end,
+                                        0,
+                                        5
+                                    )
+                                    : null;
+
+                            if (
+                                $breakStart
+                                && $breakEnd
+                            ) {
+                                if ($start < $breakStart) {
+                                    $ranges->push([
+                                        'daysOfWeek' => [$day],
+                                        'startTime' => $start,
+                                        'endTime' => $breakStart,
+                                    ]);
+                                }
+
+                                if ($breakEnd < $end) {
+                                    $ranges->push([
+                                        'daysOfWeek' => [$day],
+                                        'startTime' => $breakEnd,
+                                        'endTime' => $end,
+                                    ]);
+                                }
+                            } else {
+                                $ranges->push([
+                                    'daysOfWeek' => [$day],
+                                    'startTime' => $start,
+                                    'endTime' => $end,
+                                ]);
+                            }
+                        }
+                    } else {
+                        $days = collect(
+                            $professional->active_days
+                            ?? []
+                        )
+                            ->map(
+                                fn ($day) => (int) $day
+                            )
+                            ->values()
+                            ->all();
+
+                        if ($days !== []) {
+                            $ranges->push([
+                                'daysOfWeek' => $days,
+                                'startTime' => substr(
+                                    (string) $professional->work_start,
+                                    0,
+                                    5
+                                ),
+                                'endTime' => substr(
+                                    (string) $professional->work_end,
+                                    0,
+                                    5
+                                ),
+                            ]);
+                        }
+                    }
+
+                    return [
+                        (string) $professional->id =>
+                            $ranges->values()->all(),
+                    ];
+                }
+            );
 
         $services = Service::query()
             ->where('is_active', true)
@@ -84,7 +210,8 @@ class AgendaController extends Controller
                 'services',
                 'locations',
                 'customFields',
-                'communicationChannels'
+                'communicationChannels',
+                'professionalAvailability'
             )
         );
     }
