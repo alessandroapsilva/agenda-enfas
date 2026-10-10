@@ -27,7 +27,13 @@ class AvailabilityService
         }
 
         $duration = max(5, (int) ($service->duration_minutes ?: 30));
-        $step = max(5, (int) ($professional->slot_interval ?: $duration));
+        $defaultStep = max(
+            5,
+            (int) (
+                $professional->slot_interval
+                ?: $duration
+            )
+        );
         $cursorDate = ($from ?: now())->copy()->startOfDay();
         $now = now();
         $slots = [];
@@ -38,6 +44,13 @@ class AvailabilityService
             foreach ($this->windowsFor($professional, $date) as $window) {
                 $start = $this->combine($date, $window['start']);
                 $end = $this->combine($date, $window['end']);
+                $step = max(
+                    5,
+                    (int) (
+                        $window['step']
+                        ?? $defaultStep
+                    )
+                );
                 $breakStart = $window['break_start'] ? $this->combine($date, $window['break_start']) : null;
                 $breakEnd = $window['break_end'] ? $this->combine($date, $window['break_end']) : null;
 
@@ -70,6 +83,180 @@ class AvailabilityService
                         break 2;
                     }
                 }
+            }
+        }
+
+        return $slots;
+    }
+
+    public function slotsForDay(
+        int $professionalId,
+        int $serviceId,
+        Carbon $date,
+        ?int $excludeAppointmentId = null
+    ): array {
+        $professional = DB::table(
+            'professionals'
+        )
+            ->where(
+                'id',
+                $professionalId
+            )
+            ->where(
+                'is_active',
+                true
+            )
+            ->first();
+
+        $service = DB::table(
+            'services'
+        )
+            ->where(
+                'id',
+                $serviceId
+            )
+            ->where(
+                'is_active',
+                true
+            )
+            ->first();
+
+        if (! $professional || ! $service) {
+            return [];
+        }
+
+        if (
+            Schema::hasTable(
+                'professional_service'
+            )
+            && DB::table(
+                'professional_service'
+            )
+                ->where(
+                    'professional_id',
+                    $professionalId
+                )
+                ->where(
+                    'service_id',
+                    $serviceId
+                )
+                ->doesntExist()
+        ) {
+            return [];
+        }
+
+        $duration = max(
+            5,
+            (int) (
+                $service->duration_minutes
+                ?: 30
+            )
+        );
+
+        $defaultStep = max(
+            5,
+            (int) (
+                $professional->slot_interval
+                ?: $duration
+            )
+        );
+
+        $date = $date
+            ->copy()
+            ->startOfDay();
+
+        $now = now();
+
+        $slots = [];
+
+        foreach (
+            $this->windowsFor(
+                $professional,
+                $date
+            ) as $window
+        ) {
+            $windowStart = $this->combine(
+                $date,
+                $window['start']
+            );
+
+            $windowEnd = $this->combine(
+                $date,
+                $window['end']
+            );
+
+            $breakStart =
+                $window['break_start']
+                    ? $this->combine(
+                        $date,
+                        $window['break_start']
+                    )
+                    : null;
+
+            $breakEnd =
+                $window['break_end']
+                    ? $this->combine(
+                        $date,
+                        $window['break_end']
+                    )
+                    : null;
+
+            $step = max(
+                5,
+                (int) (
+                    $window['step']
+                    ?? $defaultStep
+                )
+            );
+
+            for (
+                $candidate = $windowStart->copy();
+                $candidate
+                    ->copy()
+                    ->addMinutes($duration)
+                    ->lte($windowEnd);
+                $candidate->addMinutes($step)
+            ) {
+                $candidateEnd = $candidate
+                    ->copy()
+                    ->addMinutes($duration);
+
+                if ($candidate->lte($now)) {
+                    continue;
+                }
+
+                if (
+                    $breakStart
+                    && $breakEnd
+                    && $candidate->lt($breakEnd)
+                    && $candidateEnd->gt($breakStart)
+                ) {
+                    continue;
+                }
+
+                if (! $this->isAvailable(
+                    $professionalId,
+                    $candidate,
+                    $candidateEnd,
+                    $excludeAppointmentId
+                )) {
+                    continue;
+                }
+
+                $slots[] = [
+                    'start' =>
+                        $candidate->toDateTimeString(),
+                    'end' =>
+                        $candidateEnd->toDateTimeString(),
+                    'time' =>
+                        $candidate->format('H:i'),
+                    'label' =>
+                        $candidate->format('H:i')
+                        .'–'
+                        .$candidateEnd->format('H:i'),
+                    'duration_minutes' =>
+                        $duration,
+                ];
             }
         }
 
@@ -162,8 +349,38 @@ class AvailabilityService
             $breakStart = $window['break_start'] ? $this->combine($start, $window['break_start']) : null;
             $breakEnd = $window['break_end'] ? $this->combine($start, $window['break_end']) : null;
 
-            if ($start->gte($windowStart) && $end->lte($windowEnd)) {
-                if ($breakStart && $breakEnd && $start->lt($breakEnd) && $end->gt($breakStart)) {
+            if (
+                $start->gte($windowStart)
+                && $end->lte($windowEnd)
+            ) {
+                if (
+                    $breakStart
+                    && $breakEnd
+                    && $start->lt($breakEnd)
+                    && $end->gt($breakStart)
+                ) {
+                    continue;
+                }
+
+                $step = max(
+                    5,
+                    (int) (
+                        $window['step']
+                        ?? $professional->slot_interval
+                        ?? 30
+                    )
+                );
+
+                $minutesFromWindowStart =
+                    $windowStart->diffInMinutes(
+                        $start,
+                        false
+                    );
+
+                if (
+                    $minutesFromWindowStart < 0
+                    || $minutesFromWindowStart % $step !== 0
+                ) {
                     continue;
                 }
 
@@ -239,6 +456,10 @@ class AvailabilityService
                     'end' => $row->{$endColumn},
                     'break_start' => $row->break_start ?? null,
                     'break_end' => $row->break_end ?? null,
+                    'step' =>
+                        $row->slot_minutes
+                        ?? $professional->slot_interval
+                        ?? 30,
                 ])->all();
             }
         }
@@ -256,6 +477,7 @@ class AvailabilityService
             'end' => $professional->work_end ?: '18:00:00',
             'break_start' => null,
             'break_end' => null,
+            'step' => $professional->slot_interval ?: 30,
         ]];
     }
 
