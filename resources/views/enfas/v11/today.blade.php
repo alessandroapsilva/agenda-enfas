@@ -1,11 +1,11 @@
 @extends('enfas.layout')
 
 @section('title','Hoje • ENFAS Agenda')
-@section('page_kicker','Agenda ENFAS')
+@section('page_kicker','Operação diária')
 @section('page_title','Hoje')
 @section(
     'page_subtitle',
-    'Horários, respostas e WhatsApp do dia em uma única tela.'
+    'Agenda, confirmações e comunicação do dia em uma visão única.'
 )
 
 @section('page_actions')
@@ -14,7 +14,7 @@
     class="ea-btn-secondary"
 >
     <i class="bi bi-calendar3"></i>
-    Abrir agenda
+    Ver agenda
 </a>
 
 <a
@@ -30,58 +30,45 @@
 
 @php
     $waMap = [
-        'sent' => [
-            'Enviado',
-            'sent',
-        ],
-        'delivered' => [
-            'Entregue',
-            'delivered',
-        ],
-        'read' => [
-            'Lido',
-            'read',
-        ],
-        'failed' => [
-            'Falhou',
-            'failed',
-        ],
-        'received' => [
-            'Recebido',
-            'received',
-        ],
-        'queued' => [
-            'Na fila',
-            'neutral',
-        ],
+        'sent' => ['Enviado', 'sent'],
+        'delivered' => ['Entregue', 'delivered'],
+        'read' => ['Lido', 'read'],
+        'failed' => ['Falhou', 'failed'],
+        'received' => ['Recebido', 'received'],
+        'queued' => ['Na fila', 'neutral'],
     ];
 
     $appointmentMap = [
-        'awaiting_confirmation' => [
-            'Aguardando',
-            'waiting',
-        ],
-        'confirmed' => [
-            'Confirmado',
-            'confirmed',
-        ],
-        'cancelled' => [
-            'Cancelado',
-            'cancelled',
-        ],
-        'completed' => [
-            'Atendido',
-            'confirmed',
-        ],
-        'no_show' => [
-            'Não compareceu',
-            'cancelled',
-        ],
-        'scheduled' => [
-            'Agendado',
-            'neutral',
-        ],
+        'awaiting_confirmation' => ['Aguardando', 'waiting'],
+        'confirmed' => ['Confirmado', 'confirmed'],
+        'cancelled' => ['Cancelado', 'cancelled'],
+        'canceled' => ['Cancelado', 'cancelled'],
+        'completed' => ['Atendido', 'confirmed'],
+        'no_show' => ['Não compareceu', 'failed'],
+        'scheduled' => ['Agendado', 'neutral'],
     ];
+
+    $resolved =
+        (int) $stats['confirmed']
+        + (int) $stats['cancelled'];
+
+    $resolutionRate =
+        (int) $stats['total'] > 0
+            ? round(
+                ($resolved / (int) $stats['total']) * 100
+            )
+            : 0;
+
+    $whatsAppHealthy =
+        (int) $messages['failed'] === 0;
+
+    $automationHealthy =
+        (int) $automation['active'] > 0;
+
+    $dayLabel =
+        IlluminateSupportStr::ucfirst(
+            $day->translatedFormat('l, d \d\e F')
+        );
 @endphp
 
 @if(session('success'))
@@ -91,425 +78,530 @@
     </div>
 @endif
 
-<div class="ea-grid ea-grid-4 mb-3">
+<div class="ea-today-hero">
+    <div class="ea-today-hero-copy">
+        <div class="ea-today-date">
+            <span class="ea-today-date-icon">
+                <i class="bi bi-calendar3"></i>
+            </span>
 
-    <div class="ea-metric">
-        <div class="ea-metric-icon">
-            <i class="bi bi-calendar2-check"></i>
+            <div>
+                <span>Agenda do dia</span>
+                <strong>{{ $dayLabel }}</strong>
+            </div>
         </div>
 
-        <div class="ea-metric-value">
-            {{ $stats['total'] }}
-        </div>
+        <div class="ea-today-summary">
+            <span>
+                <i class="bi bi-circle-fill is-success"></i>
+                Operação online
+            </span>
 
-        <div class="ea-metric-label">
-            Agendamentos
-        </div>
-    </div>
-
-    <div class="ea-metric is-warning">
-        <div class="ea-metric-icon">
-            <i class="bi bi-hourglass-split"></i>
-        </div>
-
-        <div class="ea-metric-value">
-            {{ $stats['waiting'] }}
-        </div>
-
-        <div class="ea-metric-label">
-            Aguardando resposta
-        </div>
-    </div>
-
-    <div class="ea-metric is-success">
-        <div class="ea-metric-icon">
-            <i class="bi bi-check2-circle"></i>
-        </div>
-
-        <div class="ea-metric-value">
-            {{ $stats['confirmed'] }}
-        </div>
-
-        <div class="ea-metric-label">
-            Confirmados
+            <span>
+                <i class="bi bi-whatsapp"></i>
+                {{
+                    $whatsAppHealthy
+                        ? 'WhatsApp sem falhas nas últimas 24h'
+                        : $messages['failed'].' falha(s) de WhatsApp'
+                }}
+            </span>
         </div>
     </div>
 
-    <div class="ea-metric is-danger">
-        <div class="ea-metric-icon">
-            <i class="bi bi-x-circle"></i>
+    <div class="ea-today-progress">
+        <div class="ea-today-progress-copy">
+            <span>Resolução do dia</span>
+            <strong>{{ $resolutionRate }}%</strong>
         </div>
 
-        <div class="ea-metric-value">
-            {{ $stats['cancelled'] }}
-        </div>
-
-        <div class="ea-metric-label">
-            Cancelados
+        <div class="ea-progress-track">
+            <span style="width: {{ min(100, $resolutionRate) }}%"></span>
         </div>
     </div>
 </div>
 
-<div class="ea-grid ea-grid-main">
+<div class="ea-today-kpis">
+    <article class="ea-kpi-card">
+        <div class="ea-kpi-icon is-blue">
+            <i class="bi bi-calendar2-week"></i>
+        </div>
 
-    <div class="ea-card">
-        <div class="ea-card-header">
+        <div class="ea-kpi-copy">
+            <span>Agendamentos</span>
+            <strong>{{ $stats['total'] }}</strong>
+            <small>Total previsto para hoje</small>
+        </div>
+    </article>
+
+    <article class="ea-kpi-card">
+        <div class="ea-kpi-icon is-amber">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+
+        <div class="ea-kpi-copy">
+            <span>Aguardando</span>
+            <strong>{{ $stats['waiting'] }}</strong>
+            <small>Pendentes de confirmação</small>
+        </div>
+    </article>
+
+    <article class="ea-kpi-card">
+        <div class="ea-kpi-icon is-green">
+            <i class="bi bi-patch-check"></i>
+        </div>
+
+        <div class="ea-kpi-copy">
+            <span>Confirmados</span>
+            <strong>{{ $stats['confirmed'] }}</strong>
+            <small>Presenças confirmadas</small>
+        </div>
+    </article>
+
+    <article class="ea-kpi-card">
+        <div class="ea-kpi-icon is-red">
+            <i class="bi bi-x-circle"></i>
+        </div>
+
+        <div class="ea-kpi-copy">
+            <span>Cancelados</span>
+            <strong>{{ $stats['cancelled'] }}</strong>
+            <small>Horários liberados no dia</small>
+        </div>
+    </article>
+</div>
+
+<div class="ea-today-layout">
+
+    <section class="ea-saas-card ea-today-agenda">
+        <div class="ea-saas-card-head">
             <div>
-                <h2 class="ea-card-title">
-                    Próximos horários
-                </h2>
+                <span class="ea-section-kicker">
+                    Agenda operacional
+                </span>
 
-                <div class="ea-card-caption">
-                    {{ $day->translatedFormat('l, d \d\e F') }}
-                </div>
+                <h2>Próximos horários</h2>
+
+                <p>
+                    Paciente, atendimento, confirmação e comunicação no mesmo fluxo.
+                </p>
             </div>
 
             <a
                 href="{{ route('v11.confirmations') }}"
-                class="btn btn-sm btn-outline-secondary"
+                class="ea-btn-ghost"
             >
-                Ver confirmações
+                Central de confirmações
+                <i class="bi bi-arrow-right"></i>
             </a>
         </div>
 
         @if($rows->isEmpty())
-            <div class="ea-empty">
-                <div class="ea-empty-icon">
-                    <i class="bi bi-calendar2"></i>
+            <div class="ea-premium-empty">
+                <span class="ea-premium-empty-icon">
+                    <i class="bi bi-calendar2-check"></i>
+                </span>
+
+                <div>
+                    <strong>Agenda livre hoje</strong>
+                    <p>
+                        Nenhum atendimento está previsto para este dia.
+                    </p>
                 </div>
 
-                <strong>
-                    Nenhum horário para hoje
-                </strong>
-
-                A agenda do dia está livre.
+                <a
+                    href="{{ url('/agendamentos') }}"
+                    class="ea-btn-secondary"
+                >
+                    <i class="bi bi-plus-lg"></i>
+                    Criar agendamento
+                </a>
             </div>
         @else
-            <div class="table-responsive">
-                <table class="ea-table">
-                    <thead>
-                        <tr>
-                            <th>Horário</th>
-                            <th>Paciente</th>
-                            <th>Atendimento</th>
-                            <th>Resposta</th>
-                            <th>WhatsApp</th>
-                            <th class="text-end">
-                                Ações
-                            </th>
-                        </tr>
-                    </thead>
+            <div class="ea-appointment-list">
+                @foreach($rows as $row)
+                    @php
+                        $appointmentState =
+                            strtolower(
+                                $row->status
+                                ?? ''
+                            );
 
-                    <tbody>
-                    @foreach($rows as $row)
-                        @php
-                            $appointmentState =
-                                strtolower(
-                                    $row->status
-                                    ?? ''
-                                );
+                        $appointmentUi =
+                            $appointmentMap[$appointmentState]
+                            ?? [
+                                ucfirst(
+                                    str_replace(
+                                        '_',
+                                        ' ',
+                                        $appointmentState
+                                    )
+                                ),
+                                'neutral',
+                            ];
 
-                            $appointmentUi =
-                                $appointmentMap[
-                                    $appointmentState
-                                ]
-                                ?? [
-                                    ucfirst(
-                                        str_replace(
-                                            '_',
-                                            ' ',
-                                            $appointmentState
+                        if (
+                            ($row->confirmation_status ?? null)
+                            === 'confirmed'
+                        ) {
+                            $appointmentUi = [
+                                'Confirmado',
+                                'confirmed',
+                            ];
+                        }
+
+                        $waState =
+                            strtolower(
+                                $row->wa_status
+                                ?? ''
+                            );
+
+                        $waUi =
+                            $waMap[$waState]
+                            ?? ['Não enviado', 'neutral'];
+
+                        $startAt =
+                            IlluminateSupportCarbon::parse(
+                                $row->start_at
+                            );
+
+                        $contactBlocked =
+                            (bool) ($row->do_not_contact ?? false)
+                            || (
+                                isset($row->contact_consent)
+                                && ! (bool) $row->contact_consent
+                            );
+                    @endphp
+
+                    <article class="ea-appointment-row">
+                        <div class="ea-appointment-time">
+                            <strong>
+                                {{ $startAt->format('H:i') }}
+                            </strong>
+
+                            <span>
+                                {{ $row->code }}
+                            </span>
+                        </div>
+
+                        <div class="ea-appointment-person">
+                            <div class="ea-avatar">
+                                {{
+                                    IlluminateSupportStr::upper(
+                                        IlluminateSupportStr::substr(
+                                            $row->patient_name
+                                                ?: 'P',
+                                            0,
+                                            1
                                         )
-                                    ),
-                                    'neutral',
-                                ];
+                                    )
+                                }}
+                            </div>
 
-                            if (
-                                ($row->confirmation_status ?? null)
-                                === 'confirmed'
-                            ) {
-                                $appointmentUi = [
-                                    'Confirmado',
-                                    'confirmed',
-                                ];
-                            }
-
-                            $waState =
-                                strtolower(
-                                    $row->wa_status
-                                    ?? ''
-                                );
-
-                            $waUi =
-                                $waMap[$waState]
-                                ?? [
-                                    'Não enviado',
-                                    'neutral',
-                                ];
-                        @endphp
-
-                        <tr>
-                            <td>
-                                <span class="ea-time">
-                                    {{
-                                        \Illuminate\Support\Carbon::parse(
-                                            $row->start_at
-                                        )->format('H:i')
-                                    }}
-                                </span>
-
-                                <span class="ea-code">
-                                    {{ $row->code }}
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="ea-row-title">
+                            <div>
+                                <strong>
                                     {{
                                         $row->patient_name
                                         ?: 'Paciente sem nome'
                                     }}
-                                </span>
+                                </strong>
 
-                                <span class="ea-row-meta">
-                                    {{
-                                        $row->patient_phone
-                                        ?: 'Telefone não informado'
-                                    }}
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="ea-row-title">
-                                    {{
-                                        $row->service_name
-                                        ?: 'Atendimento'
-                                    }}
-                                </span>
-
-                                <span class="ea-row-meta">
-                                    {{
-                                        $row->professional_name
-                                        ?: 'Profissional não definido'
-                                    }}
-
-                                    @if($row->location_name)
-                                        · {{ $row->location_name }}
+                                <span>
+                                    @if($contactBlocked)
+                                        <i class="bi bi-shield-x"></i>
+                                        Não contatar
+                                    @elseif($row->patient_phone)
+                                        <i class="bi bi-telephone"></i>
+                                        {{ $row->patient_phone }}
+                                    @else
+                                        Telefone não informado
                                     @endif
                                 </span>
-                            </td>
+                            </div>
+                        </div>
 
-                            <td>
-                                <span
-                                    class="ea-status {{ $appointmentUi[1] }}"
+                        <div class="ea-appointment-service">
+                            <strong>
+                                {{
+                                    $row->service_name
+                                    ?: 'Atendimento'
+                                }}
+                            </strong>
+
+                            <span>
+                                {{
+                                    $row->professional_name
+                                    ?: 'Profissional não definido'
+                                }}
+
+                                @if($row->location_name)
+                                    · {{ $row->location_name }}
+                                @endif
+                            </span>
+                        </div>
+
+                        <div class="ea-appointment-channel">
+                            <span class="ea-status {{ $appointmentUi[1] }}">
+                                {{ $appointmentUi[0] }}
+                            </span>
+
+                            <span
+                                class="ea-wa-mini {{ $waUi[1] }}"
+                                @if($row->wa_error)
+                                    title="{{ $row->wa_error }}"
+                                @endif
+                            >
+                                <i class="bi bi-whatsapp"></i>
+                                {{ $waUi[0] }}
+                            </span>
+                        </div>
+
+                        <div class="ea-appointment-actions">
+                            @if(
+                                ($row->confirmation_status ?? null)
+                                    !== 'confirmed'
+                                && ! in_array(
+                                    $row->status,
+                                    [
+                                        'confirmed',
+                                        'cancelled',
+                                        'canceled',
+                                        'completed',
+                                        'no_show',
+                                    ],
+                                    true
+                                )
+                            )
+                                <form
+                                    method="POST"
+                                    action="{{
+                                        route(
+                                            'v11.confirmations.mark',
+                                            $row->id
+                                        )
+                                    }}"
                                 >
-                                    {{ $appointmentUi[0] }}
-                                </span>
-                            </td>
+                                    @csrf
+                                    @method('PATCH')
 
-                            <td>
-                                <span
-                                    class="ea-status {{ $waUi[1] }}"
-                                    @if($row->wa_error)
-                                        title="{{ $row->wa_error }}"
-                                    @endif
-                                >
-                                    {{ $waUi[0] }}
-                                </span>
-                            </td>
-
-                            <td class="ea-action-cell">
-                                <div class="ea-actions">
-
-                                    @if(
-                                        ($row->confirmation_status ?? null)
-                                            !== 'confirmed'
-                                        && $row->status
-                                            !== 'cancelled'
-                                    )
-                                        <form
-                                            method="POST"
-                                            action="{{
-                                                route(
-                                                    'v11.confirmations.mark',
-                                                    $row->id
-                                                )
-                                            }}"
-                                        >
-                                            @csrf
-                                            @method('PATCH')
-
-                                            <input
-                                                type="hidden"
-                                                name="action"
-                                                value="confirm"
-                                            >
-
-                                            <button
-                                                class="btn btn-sm btn-primary"
-                                                type="submit"
-                                            >
-                                                <i class="bi bi-check2"></i>
-                                                Confirmar
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                    <a
-                                        href="{{
-                                            url(
-                                                '/agendamentos/'
-                                                .$row->id
-                                            )
-                                        }}"
-                                        class="btn btn-sm btn-outline-secondary"
+                                    <input
+                                        type="hidden"
+                                        name="action"
+                                        value="confirm"
                                     >
-                                        <i class="bi bi-arrow-up-right"></i>
-                                        Abrir
-                                    </a>
 
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
+                                    <button
+                                        class="ea-icon-action is-primary"
+                                        type="submit"
+                                        title="Confirmar presença"
+                                    >
+                                        <i class="bi bi-check2"></i>
+                                    </button>
+                                </form>
+                            @endif
+
+                            <a
+                                href="{{
+                                    route(
+                                        'appointments.show',
+                                        $row->id
+                                    )
+                                }}"
+                                class="ea-icon-action"
+                                title="Abrir agendamento"
+                            >
+                                <i class="bi bi-arrow-up-right"></i>
+                            </a>
+                        </div>
+                    </article>
+                @endforeach
             </div>
         @endif
-    </div>
+    </section>
 
-    <div class="ea-side-stack">
+    <aside class="ea-today-side">
 
-        <div class="ea-side-block">
-            <h3 class="ea-side-title">
-                WhatsApp · últimas 24h
-            </h3>
-
-            <div class="ea-side-row">
-                <span>Enviados</span>
-                <strong>
-                    {{ $messages['sent'] }}
-                </strong>
-            </div>
-
-            <div class="ea-side-row">
-                <span>Entregues</span>
-                <strong>
-                    {{ $messages['delivered'] }}
-                </strong>
-            </div>
-
-            <div class="ea-side-row">
-                <span>Lidos</span>
-                <strong>
-                    {{ $messages['read'] }}
-                </strong>
-            </div>
-
-            <div class="ea-side-row">
-                <span>Falhas</span>
-                <strong>
-                    {{ $messages['failed'] }}
-                </strong>
-            </div>
-        </div>
-
-        <div class="ea-side-block">
-            <h3 class="ea-side-title">
-                Retorno do WhatsApp
-            </h3>
-
-            @if($lastWebhook)
-                @if(
-                    $lastWebhook->processed
-                    && ! $lastWebhook->processing_error
-                )
-                    <div class="ea-health-ok">
-                        Endpoint respondendo
-                    </div>
-                @else
-                    <span class="ea-status failed">
-                        Falha no processamento
+        <section class="ea-saas-card ea-health-card">
+            <div class="ea-saas-card-head is-compact">
+                <div>
+                    <span class="ea-section-kicker">
+                        Comunicação
                     </span>
-                @endif
 
-                <div class="ea-row-meta mt-2">
-                    Último evento:
-                    {{
-                        \Illuminate\Support\Carbon::parse(
-                            $lastWebhook->received_at
-                            ?? $lastWebhook->created_at
-                        )->format('d/m H:i:s')
-                    }}
+                    <h2>Saúde do WhatsApp</h2>
                 </div>
-            @else
-                <span class="ea-status neutral">
-                    Sem eventos recebidos
-                </span>
-            @endif
-        </div>
 
-        <div class="ea-side-block">
-            <h3 class="ea-side-title">
-                Automações
-            </h3>
-
-            <div class="ea-side-row">
-                <span>Ativas</span>
-                <strong>
-                    {{ $automation['active'] }}
-                </strong>
+                <span class="ea-health-dot {{
+                    $whatsAppHealthy
+                        ? 'is-online'
+                        : 'is-danger'
+                }}"></span>
             </div>
 
-            <div class="ea-side-row">
-                <span>Configuradas</span>
-                <strong>
-                    {{ $automation['total'] }}
-                </strong>
+            <div class="ea-health-grid">
+                <div>
+                    <span>Enviados</span>
+                    <strong>{{ $messages['sent'] }}</strong>
+                </div>
+
+                <div>
+                    <span>Entregues</span>
+                    <strong>{{ $messages['delivered'] }}</strong>
+                </div>
+
+                <div>
+                    <span>Lidos</span>
+                    <strong>{{ $messages['read'] }}</strong>
+                </div>
+
+                <div class="{{
+                    $messages['failed'] > 0
+                        ? 'is-danger'
+                        : ''
+                }}">
+                    <span>Falhas</span>
+                    <strong>{{ $messages['failed'] }}</strong>
+                </div>
             </div>
 
             <a
-                href="{{ url('/whatsapp/automacoes') }}"
-                class="ea-btn-secondary w-100 mt-3"
+                href="{{ route('enfas.v6.messages') }}"
+                class="ea-inline-link"
             >
-                <i class="bi bi-lightning-charge"></i>
-                Abrir automações
+                Abrir histórico
+                <i class="bi bi-arrow-right"></i>
             </a>
-        </div>
+        </section>
 
-        @if($failures->isNotEmpty())
-            <div class="ea-side-block">
-                <h3 class="ea-side-title">
-                    Falhas recentes
-                </h3>
+        <section class="ea-saas-card">
+            <div class="ea-saas-card-head is-compact">
+                <div>
+                    <span class="ea-section-kicker">
+                        Infraestrutura
+                    </span>
 
-                @foreach($failures as $failure)
-                    <div class="ea-failure">
+                    <h2>Automação</h2>
+                </div>
+
+                <span class="ea-status {{
+                    $automationHealthy
+                        ? 'confirmed'
+                        : 'neutral'
+                }}">
+                    {{
+                        $automationHealthy
+                            ? 'Operacional'
+                            : 'Sem regras ativas'
+                    }}
+                </span>
+            </div>
+
+            <div class="ea-automation-summary">
+                <div>
+                    <span>Ativas</span>
+                    <strong>{{ $automation['active'] }}</strong>
+                </div>
+
+                <div>
+                    <span>Configuradas</span>
+                    <strong>{{ $automation['total'] }}</strong>
+                </div>
+            </div>
+
+            @if($lastWebhook)
+                <div class="ea-system-row">
+                    <span class="ea-system-icon {{
+                        $lastWebhook->processed
+                        && ! $lastWebhook->processing_error
+                            ? 'is-online'
+                            : 'is-danger'
+                    }}">
+                        <i class="bi bi-broadcast-pin"></i>
+                    </span>
+
+                    <div>
                         <strong>
                             {{
-                                $failure->patient_name
-                                ?: $failure->recipient
+                                $lastWebhook->processed
+                                && ! $lastWebhook->processing_error
+                                    ? 'Webhook respondendo'
+                                    : 'Webhook requer atenção'
                             }}
                         </strong>
 
                         <span>
+                            Último evento
                             {{
-                                $failure->error_message
-                                ?: 'Envio não concluído.'
+                                IlluminateSupportCarbon::parse(
+                                    $lastWebhook->received_at
+                                    ?? $lastWebhook->created_at
+                                )->format('H:i:s')
                             }}
                         </span>
                     </div>
-                @endforeach
+                </div>
+            @else
+                <div class="ea-system-row">
+                    <span class="ea-system-icon">
+                        <i class="bi bi-broadcast"></i>
+                    </span>
+
+                    <div>
+                        <strong>Sem eventos recentes</strong>
+                        <span>Aguardando retorno do webhook.</span>
+                    </div>
+                </div>
+            @endif
+        </section>
+
+        @if($failures->isNotEmpty())
+            <section class="ea-saas-card is-danger-soft">
+                <div class="ea-saas-card-head is-compact">
+                    <div>
+                        <span class="ea-section-kicker">
+                            Atenção
+                        </span>
+
+                        <h2>Falhas recentes</h2>
+                    </div>
+
+                    <span class="ea-danger-count">
+                        {{ $failures->count() }}
+                    </span>
+                </div>
+
+                <div class="ea-failure-list">
+                    @foreach($failures->take(3) as $failure)
+                        <div class="ea-failure-item">
+                            <strong>
+                                {{
+                                    $failure->patient_name
+                                    ?: $failure->recipient
+                                }}
+                            </strong>
+
+                            <span>
+                                {{
+                                    IlluminateSupportStr::limit(
+                                        $failure->error_message
+                                            ?: 'Envio não concluído.',
+                                        70
+                                    )
+                                }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
 
                 <a
-                    href="{{ url('/whatsapp/mensagens') }}"
-                    class="ea-btn-secondary w-100 mt-3"
+                    href="{{ route('enfas.v6.messages') }}"
+                    class="ea-inline-link is-danger"
                 >
-                    Ver mensagens
+                    Ver falhas
+                    <i class="bi bi-arrow-right"></i>
                 </a>
-            </div>
+            </section>
         @endif
-    </div>
+    </aside>
 </div>
 
 @endsection
