@@ -192,11 +192,25 @@ class ConfirmationPolicyService
             )
         );
 
-        return in_array(
-            strlen($digits),
-            [10, 11, 12, 13],
+        $length = strlen($digits);
+
+        if (in_array(
+            $length,
+            [10, 11],
             true
-        );
+        )) {
+            return true;
+        }
+
+        return str_starts_with(
+            $digits,
+            '55'
+        )
+            && in_array(
+                $length,
+                [12, 13],
+                true
+            );
     }
 
     public function isWithinCallWindow(
