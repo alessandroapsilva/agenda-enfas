@@ -79,7 +79,7 @@ class PatientNotificationService
             ],
             $appointmentId,
             $a->patient_id,
-            $this->policy->journeyDedupeKey(
+            $this->policy->interactionDedupeKey(
                 $a,
                 'reschedule-period'
             ),
@@ -97,10 +97,10 @@ class PatientNotificationService
                 "Não encontrei horários nesse período no momento. Nossa equipe foi avisada e pode ajudar você a encontrar outra opção.",
                 $appointmentId,
                 $a->patient_id,
-                'reschedule-no-slots:'
-                    .$appointmentId
-                    .':'
-                    .now()->format('YmdHi')
+                $this->policy->interactionDedupeKey(
+                    $a,
+                    'reschedule-no-slots'
+                )
             );
             return;
         }
@@ -138,10 +138,11 @@ class PatientNotificationService
             $buttons,
             $appointmentId,
             $a->patient_id,
-            'reschedule-slots:'
-                .$appointmentId
-                .':'
-                .$slotFingerprint,
+            $this->policy->interactionDedupeKey(
+                $a,
+                'reschedule-slots',
+                $slotFingerprint
+            ),
             'Os horários são validados novamente na confirmação.'
         );
     }
