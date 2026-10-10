@@ -1745,28 +1745,49 @@ document.addEventListener('DOMContentLoaded', function () {
                 String(serviceId);
         }
 
-        appointmentModal.show();
+        const openAppointmentModal = () => {
+            appointmentModal.show();
 
-        startInput.dispatchEvent(
-            new Event(
-                'change',
-                { bubbles: true }
-            )
-        );
+            startInput.dispatchEvent(
+                new Event(
+                    'change',
+                    { bubbles: true }
+                )
+            );
 
-        professionalInput?.dispatchEvent(
-            new Event(
-                'change',
-                { bubbles: true }
-            )
-        );
+            professionalInput?.dispatchEvent(
+                new Event(
+                    'change',
+                    { bubbles: true }
+                )
+            );
 
-        serviceInput?.dispatchEvent(
-            new Event(
-                'change',
-                { bubbles: true }
+            serviceInput?.dispatchEvent(
+                new Event(
+                    'change',
+                    { bubbles: true }
+                )
+            );
+        };
+
+        if (
+            bestSlotElement
+            && bestSlotElement.classList.contains(
+                'show'
             )
-        );
+        ) {
+            bestSlotElement.addEventListener(
+                'hidden.bs.modal',
+                openAppointmentModal,
+                { once: true }
+            );
+
+            bestSlotModal?.hide();
+
+            return;
+        }
+
+        openAppointmentModal();
     };
 
     window.openPatientContactComposer = function() {
