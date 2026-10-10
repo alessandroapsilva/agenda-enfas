@@ -41,14 +41,18 @@ class TemplateStudioController extends Controller
             ? WaTemplate::find($request->integer('edit'))
             : null;
 
+        $brandLogo = $brandMedia
+            ->defaultLogo();
+
         $media=DB::table('media_assets')
             ->whereNull('deleted_at')
             ->where('is_active',true)
+            ->orderByRaw(
+                'CASE WHEN id = ? THEN 0 ELSE 1 END',
+                [$brandLogo?->id ?? 0]
+            )
             ->orderBy('name')
             ->get();
-
-        $brandLogo = $brandMedia
-            ->defaultLogo();
 
         $brandName = AppSetting::getValue(
             'branding',
