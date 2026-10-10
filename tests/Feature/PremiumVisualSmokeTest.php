@@ -60,7 +60,9 @@ class PremiumVisualSmokeTest extends TestCase
             ->get(route('agenda.index'))
             ->assertSuccessful()
             ->assertSee('Encontrar horário')
-            ->assertSee('Buscar disponibilidade');
+            ->assertSee('Buscar disponibilidade')
+            ->assertSee('Disponibilidade real')
+            ->assertSee('Horários livres');
 
         $this->actingAs($admin)
             ->get(route('v9.templates.index'))
@@ -72,6 +74,12 @@ class PremiumVisualSmokeTest extends TestCase
             ->get(route('enfas.branding'))
             ->assertSuccessful()
             ->assertSee('cabeçalho oficial');
+
+        $this->actingAs($admin)
+            ->get(route('enfas.agenda-settings'))
+            ->assertSuccessful()
+            ->assertSee('Comunicação multicanal')
+            ->assertSee('WhatsApp, e-mail e SMS');
     }
 
 }
