@@ -400,6 +400,27 @@ class WhatsAppDispatchPolicy
             $appointment->start_at
         )->format('YmdHi');
 
+        $journeyIntent = match (
+            strtolower(
+                trim($event)
+            )
+        ) {
+            'appointment_confirmed' =>
+                'confirmed',
+            'appointment_cancelled' =>
+                'cancelled',
+            'appointment_rescheduled' =>
+                'rescheduled',
+            default => null,
+        };
+
+        if ($journeyIntent) {
+            return $this->journeyDedupeKey(
+                $appointment,
+                $journeyIntent
+            );
+        }
+
         if ($purpose === 'confirmation') {
             return implode(
                 ':',
