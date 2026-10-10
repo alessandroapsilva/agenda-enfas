@@ -193,8 +193,6 @@ class MetaWhatsAppService
                         ?? 'UNKNOWN',
                     'last_synced_at' => now(),
                     'header_type' => $parsed['header_type'] ?? 'NONE',
-                    'is_active' => true,
-                    'archived_at' => null,
                 ];
 
                 if (! $template) {
@@ -209,6 +207,8 @@ class MetaWhatsAppService
                         'variable_keys' => [],
                         'sample_values' => [],
                         'rejection_reason' => null,
+                        'is_active' => false,
+                        'archived_at' => null,
                     ];
 
                     WaTemplate::create($values);
