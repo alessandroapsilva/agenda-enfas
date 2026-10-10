@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Enfas\ConfirmationPolicyService;
 use App\Services\Enfas\Voice\VoiceProviderManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,8 @@ class DispatchConfirmationCalls extends Command
         'Despacha chamadas de confirmacao pendentes para o provedor de voz';
 
     public function handle(
-        VoiceProviderManager $manager
+        VoiceProviderManager $manager,
+        ConfirmationPolicyService $policy
     ): int {
         if (! Schema::hasTable(
             'confirmation_attempts'
@@ -62,6 +64,12 @@ class DispatchConfirmationCalls extends Command
                 '=',
                 'ca.appointment_id'
             )
+            ->leftJoin(
+                'patients as p',
+                'p.id',
+                '=',
+                'a.patient_id'
+            )
             ->where(
                 'ca.channel',
                 'voice'
@@ -104,6 +112,13 @@ class DispatchConfirmationCalls extends Command
             ->limit(10)
             ->get([
                 'ca.*',
+                'a.patient_id',
+                'a.professional_id',
+                'a.service_id',
+                'a.start_at as appointment_start_at',
+                'p.phone as patient_phone',
+                'p.contact_consent',
+                'p.do_not_contact',
             ]);
 
         $stats = [
@@ -113,6 +128,120 @@ class DispatchConfirmationCalls extends Command
         ];
 
         foreach ($attempts as $attempt) {
+            if (! $policy->voiceFallbackEnabled()
+                || ! $policy->patientContactAllowed(
+                    $attempt
+                )
+                || ! $policy->matchesScope(
+                    $attempt
+                )) {
+                if ($this->option('dry-run')) {
+                    $this->line(
+                        'DRY-RUN bloqueada por politica tentativa='
+                        .$attempt->id
+                    );
+
+                    continue;
+                }
+
+                $this->completeWithoutCall(
+                    (int) $attempt->id,
+                    'blocked_by_policy',
+                    'Tentativa bloqueada pela política de confirmação.'
+                );
+
+                continue;
+            }
+
+            if (! $policy->hasVoiceNumber(
+                $attempt
+            )) {
+                if ($this->option('dry-run')) {
+                    $this->line(
+                        'DRY-RUN sem telefone tentativa='
+                        .$attempt->id
+                    );
+
+                    continue;
+                }
+
+                $this->completeWithoutCall(
+                    (int) $attempt->id,
+                    'invalid_number',
+                    'Paciente sem telefone válido para ligação automática.'
+                );
+
+                $this->createHumanFallbackTask(
+                    $attempt,
+                    $policy
+                );
+
+                continue;
+            }
+
+            if (! $policy->isWithinCallWindow()) {
+                $nextAllowed =
+                    $policy->nextAllowedCallAt();
+
+                $appointmentStart =
+                    \Illuminate\Support\Carbon::parse(
+                        $attempt->appointment_start_at
+                    );
+
+                if ($nextAllowed->gte(
+                    $appointmentStart
+                )) {
+                    if ($this->option('dry-run')) {
+                        $this->line(
+                            'DRY-RUN janela expirada tentativa='
+                            .$attempt->id
+                        );
+
+                        continue;
+                    }
+
+                    $this->completeWithoutCall(
+                        (int) $attempt->id,
+                        'window_expired',
+                        'Próxima janela permitida ocorre após o horário do agendamento.'
+                    );
+
+                    $this->createHumanFallbackTask(
+                        $attempt,
+                        $policy
+                    );
+
+                    continue;
+                }
+
+                if ($this->option('dry-run')) {
+                    $this->line(
+                        'DRY-RUN reagendada tentativa='
+                        .$attempt->id
+                        .' para '
+                        .$nextAllowed->format('d/m H:i')
+                    );
+
+                    continue;
+                }
+
+                DB::table(
+                    'confirmation_attempts'
+                )
+                    ->where(
+                        'id',
+                        $attempt->id
+                    )
+                    ->update([
+                        'scheduled_at' =>
+                            $nextAllowed,
+                        'updated_at' =>
+                            now(),
+                    ]);
+
+                continue;
+            }
+
             if ($this->option('dry-run')) {
                 $this->line(
                     'DRY-RUN tentativa='
@@ -235,6 +364,90 @@ class DispatchConfirmationCalls extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    private function completeWithoutCall(
+        int $attemptId,
+        string $outcome,
+        string $notes
+    ): void {
+        DB::table(
+            'confirmation_attempts'
+        )
+            ->where(
+                'id',
+                $attemptId
+            )
+            ->update([
+                'status' =>
+                    'completed',
+                'outcome' =>
+                    $outcome,
+                'completed_at' =>
+                    now(),
+                'notes' =>
+                    $notes,
+                'updated_at' =>
+                    now(),
+            ]);
+    }
+
+    private function createHumanFallbackTask(
+        object $attempt,
+        ConfirmationPolicyService $policy
+    ): void {
+        if (! $policy->humanFallbackEnabled()
+            || ! Schema::hasTable('clinic_tasks')) {
+            return;
+        }
+
+        $exists = DB::table('clinic_tasks')
+            ->where(
+                'appointment_id',
+                $attempt->appointment_id
+            )
+            ->where(
+                'status',
+                'open'
+            )
+            ->where(
+                'title',
+                'Confirmar agendamento por contato humano'
+            )
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        DB::table('clinic_tasks')->insert([
+            'patient_id' =>
+                $attempt->patient_id ?? null,
+            'appointment_id' =>
+                $attempt->appointment_id,
+            'conversation_id' =>
+                null,
+            'title' =>
+                'Confirmar agendamento por contato humano',
+            'notes' =>
+                'Fallback humano criado pela régua multicanal de confirmação.',
+            'priority' =>
+                'high',
+            'status' =>
+                'open',
+            'due_at' =>
+                now(),
+            'assigned_user_id' =>
+                null,
+            'created_by' =>
+                null,
+            'completed_at' =>
+                null,
+            'created_at' =>
+                now(),
+            'updated_at' =>
+                now(),
+        ]);
     }
 
     private function cancelResolvedAttempts(): void
