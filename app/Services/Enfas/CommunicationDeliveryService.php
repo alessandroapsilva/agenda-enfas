@@ -115,6 +115,19 @@ class CommunicationDeliveryService
             return $existing;
         }
 
+        if (
+            $existing
+            && $existing->status === 'failed'
+            && $existing->updated_at
+            && \Illuminate\Support\Carbon::parse(
+                $existing->updated_at
+            )->gte(
+                now()->subMinutes(30)
+            )
+        ) {
+            return $existing;
+        }
+
         $payload = [
             'appointment_id' => $appointmentId,
             'recipient_type' => $recipientType,
