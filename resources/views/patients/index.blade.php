@@ -2,13 +2,13 @@
 
 @section('title', 'Pacientes')
 
-@section('page_kicker','PACIENTES')
+@section('page_kicker','Relacionamento')
 @section('page_title','Pacientes')
-@section('page_subtitle','Cadastro, RGEA externo, contatos e histórico de atendimento.')
+@section('page_subtitle','Base única de pacientes, contatos e histórico de agendamentos.')
 
 @section('page_actions')
 <button
-    class="btn btn-primary"
+    class="ea-btn-main"
     data-bs-toggle="modal"
     data-bs-target="#patientModal">
     <i class="bi bi-person-plus me-1"></i>
@@ -19,12 +19,13 @@
 
 @section('content')
 
-<div class="card">
+<div class="card ea-data-card">
 
     <div class="card-header justify-content-between gap-3">
         <div>
+            <span class="ea-section-kicker">Cadastro central</span>
             <strong class="d-block">Base de pacientes</strong>
-            <span class="small text-secondary">Pesquise por nome, telefone, CPF ou RGEA.</span>
+            <span class="small text-secondary">Nome, telefone, CPF ou RGEA em uma única pesquisa.</span>
         </div>
 
         <form
