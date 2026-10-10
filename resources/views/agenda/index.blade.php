@@ -566,53 +566,115 @@
 
 
 <div class="modal fade" id="bestSlotModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content ea-slot-finder">
             <div class="modal-header">
                 <div>
-                    <h5 class="modal-title">Encontrar melhor horário</h5>
-                    <small class="text-secondary">Busca disponibilidade real considerando agenda, pausas e bloqueios.</small>
+                    <span class="ea-section-kicker">Disponibilidade inteligente</span>
+                    <h5 class="modal-title">Encontrar horário</h5>
+                    <small class="text-secondary">
+                        Consulte horários livres por serviço, data, período e profissional.
+                    </small>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Fechar">
+                </button>
             </div>
+
             <div class="modal-body">
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <label class="form-label">Profissional</label>
-                        <select id="bestSlotProfessional" class="form-select">
-                            <option value="">Selecione...</option>
-                            @foreach($professionals as $professional)
-                                <option value="{{ $professional->id }}">{{ $professional->name }}</option>
-                            @endforeach
-                        </select>
+                <div class="ea-slot-finder-grid">
+                    <div class="ea-slot-finder-filters">
+                        <div class="mb-3">
+                            <label class="form-label">Serviço</label>
+                            <select id="bestSlotService" class="form-select">
+                                <option value="">Selecione o serviço...</option>
+                                @foreach($services as $service)
+                                    <option
+                                        value="{{ $service->id }}"
+                                        data-duration="{{ $service->duration_minutes }}">
+                                        {{ $service->name }}
+                                        · {{ $service->duration_minutes }} min
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Profissional</label>
+                            <select id="bestSlotProfessional" class="form-select">
+                                <option value="">
+                                    Qualquer profissional disponível
+                                </option>
+                                @foreach($professionals as $professional)
+                                    <option value="{{ $professional->id }}">
+                                        {{ $professional->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <div class="form-text">
+                                Deixe em “qualquer” para encontrar o primeiro horário da equipe.
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-sm-7">
+                                <label class="form-label">A partir de</label>
+                                <input
+                                    id="bestSlotFrom"
+                                    class="form-control"
+                                    type="date"
+                                    min="{{ now()->format('Y-m-d') }}"
+                                    value="{{ now()->format('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-sm-5">
+                                <label class="form-label">Período</label>
+                                <select id="bestSlotPeriod" class="form-select">
+                                    <option value="">Qualquer</option>
+                                    <option value="morning">Manhã</option>
+                                    <option value="afternoon">Tarde</option>
+                                    <option value="evening">Noite</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="ea-btn-main w-100 mt-3"
+                            onclick="findBestSlots()">
+                            <i class="bi bi-search"></i>
+                            Buscar disponibilidade
+                        </button>
+
+                        <div class="ea-slot-finder-help">
+                            <i class="bi bi-shield-check"></i>
+                            <span>
+                                A busca respeita duração do serviço, agenda ocupada, pausas,
+                                bloqueios e reservas temporárias.
+                            </span>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Serviço</label>
-                        <select id="bestSlotService" class="form-select">
-                            <option value="">Selecione...</option>
-                            @foreach($services as $service)
-                                <option value="{{ $service->id }}">{{ $service->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Período</label>
-                        <select id="bestSlotPeriod" class="form-select">
-                            <option value="">Qualquer</option>
-                            <option value="morning">Manhã</option>
-                            <option value="afternoon">Tarde</option>
-                            <option value="evening">Noite</option>
-                        </select>
+
+                    <div class="ea-slot-finder-results">
+                        <div id="bestSlotResults">
+                            <div class="ea-slot-empty">
+                                <span class="ea-slot-empty-icon">
+                                    <i class="bi bi-calendar2-week"></i>
+                                </span>
+
+                                <strong>Escolha um serviço</strong>
+                                <span>
+                                    Vamos mostrar os primeiros horários realmente disponíveis.
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="d-flex justify-content-end mt-3">
-                    <button type="button" class="btn btn-primary" onclick="findBestSlots()">
-                        <i class="bi bi-search me-1"></i>Buscar horários
-                    </button>
-                </div>
-
-                <div id="bestSlotResults" class="mt-4"></div>
             </div>
         </div>
     </div>
@@ -1503,71 +1565,208 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     window.findBestSlots = async function() {
-        const professional = document.getElementById('bestSlotProfessional').value;
-        const service = document.getElementById('bestSlotService').value;
-        const period = document.getElementById('bestSlotPeriod').value;
-        const results = document.getElementById('bestSlotResults');
+        const professional =
+            document.getElementById('bestSlotProfessional')?.value || '';
 
-        if (!professional || !service) {
-            results.innerHTML = '<div class="alert alert-warning mb-0">Selecione profissional e serviço.</div>';
+        const service =
+            document.getElementById('bestSlotService')?.value || '';
+
+        const period =
+            document.getElementById('bestSlotPeriod')?.value || '';
+
+        const from =
+            document.getElementById('bestSlotFrom')?.value || '';
+
+        const results =
+            document.getElementById('bestSlotResults');
+
+        if (! service) {
+            results.innerHTML =
+                '<div class="ea-slot-empty">' +
+                    '<span class="ea-slot-empty-icon"><i class="bi bi-exclamation-circle"></i></span>' +
+                    '<strong>Selecione um serviço</strong>' +
+                    '<span>A duração do serviço é necessária para calcular horários livres.</span>' +
+                '</div>';
             return;
         }
 
-        results.innerHTML = '<div class="text-secondary"><span class="spinner-border spinner-border-sm me-2"></span>Buscando disponibilidade...</div>';
+        results.innerHTML =
+            '<div class="ea-slot-loading">' +
+                '<span class="spinner-border spinner-border-sm"></span>' +
+                '<div><strong>Consultando disponibilidade</strong><span>Validando agenda, pausas e bloqueios...</span></div>' +
+            '</div>';
 
         const params = new URLSearchParams({
-            professional_id: professional,
             service_id: service,
-            limit: '8'
+            limit: '12'
         });
 
-        if (period) params.set('period', period);
+        if (professional) {
+            params.set('professional_id', professional);
+        }
+
+        if (period) {
+            params.set('period', period);
+        }
+
+        if (from) {
+            params.set('from', from);
+        }
 
         try {
-            const response = await fetch(@json(route('agenda.best-slots')) + '?' + params.toString(), {
-                headers: { 'Accept': 'application/json' }
-            });
+            const response = await fetch(
+                @json(route('agenda.best-slots')) + '?' + params.toString(),
+                {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }
+            );
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Falha ao buscar horários.');
+            if (! response.ok) {
+                const validation =
+                    Object.values(data.errors || {})
+                        .flat()[0];
+
+                throw new Error(
+                    validation
+                    || data.message
+                    || 'Não foi possível consultar a disponibilidade.'
+                );
             }
 
-            if (!data.slots.length) {
-                results.innerHTML = '<div class="alert alert-light border mb-0">Nenhum horário encontrado nesse período.</div>';
+            if (! data.slots?.length) {
+                results.innerHTML =
+                    '<div class="ea-slot-empty">' +
+                        '<span class="ea-slot-empty-icon"><i class="bi bi-calendar-x"></i></span>' +
+                        '<strong>Nenhum horário encontrado</strong>' +
+                        '<span>' + escapeHtml(
+                            data.meta?.message
+                            || 'Tente outra data, período ou profissional.'
+                        ) + '</span>' +
+                    '</div>';
                 return;
             }
 
-            results.innerHTML = '<div class="row g-2">' + data.slots.map(slot =>
-                '<div class="col-md-6">' +
-                    '<button type="button" class="btn btn-outline-primary w-100 text-start p-3" onclick="useBestSlot(\'' + slot.start + '\')">' +
-                        '<i class="bi bi-calendar2-check me-2"></i>' + escapeHtml(slot.label) +
-                    '</button>' +
-                '</div>'
-            ).join('') + '</div>';
+            const checked =
+                Number(data.meta?.professionals_checked || 0);
+
+            results.innerHTML =
+                '<div class="ea-slot-results-head">' +
+                    '<div><strong>' + data.slots.length + ' opção(ões)</strong>' +
+                    '<span>' + checked + ' profissional(is) consultado(s)</span></div>' +
+                '</div>' +
+                '<div class="ea-slot-results-list">' +
+                data.slots.map((slot, index) =>
+                    '<button type="button" class="ea-slot-option" ' +
+                    'onclick="useBestSlot(' +
+                        JSON.stringify(slot.start).replace(/"/g, '&quot;') + ',' +
+                        Number(slot.professional_id) + ',' +
+                        Number(slot.service_id) +
+                    ')">' +
+                        '<span class="ea-slot-option-date">' +
+                            '<strong>' + escapeHtml(slot.time_label || '') + '</strong>' +
+                            '<small>' + escapeHtml(slot.day_label || slot.label || '') + '</small>' +
+                        '</span>' +
+                        '<span class="ea-slot-option-main">' +
+                            '<strong>' + escapeHtml(slot.professional_name || 'Profissional') + '</strong>' +
+                            '<small>' + escapeHtml(slot.service_name || '') +
+                                ' · ' + Number(slot.duration_minutes || 0) + ' min</small>' +
+                        '</span>' +
+                        '<span class="ea-slot-option-action">' +
+                            (index === 0 ? '<em>Mais próximo</em>' : '') +
+                            '<i class="bi bi-arrow-right"></i>' +
+                        '</span>' +
+                    '</button>'
+                ).join('') +
+                '</div>';
 
         } catch (error) {
-            results.innerHTML = '<div class="alert alert-danger mb-0">' + escapeHtml(error.message) + '</div>';
+            results.innerHTML =
+                '<div class="ea-slot-empty is-danger">' +
+                    '<span class="ea-slot-empty-icon"><i class="bi bi-exclamation-triangle"></i></span>' +
+                    '<strong>Não foi possível buscar horários</strong>' +
+                    '<span>' + escapeHtml(error.message) + '</span>' +
+                '</div>';
         }
     };
 
-    window.useBestSlot = function(start) {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('bestSlotModal'));
-        modal?.hide();
+    window.useBestSlot = function(
+        start,
+        professionalId,
+        serviceId
+    ) {
+        const bestSlotElement =
+            document.getElementById('bestSlotModal');
 
-        const value = start.replace(' ', 'T').slice(0,16);
-        document.getElementById('appointmentStart').value = value;
-        document.querySelector('select[name="professional_id"]').value =
-            document.getElementById('bestSlotProfessional').value;
-        document.querySelector('select[name="service_id"]').value =
-            document.getElementById('bestSlotService').value;
+        const bestSlotModal =
+            bootstrap.Modal.getInstance(
+                bestSlotElement
+            );
 
-        const createButton = document.getElementById('newAppointmentBtn');
-        if (! createButton) return;
+        bestSlotModal?.hide();
 
-        createButton.click();
-        document.getElementById('appointmentStart').dispatchEvent(new Event('change'));
+        const appointmentModal =
+            bootstrap.Modal.getOrCreateInstance(
+                document.getElementById(
+                    'appointmentModal'
+                )
+            );
+
+        const startInput =
+            document.getElementById(
+                'appointmentStart'
+            );
+
+        const professionalInput =
+            document.querySelector(
+                '#appointmentModal select[name="professional_id"]'
+            );
+
+        const serviceInput =
+            document.querySelector(
+                '#appointmentModal select[name="service_id"]'
+            );
+
+        startInput.value =
+            String(start)
+                .replace(' ', 'T')
+                .slice(0, 16);
+
+        if (professionalInput) {
+            professionalInput.value =
+                String(professionalId);
+        }
+
+        if (serviceInput) {
+            serviceInput.value =
+                String(serviceId);
+        }
+
+        appointmentModal.show();
+
+        startInput.dispatchEvent(
+            new Event(
+                'change',
+                { bubbles: true }
+            )
+        );
+
+        professionalInput?.dispatchEvent(
+            new Event(
+                'change',
+                { bubbles: true }
+            )
+        );
+
+        serviceInput?.dispatchEvent(
+            new Event(
+                'change',
+                { bubbles: true }
+            )
+        );
     };
 
     window.openPatientContactComposer = function() {
