@@ -37,8 +37,16 @@ class RecurringAppointmentService
                 $duration = (int) DB::table('services')->where('id', $data['service_id'])->value('duration_minutes');
                 $end = $start->copy()->addMinutes(max(5, $duration));
 
-                if (! $this->availability->isAvailable($data['professional_id'], $start, $end)) {
-                    throw new RuntimeException('Conflito encontrado em '.$start->format('d/m/Y H:i').'. A série não foi criada.');
+                if (! $this->availability->isBookable(
+                    $data['professional_id'],
+                    $start,
+                    $end
+                )) {
+                    throw new RuntimeException(
+                        'O horário '
+                        .$start->format('d/m/Y H:i')
+                        .' está fora da grade configurada, em pausa/bloqueio ou já ocupado. A série não foi criada.'
+                    );
                 }
 
                 Appointment::create([
