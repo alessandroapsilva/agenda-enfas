@@ -43,7 +43,8 @@ class ConfirmationHealthCheck extends Command
 
         $this->appendAutomationConflictSnapshot(
             $rows,
-            $whatsAppPolicy
+            $whatsAppPolicy,
+            $critical
         );
 
         $this->checkVoiceRoutes(
@@ -193,7 +194,8 @@ class ConfirmationHealthCheck extends Command
 
     private function appendAutomationConflictSnapshot(
         array &$rows,
-        WhatsAppDispatchPolicy $policy
+        WhatsAppDispatchPolicy $policy,
+        int &$critical
     ): void {
         if (! Schema::hasTable('wa_automations')
             || ! Schema::hasTable('wa_templates')) {
@@ -287,17 +289,24 @@ class ConfirmationHealthCheck extends Command
             $canonicalRules->push($row);
         }
 
+        $problemCount =
+            $invalid + $duplicates;
+
         $rows[] = [
             'WhatsApp',
             'Regras redundantes',
-            ($invalid + $duplicates) > 0
-                ? 'ATENCAO'
+            $problemCount > 0
+                ? 'ERRO'
                 : 'OK',
             $invalid
                 .' invalida(s) · '
                 .$duplicates
                 .' redundante(s)',
         ];
+
+        if ($problemCount > 0) {
+            $critical += $problemCount;
+        }
     }
 
     private function checkVoiceRoutes(
