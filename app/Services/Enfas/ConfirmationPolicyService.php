@@ -9,6 +9,17 @@ class ConfirmationPolicyService
 {
     public function voiceFallbackEnabled(): bool
     {
+        $confirmationEnabled =
+            (bool) AppSetting::getValue(
+                'agenda',
+                'confirmation_enabled',
+                true
+            );
+
+        if (! $confirmationEnabled) {
+            return false;
+        }
+
         return (bool) AppSetting::getValue(
             'confirmation',
             'voice_fallback_enabled',
