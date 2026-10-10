@@ -76,6 +76,58 @@ class WhatsAppDispatchPolicyTest extends TestCase
         );
     }
 
+    public function test_confirmation_rules_conflict_even_with_different_triggers(): void
+    {
+        $policy = app(
+            WhatsAppDispatchPolicy::class
+        );
+
+        $created = $policy->automationCoreKey(
+            'confirmation',
+            'appointment_created',
+            0
+        );
+
+        $before = $policy->automationCoreKey(
+            'confirmation',
+            'appointment_before',
+            120
+        );
+
+        $this->assertSame(
+            $created,
+            $before
+        );
+    }
+
+    public function test_global_rule_overlaps_service_specific_rule(): void
+    {
+        $policy = app(
+            WhatsAppDispatchPolicy::class
+        );
+
+        $this->assertTrue(
+            $policy->automationScopesOverlap(
+                null,
+                10
+            )
+        );
+
+        $this->assertTrue(
+            $policy->automationScopesOverlap(
+                10,
+                10
+            )
+        );
+
+        $this->assertFalse(
+            $policy->automationScopesOverlap(
+                10,
+                20
+            )
+        );
+    }
+
     public function test_reminder_window_is_narrow_and_offset_specific(): void
     {
         Carbon::setTestNow(
