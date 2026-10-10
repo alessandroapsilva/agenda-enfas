@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 /* ENFAS Agenda V11.1 */
 require __DIR__.'/enfas-v11-ui.php';
 require __DIR__.'/enfas-voice.php';
+require __DIR__.'/enfas-relationship.php';
 
 
 /*
