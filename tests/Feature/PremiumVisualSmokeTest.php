@@ -47,4 +47,31 @@ class PremiumVisualSmokeTest extends TestCase
                 ->assertSuccessful();
         }
     }
+    public function test_agenda_and_message_studio_expose_the_new_product_workflows(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin.product',
+            'role' => 'admin',
+            'is_active' => true,
+            'force_password_change' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('agenda.index'))
+            ->assertSuccessful()
+            ->assertSee('Encontrar horário')
+            ->assertSee('Buscar disponibilidade');
+
+        $this->actingAs($admin)
+            ->get(route('v9.templates.index'))
+            ->assertSuccessful()
+            ->assertSee('Modelos de mensagem')
+            ->assertSee('Novo modelo');
+
+        $this->actingAs($admin)
+            ->get(route('enfas.branding'))
+            ->assertSuccessful()
+            ->assertSee('cabeçalho oficial');
+    }
+
 }
