@@ -810,21 +810,38 @@
                     <button type="button" class="btn-close" onclick="closePatientContactComposer()"></button>
                 </div>
 
-                <div class="mb-2">
-                    <select id="patientContactPreset" class="form-select form-select-sm" onchange="applyPatientContactPreset()">
-                        <option value="">Mensagem personalizada</option>
-                        <option value="confirmation">Confirmar informações do agendamento</option>
-                        <option value="orientation">Enviar orientações</option>
-                        <option value="delay">Avisar atraso</option>
-                        <option value="callback">Solicitar retorno</option>
-                    </select>
+                <div class="row g-2 mb-2">
+                    <div class="col-sm-4">
+                        <label class="form-label mb-1">Canal</label>
+                        <select
+                            id="patientContactChannel"
+                            class="form-select form-select-sm"
+                            onchange="syncPatientContactChannel()"
+                        >
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">E-mail</option>
+                            <option value="sms">SMS</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-8">
+                        <label class="form-label mb-1">Mensagem pronta</label>
+                        <select id="patientContactPreset" class="form-select form-select-sm" onchange="applyPatientContactPreset()">
+                            <option value="">Mensagem personalizada</option>
+                            <option value="confirmation">Confirmar informações do agendamento</option>
+                            <option value="orientation">Enviar orientações</option>
+                            <option value="delay">Avisar atraso</option>
+                            <option value="callback">Solicitar retorno</option>
+                        </select>
+                    </div>
                 </div>
 
                 <textarea id="patientContactMessage" class="form-control" rows="5" maxlength="4000" placeholder="Digite a mensagem para o paciente..."></textarea>
 
                 <div class="d-flex justify-content-end mt-2">
                     <button id="patientContactSendBtn" type="button" class="btn btn-success btn-sm" onclick="sendPatientContact()">
-                        <i class="bi bi-whatsapp me-1"></i>Enviar pelo WhatsApp
+                        <i class="bi bi-whatsapp me-1"></i>
+                        <span>Enviar pelo WhatsApp</span>
                     </button>
                 </div>
             </div>
@@ -1616,9 +1633,28 @@ document.addEventListener('DOMContentLoaded', function () {
                             ? 'Enviado'
                             : 'Recebido';
 
+                    const channelLabels = {
+                        whatsapp: 'WhatsApp',
+                        email: 'E-mail',
+                        sms: 'SMS'
+                    };
+
+                    const channelIcons = {
+                        whatsapp: 'bi-whatsapp',
+                        email: 'bi-envelope',
+                        sms: 'bi-chat-left-text'
+                    };
+
+                    const channel =
+                        message.channel || 'whatsapp';
+
                     wrapper.innerHTML =
                         '<div class="d-flex justify-content-between gap-3">' +
-                            '<strong class="small">' + escapeHtml(direction) + '</strong>' +
+                            '<strong class="small">' +
+                                '<i class="bi ' + (channelIcons[channel] || 'bi-chat-dots') + ' me-1"></i>' +
+                                escapeHtml(channelLabels[channel] || channel) +
+                                ' · ' + escapeHtml(direction) +
+                            '</strong>' +
                             '<span class="badge text-bg-light border">' + escapeHtml(message.status || '-') + '</span>' +
                         '</div>' +
                         '<div class="small mt-2">' + escapeHtml(message.body || '') + '</div>' +
@@ -2133,6 +2169,60 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('patientContactMessage').focus();
     };
 
+    window.syncPatientContactChannel = function() {
+        const channel =
+            document.getElementById(
+                'patientContactChannel'
+            )?.value || 'whatsapp';
+
+        const button =
+            document.getElementById(
+                'patientContactSendBtn'
+            );
+
+        if (! button) {
+            return;
+        }
+
+        const config = {
+            whatsapp: {
+                icon: 'bi-whatsapp',
+                label: 'Enviar pelo WhatsApp',
+                className: 'btn-success'
+            },
+            email: {
+                icon: 'bi-envelope',
+                label: 'Enviar por e-mail',
+                className: 'btn-primary'
+            },
+            sms: {
+                icon: 'bi-chat-left-text',
+                label: 'Enviar por SMS',
+                className: 'btn-primary'
+            }
+        };
+
+        const selected =
+            config[channel]
+            || config.whatsapp;
+
+        button.classList.remove(
+            'btn-success',
+            'btn-primary'
+        );
+
+        button.classList.add(
+            selected.className
+        );
+
+        button.innerHTML =
+            '<i class="bi '
+            + selected.icon
+            + ' me-1"></i><span>'
+            + selected.label
+            + '</span>';
+    };
+
     window.closePatientContactComposer = function() {
         document.getElementById('patientContactComposer').classList.add('d-none');
     };
@@ -2167,6 +2257,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const textarea = document.getElementById('patientContactMessage');
         const button = document.getElementById('patientContactSendBtn');
+        const channel =
+            document.getElementById(
+                'patientContactChannel'
+            )?.value || 'whatsapp';
         const message = textarea.value.trim();
 
         if (! message) {
@@ -2189,7 +2283,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'X-CSRF-TOKEN': csrf
                     },
                     body: JSON.stringify({
-                        channel: 'whatsapp',
+                        channel: channel,
                         message: message
                     })
                 }
@@ -2208,6 +2302,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             textarea.value = '';
             document.getElementById('patientContactPreset').value = '';
+            document.getElementById('patientContactChannel').value = 'whatsapp';
+            syncPatientContactChannel();
             closePatientContactComposer();
             await loadAppointment(window.currentAppointmentId);
 
