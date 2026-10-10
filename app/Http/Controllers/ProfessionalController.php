@@ -94,6 +94,67 @@ class ProfessionalController extends Controller
             'availability.*.break_end' => ['nullable', 'date_format:H:i'],
         ])['availability'] ?? [];
 
+        foreach ($rows as $day => $row) {
+            if (empty($row['enabled'])) {
+                continue;
+            }
+
+            $day = (int) $day;
+
+            if ($day < 0 || $day > 6) {
+                throw ValidationException::withMessages([
+                    'availability' =>
+                        'Dia da semana inválido.',
+                ]);
+            }
+
+            $start =
+                ($row['start_time'] ?? null)
+                ?: $professional->work_start;
+
+            $end =
+                ($row['end_time'] ?? null)
+                ?: $professional->work_end;
+
+            if ($end <= $start) {
+                throw ValidationException::withMessages([
+                    'availability.'.$day.'.end_time' =>
+                        'O fim da jornada deve ser depois do início.',
+                ]);
+            }
+
+            $breakStart =
+                ($row['break_start'] ?? null)
+                ?: null;
+
+            $breakEnd =
+                ($row['break_end'] ?? null)
+                ?: null;
+
+            if (
+                ($breakStart && ! $breakEnd)
+                || (! $breakStart && $breakEnd)
+            ) {
+                throw ValidationException::withMessages([
+                    'availability.'.$day.'.break_start' =>
+                        'Informe início e fim da pausa.',
+                ]);
+            }
+
+            if ($breakStart && $breakEnd) {
+                if (
+                    $breakEnd <= $breakStart
+                    || $breakStart < $start
+                    || $breakEnd > $end
+                ) {
+                    throw ValidationException::withMessages([
+                        'availability.'.$day.'.break_start' =>
+                            'A pausa precisa ficar dentro da jornada e terminar depois de iniciar.',
+                    ]);
+                }
+            }
+        }
+
         DB::transaction(function () use ($professional, $rows) {
             DB::table('professional_availabilities')
                 ->where('professional_id', $professional->id)
