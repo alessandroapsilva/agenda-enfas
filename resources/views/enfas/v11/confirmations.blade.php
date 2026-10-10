@@ -328,7 +328,7 @@
                 <i class="bi bi-telephone-x"></i>
                 <div>
                     <strong>{{ $risk['without_phone'] }}</strong>
-                    <span>sem telefone válido</span>
+                    <span>sem telefone cadastrado</span>
                 </div>
             </div>
         </div>
