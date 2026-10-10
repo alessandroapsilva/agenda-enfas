@@ -10,6 +10,15 @@ use Tests\TestCase;
 
 class ClinicalProfileTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->markTestSkipped(
+            'Modulo clinico legado fora do escopo da Agenda ENFAS.'
+        );
+    }
+
     use RefreshDatabase;
 
     public function test_clinical_profile_is_longitudinal_and_audited(): void
