@@ -42,7 +42,11 @@ class PatientController extends Controller
         abort_unless($access->canViewPatient($request->user(), $patient), 403);
         $patient->load([
             'appointments' => fn ($query) => $query
-                ->with(['professional', 'service', 'clinicalRecord'])
+                ->with([
+                    'professional',
+                    'service',
+                    'location',
+                ])
                 ->orderByDesc('start_at')
                 ->limit(20),
             'messages' => fn ($query) => $query
