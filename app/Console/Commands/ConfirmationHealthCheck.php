@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\Enfas\ConfirmationPolicyService;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,8 @@ class ConfirmationHealthCheck extends Command
         'Valida a saude operacional da central de confirmacoes';
 
     public function handle(
-        ConfirmationPolicyService $policy
+        ConfirmationPolicyService $policy,
+        WhatsAppDispatchPolicy $whatsAppPolicy
     ): int
     {
         $rows = [];
@@ -40,7 +42,8 @@ class ConfirmationHealthCheck extends Command
         );
 
         $this->appendAutomationConflictSnapshot(
-            $rows
+            $rows,
+            $whatsAppPolicy
         );
 
         $this->checkVoiceRoutes(
@@ -189,7 +192,8 @@ class ConfirmationHealthCheck extends Command
     }
 
     private function appendAutomationConflictSnapshot(
-        array &$rows
+        array &$rows,
+        WhatsAppDispatchPolicy $policy
     ): void {
         if (! Schema::hasTable('wa_automations')
             || ! Schema::hasTable('wa_templates')) {
@@ -209,6 +213,9 @@ class ConfirmationHealthCheck extends Command
                 'a.is_active',
                 true
             )
+            ->orderBy(
+                'a.id'
+            )
             ->get([
                 'a.id',
                 'a.trigger_event',
@@ -221,53 +228,75 @@ class ConfirmationHealthCheck extends Command
                 't.archived_at',
             ]);
 
-        $invalid = $active->filter(
+        $valid = $active->filter(
             fn ($row) =>
-                ! $row->template_id
-                || $row->template_status !== 'APPROVED'
-                || ! (bool) $row->template_active
-                || $row->archived_at !== null
-        )->count();
+                $row->template_id
+                && $row->template_status === 'APPROVED'
+                && (bool) $row->template_active
+                && $row->archived_at === null
+        );
 
-        $duplicateGroups = $active
-            ->filter(
-                fn ($row) =>
-                    $row->template_id
-                    && $row->template_status === 'APPROVED'
-                    && (bool) $row->template_active
-                    && $row->archived_at === null
-            )
-            ->groupBy(
-                fn ($row) =>
-                    $row->trigger_event
-                    .'|'
-                    .(int) $row->offset_minutes
-                    .'|'
-                    .($row->service_id ?: 0)
-                    .'|'
-                    .strtolower(
-                        (string) (
-                            $row->purpose
-                            ?: 'general'
-                        )
-                    )
-            )
-            ->filter(
-                fn ($group) =>
-                    $group->count() > 1
-            )
-            ->count();
+        $invalid =
+            $active->count()
+            - $valid->count();
+
+        $canonicalRules = collect();
+        $duplicates = 0;
+
+        foreach (
+            $valid->sortBy('id')
+            as $row
+        ) {
+            $core = $policy
+                ->automationCoreKey(
+                    (string) (
+                        $row->purpose
+                        ?: 'general'
+                    ),
+                    (string) $row->trigger_event,
+                    (int) $row->offset_minutes
+                );
+
+            $overlap = $canonicalRules
+                ->contains(
+                    function ($candidate) use (
+                        $policy,
+                        $core,
+                        $row
+                    ) {
+                        return $candidate->core
+                            === $core
+                            && $policy
+                                ->automationScopesOverlap(
+                                    $candidate->service_id
+                                        ? (int) $candidate->service_id
+                                        : null,
+                                    $row->service_id
+                                        ? (int) $row->service_id
+                                        : null
+                                );
+                    }
+                );
+
+            if ($overlap) {
+                $duplicates++;
+                continue;
+            }
+
+            $row->core = $core;
+            $canonicalRules->push($row);
+        }
 
         $rows[] = [
             'WhatsApp',
             'Regras redundantes',
-            ($invalid + $duplicateGroups) > 0
+            ($invalid + $duplicates) > 0
                 ? 'ATENCAO'
                 : 'OK',
             $invalid
                 .' invalida(s) · '
-                .$duplicateGroups
-                .' grupo(s) duplicado(s)',
+                .$duplicates
+                .' redundante(s)',
         ];
     }
 
