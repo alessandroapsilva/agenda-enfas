@@ -301,7 +301,7 @@
                                 <strong>
                                     {{
                                         $row->patient_name
-                                        ?: 'Paciente sem nome'
+                                        ?: 'Paciente não identificado'
                                     }}
                                 </strong>
 
@@ -323,7 +323,7 @@
                             <strong>
                                 {{
                                     $row->service_name
-                                    ?: 'Atendimento'
+                                    ?: 'Serviço não informado'
                                 }}
                             </strong>
 
