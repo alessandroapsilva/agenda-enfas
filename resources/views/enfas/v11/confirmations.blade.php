@@ -127,8 +127,8 @@
     $voiceTone = $voice['enabled']
         ? (
             $voiceReady
-                ? 'success'
-                : 'danger'
+                ? 'confirmed'
+                : 'failed'
         )
         : 'neutral';
 @endphp
