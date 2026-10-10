@@ -4016,3 +4016,1146 @@ body.enfas-shell,
         flex-direction:column;
     }
 }
+
+
+/* =========================================================
+   ENFAS AGENDA — SAAS PREMIUM FOUNDATION
+   ========================================================= */
+
+:root{
+    --ea-surface:#ffffff;
+    --ea-surface-soft:#f8fafc;
+    --ea-surface-muted:#f1f5f9;
+    --ea-border:#e5eaf1;
+    --ea-border-strong:#d7dee8;
+    --ea-text:#172033;
+    --ea-text-soft:#5f6b7c;
+    --ea-text-muted:#8a96a8;
+    --ea-blue:#3568e8;
+    --ea-blue-soft:#edf3ff;
+    --ea-green:#21845a;
+    --ea-green-soft:#eaf8f1;
+    --ea-amber:#a56a00;
+    --ea-amber-soft:#fff6de;
+    --ea-red:#b94242;
+    --ea-red-soft:#fff0f0;
+    --ea-shadow-soft:0 1px 2px rgba(15,23,42,.03),0 10px 28px rgba(15,23,42,.055);
+    --ea-shadow-hover:0 14px 34px rgba(15,23,42,.09);
+}
+
+.enfas-shell .app-main{
+    background:
+        radial-gradient(circle at 90% 0,rgba(53,104,232,.045),transparent 26rem),
+        #f6f8fb;
+}
+
+.enfas-shell .app-header{
+    min-height:64px;
+    border-bottom:1px solid var(--ea-border)!important;
+    background:rgba(255,255,255,.88)!important;
+    box-shadow:none!important;
+    backdrop-filter:blur(18px);
+}
+
+.enfas-shell .app-sidebar{
+    border-right:1px solid rgba(255,255,255,.04);
+    box-shadow:none!important;
+}
+
+.enfas-shell .sidebar-brand{
+    min-height:64px;
+    display:flex;
+    align-items:center;
+}
+
+.enfas-shell .brand-link{
+    display:flex;
+    align-items:center;
+    gap:.65rem;
+    padding:.8rem 1rem;
+}
+
+.enfas-shell .sidebar-menu .nav-header{
+    margin-top:1.05rem;
+    padding:.35rem 1rem .3rem;
+    color:#728097!important;
+    font-size:.58rem;
+    font-weight:850;
+    letter-spacing:.13em;
+}
+
+.enfas-shell .sidebar-menu .nav-link{
+    min-height:40px;
+    margin:2px 8px;
+    padding:.58rem .72rem;
+    border-radius:9px;
+    color:#b8c2d1;
+    font-size:.78rem;
+    font-weight:680;
+}
+
+.enfas-shell .sidebar-menu .nav-link.active{
+    background:rgba(77,125,239,.15)!important;
+    color:#fff!important;
+    box-shadow:inset 0 0 0 1px rgba(100,146,255,.14)!important;
+}
+
+.enfas-shell .sidebar-menu .nav-link.active .nav-icon{
+    color:#80a8ff;
+}
+
+.enfas-shell .sidebar-menu .nav-link:hover{
+    background:rgba(255,255,255,.05);
+}
+
+.enfas-shell .app-content-header{
+    padding:26px 30px 12px;
+}
+
+.enfas-shell .app-content{
+    padding:0 30px 34px;
+}
+
+.ea-pagehead{
+    align-items:center;
+    margin-bottom:.2rem;
+}
+
+.ea-page-kicker{
+    margin-bottom:.34rem;
+    color:#6389e8;
+    font-size:.61rem;
+    font-weight:850;
+    letter-spacing:.14em;
+}
+
+.ea-page-title{
+    color:var(--ea-text);
+    font-size:clamp(1.75rem,2vw,2.25rem);
+    font-weight:820;
+    letter-spacing:-.055em;
+}
+
+.ea-page-subtitle{
+    margin-top:.38rem;
+    color:var(--ea-text-muted);
+    font-size:.82rem;
+}
+
+.ea-pagehead-actions{
+    gap:.55rem;
+}
+
+.ea-btn-main,
+.ea-btn-secondary,
+.ea-btn-ghost{
+    min-height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.45rem;
+    padding:.58rem .86rem;
+    border-radius:9px;
+    font-size:.72rem;
+    font-weight:780;
+    line-height:1;
+    text-decoration:none!important;
+    transition:all .16s ease;
+}
+
+.ea-btn-main{
+    border:1px solid #3568e8;
+    background:#3568e8;
+    color:#fff!important;
+    box-shadow:0 7px 18px rgba(53,104,232,.18);
+}
+
+.ea-btn-main:hover{
+    background:#2c5dd8;
+    border-color:#2c5dd8;
+    transform:translateY(-1px);
+}
+
+.ea-btn-secondary{
+    border:1px solid var(--ea-border-strong);
+    background:var(--ea-surface);
+    color:#39475b!important;
+}
+
+.ea-btn-secondary:hover{
+    border-color:#c5cedb;
+    background:#fbfcfe;
+    color:#1f2937!important;
+}
+
+.ea-btn-ghost{
+    min-height:34px;
+    padding:.48rem .62rem;
+    border:1px solid transparent;
+    background:transparent;
+    color:#5e6b7c!important;
+}
+
+.ea-btn-ghost:hover{
+    border-color:var(--ea-border);
+    background:var(--ea-surface-soft);
+    color:#243147!important;
+}
+
+.ea-flash{
+    display:flex;
+    align-items:center;
+    gap:.55rem;
+    margin-bottom:.85rem;
+    padding:.72rem .82rem;
+    border:1px solid #caebda;
+    border-radius:10px;
+    background:#f2fbf6;
+    color:#27734f;
+    font-size:.72rem;
+    font-weight:700;
+}
+
+/* Hero */
+
+.ea-today-hero{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 260px;
+    gap:1rem;
+    align-items:center;
+    margin-bottom:.9rem;
+    padding:1rem 1.05rem;
+    border:1px solid var(--ea-border);
+    border-radius:15px;
+    background:
+        linear-gradient(135deg,rgba(255,255,255,.98),rgba(248,251,255,.98));
+    box-shadow:var(--ea-shadow-soft);
+}
+
+.ea-today-hero-copy{
+    min-width:0;
+}
+
+.ea-today-date{
+    display:flex;
+    align-items:center;
+    gap:.72rem;
+}
+
+.ea-today-date-icon{
+    width:42px;
+    height:42px;
+    flex:0 0 42px;
+    display:grid;
+    place-items:center;
+    border-radius:11px;
+    background:var(--ea-blue-soft);
+    color:var(--ea-blue);
+    font-size:1rem;
+}
+
+.ea-today-date span:not(.ea-today-date-icon){
+    display:block;
+    color:var(--ea-text-muted);
+    font-size:.63rem;
+    font-weight:760;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+}
+
+.ea-today-date strong{
+    display:block;
+    margin-top:.14rem;
+    color:var(--ea-text);
+    font-size:.96rem;
+    font-weight:820;
+    letter-spacing:-.02em;
+}
+
+.ea-today-summary{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.42rem 1rem;
+    margin-top:.72rem;
+    color:var(--ea-text-soft);
+    font-size:.65rem;
+}
+
+.ea-today-summary span{
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+}
+
+.ea-today-summary i{
+    color:#6b7a8e;
+}
+
+.ea-today-summary .is-success{
+    color:#2b9568;
+    font-size:.45rem;
+}
+
+.ea-today-progress{
+    padding:.85rem .9rem;
+    border:1px solid var(--ea-border);
+    border-radius:11px;
+    background:var(--ea-surface);
+}
+
+.ea-today-progress-copy{
+    display:flex;
+    justify-content:space-between;
+    gap:.8rem;
+    color:var(--ea-text-muted);
+    font-size:.65rem;
+}
+
+.ea-today-progress-copy strong{
+    color:var(--ea-text);
+    font-size:.78rem;
+    font-weight:850;
+}
+
+.ea-progress-track{
+    height:7px;
+    overflow:hidden;
+    margin-top:.55rem;
+    border-radius:999px;
+    background:#edf1f6;
+}
+
+.ea-progress-track span{
+    display:block;
+    height:100%;
+    border-radius:inherit;
+    background:linear-gradient(90deg,#3568e8,#6f93ed);
+}
+
+/* KPI */
+
+.ea-today-kpis{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:.78rem;
+    margin-bottom:.9rem;
+}
+
+.ea-kpi-card{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:.82rem;
+    padding:.9rem .92rem;
+    border:1px solid var(--ea-border);
+    border-radius:14px;
+    background:var(--ea-surface);
+    box-shadow:0 1px 2px rgba(15,23,42,.02);
+    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+
+.ea-kpi-card:hover{
+    transform:translateY(-1px);
+    border-color:#d9e1eb;
+    box-shadow:var(--ea-shadow-soft);
+}
+
+.ea-kpi-icon{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    font-size:.92rem;
+}
+
+.ea-kpi-icon.is-blue{
+    background:var(--ea-blue-soft);
+    color:var(--ea-blue);
+}
+
+.ea-kpi-icon.is-amber{
+    background:var(--ea-amber-soft);
+    color:var(--ea-amber);
+}
+
+.ea-kpi-icon.is-green{
+    background:var(--ea-green-soft);
+    color:var(--ea-green);
+}
+
+.ea-kpi-icon.is-red{
+    background:var(--ea-red-soft);
+    color:var(--ea-red);
+}
+
+.ea-kpi-copy{
+    min-width:0;
+}
+
+.ea-kpi-copy>span{
+    display:block;
+    color:var(--ea-text-muted);
+    font-size:.62rem;
+    font-weight:740;
+}
+
+.ea-kpi-copy>strong{
+    display:block;
+    margin-top:.08rem;
+    color:var(--ea-text);
+    font-size:1.35rem;
+    font-weight:860;
+    line-height:1;
+    letter-spacing:-.045em;
+}
+
+.ea-kpi-copy>small{
+    display:block;
+    overflow:hidden;
+    margin-top:.22rem;
+    color:#9aa5b5;
+    font-size:.58rem;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* Dashboard layout */
+
+.ea-today-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 310px;
+    gap:.9rem;
+    align-items:start;
+}
+
+.ea-saas-card{
+    overflow:hidden;
+    border:1px solid var(--ea-border);
+    border-radius:15px;
+    background:var(--ea-surface);
+    box-shadow:var(--ea-shadow-soft);
+}
+
+.ea-saas-card.is-danger-soft{
+    border-color:#efd9d9;
+    background:linear-gradient(180deg,#fff,#fffafa);
+}
+
+.ea-saas-card-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:1rem;
+    padding:1rem 1.05rem .9rem;
+    border-bottom:1px solid #edf1f5;
+}
+
+.ea-saas-card-head.is-compact{
+    align-items:center;
+    padding:.9rem .95rem .78rem;
+}
+
+.ea-saas-card-head h2{
+    margin:0;
+    color:var(--ea-text);
+    font-size:.88rem;
+    font-weight:820;
+    letter-spacing:-.02em;
+}
+
+.ea-saas-card-head p{
+    margin:.26rem 0 0;
+    color:var(--ea-text-muted);
+    font-size:.64rem;
+    line-height:1.4;
+}
+
+.ea-section-kicker{
+    display:block;
+    margin-bottom:.2rem;
+    color:#7d8ca0;
+    font-size:.56rem;
+    font-weight:850;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+}
+
+/* Appointment list */
+
+.ea-appointment-list{
+    display:flex;
+    flex-direction:column;
+}
+
+.ea-appointment-row{
+    display:grid;
+    grid-template-columns:88px minmax(165px,1.15fr) minmax(180px,1.2fr) 150px auto;
+    gap:.9rem;
+    align-items:center;
+    min-height:78px;
+    padding:.78rem 1rem;
+    border-bottom:1px solid #edf1f5;
+    transition:background .14s ease;
+}
+
+.ea-appointment-row:last-child{
+    border-bottom:0;
+}
+
+.ea-appointment-row:hover{
+    background:#fafcff;
+}
+
+.ea-appointment-time{
+    display:flex;
+    flex-direction:column;
+}
+
+.ea-appointment-time strong{
+    color:#172033;
+    font-size:1.02rem;
+    font-weight:860;
+    letter-spacing:-.03em;
+}
+
+.ea-appointment-time span{
+    margin-top:.1rem;
+    color:#9aa5b5;
+    font-size:.56rem;
+    font-weight:700;
+}
+
+.ea-appointment-person{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:.62rem;
+}
+
+.ea-avatar{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:#edf3ff;
+    color:#3568e8;
+    font-size:.72rem;
+    font-weight:850;
+}
+
+.ea-appointment-person>div:last-child,
+.ea-appointment-service{
+    min-width:0;
+}
+
+.ea-appointment-person strong,
+.ea-appointment-service strong{
+    display:block;
+    overflow:hidden;
+    color:#253044;
+    font-size:.7rem;
+    font-weight:800;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.ea-appointment-person span,
+.ea-appointment-service span{
+    display:block;
+    overflow:hidden;
+    margin-top:.14rem;
+    color:#8c98a9;
+    font-size:.59rem;
+    line-height:1.3;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.ea-appointment-channel{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:.32rem;
+}
+
+.ea-status{
+    min-height:22px;
+    display:inline-flex;
+    align-items:center;
+    gap:.3rem;
+    padding:.22rem .46rem;
+    border:1px solid #e4e9f0;
+    border-radius:999px;
+    background:#f8fafc;
+    color:#657286;
+    font-size:.56rem;
+    font-weight:800;
+    line-height:1;
+    white-space:nowrap;
+}
+
+.ea-status.confirmed,
+.ea-status.read,
+.ea-status.delivered{
+    border-color:#cce9dc;
+    background:#effaf4;
+    color:#287753;
+}
+
+.ea-status.waiting,
+.ea-status.sent{
+    border-color:#eadfbf;
+    background:#fff9e9;
+    color:#8d6500;
+}
+
+.ea-status.cancelled,
+.ea-status.failed{
+    border-color:#efd2d2;
+    background:#fff3f3;
+    color:#a84444;
+}
+
+.ea-wa-mini{
+    display:inline-flex;
+    align-items:center;
+    gap:.3rem;
+    color:#8a96a8;
+    font-size:.56rem;
+    font-weight:700;
+}
+
+.ea-wa-mini.read,
+.ea-wa-mini.delivered{
+    color:#2d8059;
+}
+
+.ea-wa-mini.failed{
+    color:#b04a4a;
+}
+
+.ea-appointment-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:.35rem;
+}
+
+.ea-icon-action{
+    width:32px;
+    height:32px;
+    display:grid;
+    place-items:center;
+    border:1px solid var(--ea-border);
+    border-radius:9px;
+    background:#fff;
+    color:#6a788c!important;
+    text-decoration:none!important;
+    transition:all .14s ease;
+}
+
+.ea-icon-action:hover{
+    border-color:#cad3df;
+    background:#f8fafc;
+    color:#253044!important;
+}
+
+.ea-icon-action.is-primary{
+    border-color:#d8e3ff;
+    background:#eef4ff;
+    color:#3568e8!important;
+}
+
+.ea-icon-action.is-primary:hover{
+    border-color:#bfd0fb;
+    background:#e5eeff;
+}
+
+/* Side */
+
+.ea-today-side{
+    display:flex;
+    flex-direction:column;
+    gap:.8rem;
+}
+
+.ea-health-card{
+    background:linear-gradient(180deg,#fff,#fbfdfc);
+}
+
+.ea-health-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:#9aa6b6;
+    box-shadow:0 0 0 4px rgba(154,166,182,.1);
+}
+
+.ea-health-dot.is-online{
+    background:#2f9b6c;
+    box-shadow:0 0 0 4px rgba(47,155,108,.11);
+}
+
+.ea-health-dot.is-danger{
+    background:#c04c4c;
+    box-shadow:0 0 0 4px rgba(192,76,76,.11);
+}
+
+.ea-health-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.5rem;
+    padding:.85rem .95rem .5rem;
+}
+
+.ea-health-grid>div{
+    padding:.68rem .7rem;
+    border:1px solid #edf1f5;
+    border-radius:10px;
+    background:#fbfcfe;
+}
+
+.ea-health-grid span{
+    display:block;
+    color:#8b97a8;
+    font-size:.56rem;
+}
+
+.ea-health-grid strong{
+    display:block;
+    margin-top:.12rem;
+    color:#263246;
+    font-size:.92rem;
+    font-weight:850;
+}
+
+.ea-health-grid .is-danger{
+    border-color:#f0d7d7;
+    background:#fff8f8;
+}
+
+.ea-health-grid .is-danger strong{
+    color:#b34848;
+}
+
+.ea-inline-link{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.55rem;
+    padding:.62rem .95rem .82rem;
+    color:#5270aa!important;
+    font-size:.62rem;
+    font-weight:800;
+    text-decoration:none!important;
+}
+
+.ea-inline-link.is-danger{
+    color:#aa4d4d!important;
+}
+
+.ea-automation-summary{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.5rem;
+    padding:.85rem .95rem .45rem;
+}
+
+.ea-automation-summary>div{
+    padding:.72rem;
+    border:1px solid #edf1f5;
+    border-radius:10px;
+    background:#fbfcfe;
+}
+
+.ea-automation-summary span{
+    display:block;
+    color:#8b97a8;
+    font-size:.56rem;
+}
+
+.ea-automation-summary strong{
+    display:block;
+    margin-top:.1rem;
+    color:#263246;
+    font-size:.98rem;
+    font-weight:850;
+}
+
+.ea-system-row{
+    display:flex;
+    align-items:center;
+    gap:.62rem;
+    margin:.5rem .95rem .9rem;
+    padding:.68rem .72rem;
+    border-radius:10px;
+    background:#f7f9fc;
+}
+
+.ea-system-icon{
+    width:32px;
+    height:32px;
+    flex:0 0 32px;
+    display:grid;
+    place-items:center;
+    border-radius:9px;
+    background:#edf1f6;
+    color:#6e7b8e;
+}
+
+.ea-system-icon.is-online{
+    background:#eaf8f1;
+    color:#278258;
+}
+
+.ea-system-icon.is-danger{
+    background:#fff0f0;
+    color:#b34545;
+}
+
+.ea-system-row strong{
+    display:block;
+    color:#324056;
+    font-size:.65rem;
+    font-weight:800;
+}
+
+.ea-system-row span{
+    display:block;
+    margin-top:.12rem;
+    color:#8b97a8;
+    font-size:.56rem;
+}
+
+.ea-failure-list{
+    display:flex;
+    flex-direction:column;
+    padding:.45rem .95rem .25rem;
+}
+
+.ea-failure-item{
+    padding:.58rem 0;
+    border-bottom:1px solid #f1e3e3;
+}
+
+.ea-failure-item:last-child{
+    border-bottom:0;
+}
+
+.ea-failure-item strong{
+    display:block;
+    color:#794242;
+    font-size:.63rem;
+    font-weight:800;
+}
+
+.ea-failure-item span{
+    display:block;
+    margin-top:.12rem;
+    color:#a16b6b;
+    font-size:.56rem;
+    line-height:1.35;
+}
+
+.ea-danger-count{
+    min-width:24px;
+    height:24px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:#fff0f0;
+    color:#b34545;
+    font-size:.58rem;
+    font-weight:850;
+}
+
+.ea-premium-empty{
+    min-height:260px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:2rem;
+    text-align:center;
+}
+
+.ea-premium-empty-icon{
+    width:48px;
+    height:48px;
+    display:grid;
+    place-items:center;
+    margin-bottom:.75rem;
+    border-radius:13px;
+    background:#f0f4fb;
+    color:#6a7b92;
+    font-size:1.1rem;
+}
+
+.ea-premium-empty strong{
+    color:#2a3548;
+    font-size:.78rem;
+    font-weight:820;
+}
+
+.ea-premium-empty p{
+    margin:.25rem 0 .8rem;
+    color:#8a96a8;
+    font-size:.64rem;
+}
+
+/* Dark SaaS */
+
+[data-bs-theme="dark"]{
+    --ea-surface:#171a20;
+    --ea-surface-soft:#1c2028;
+    --ea-surface-muted:#222832;
+    --ea-border:#2b313b;
+    --ea-border-strong:#353c48;
+    --ea-text:#f1f4f8;
+    --ea-text-soft:#a9b3c1;
+    --ea-text-muted:#7f8b9b;
+    --ea-blue-soft:#1b2a4a;
+    --ea-green-soft:#173329;
+    --ea-amber-soft:#392e15;
+    --ea-red-soft:#3a2224;
+    --ea-shadow-soft:0 1px 2px rgba(0,0,0,.18),0 12px 30px rgba(0,0,0,.18);
+}
+
+[data-bs-theme="dark"] .enfas-shell .app-main{
+    background:
+        radial-gradient(circle at 90% 0,rgba(71,113,222,.055),transparent 28rem),
+        #15181d;
+}
+
+[data-bs-theme="dark"] .enfas-shell .app-header{
+    border-bottom-color:#2b3038!important;
+    background:rgba(19,21,26,.9)!important;
+}
+
+[data-bs-theme="dark"] .ea-page-title,
+[data-bs-theme="dark"] .ea-today-date strong,
+[data-bs-theme="dark"] .ea-today-progress-copy strong,
+[data-bs-theme="dark"] .ea-kpi-copy>strong,
+[data-bs-theme="dark"] .ea-saas-card-head h2,
+[data-bs-theme="dark"] .ea-appointment-time strong,
+[data-bs-theme="dark"] .ea-appointment-person strong,
+[data-bs-theme="dark"] .ea-appointment-service strong,
+[data-bs-theme="dark"] .ea-health-grid strong,
+[data-bs-theme="dark"] .ea-automation-summary strong,
+[data-bs-theme="dark"] .ea-system-row strong,
+[data-bs-theme="dark"] .ea-premium-empty strong{
+    color:var(--ea-text);
+}
+
+[data-bs-theme="dark"] .ea-today-hero{
+    border-color:var(--ea-border);
+    background:linear-gradient(135deg,#191d24,#171a20);
+}
+
+[data-bs-theme="dark"] .ea-today-progress,
+[data-bs-theme="dark"] .ea-kpi-card,
+[data-bs-theme="dark"] .ea-saas-card{
+    border-color:var(--ea-border);
+    background:var(--ea-surface);
+}
+
+[data-bs-theme="dark"] .ea-saas-card.is-danger-soft{
+    border-color:#4d2d30;
+    background:linear-gradient(180deg,#1b1a1f,#21191b);
+}
+
+[data-bs-theme="dark"] .ea-saas-card-head,
+[data-bs-theme="dark"] .ea-appointment-row{
+    border-bottom-color:#292f38;
+}
+
+[data-bs-theme="dark"] .ea-appointment-row:hover{
+    background:#1a1f27;
+}
+
+[data-bs-theme="dark"] .ea-avatar{
+    background:#1b2947;
+    color:#86a9ff;
+}
+
+[data-bs-theme="dark"] .ea-btn-secondary,
+[data-bs-theme="dark"] .ea-icon-action{
+    border-color:#343b46;
+    background:#1c2027;
+    color:#a8b3c2!important;
+}
+
+[data-bs-theme="dark"] .ea-btn-secondary:hover,
+[data-bs-theme="dark"] .ea-icon-action:hover{
+    border-color:#46505e;
+    background:#232831;
+    color:#f0f4f9!important;
+}
+
+[data-bs-theme="dark"] .ea-icon-action.is-primary{
+    border-color:#2e477d;
+    background:#1b2947;
+    color:#8cadff!important;
+}
+
+[data-bs-theme="dark"] .ea-health-grid>div,
+[data-bs-theme="dark"] .ea-automation-summary>div,
+[data-bs-theme="dark"] .ea-system-row{
+    border-color:#2b313b;
+    background:#1c2027;
+}
+
+[data-bs-theme="dark"] .ea-health-grid .is-danger{
+    border-color:#4c3033;
+    background:#251b1e;
+}
+
+[data-bs-theme="dark"] .ea-progress-track{
+    background:#2a3038;
+}
+
+[data-bs-theme="dark"] .ea-status{
+    border-color:#343b45;
+    background:#20252d;
+    color:#9ba7b6;
+}
+
+[data-bs-theme="dark"] .ea-status.confirmed,
+[data-bs-theme="dark"] .ea-status.read,
+[data-bs-theme="dark"] .ea-status.delivered{
+    border-color:#28503f;
+    background:#173027;
+    color:#7ed0a8;
+}
+
+[data-bs-theme="dark"] .ea-status.waiting,
+[data-bs-theme="dark"] .ea-status.sent{
+    border-color:#51441f;
+    background:#2e2819;
+    color:#dfc66b;
+}
+
+[data-bs-theme="dark"] .ea-status.cancelled,
+[data-bs-theme="dark"] .ea-status.failed{
+    border-color:#573235;
+    background:#2b1d20;
+    color:#e29393;
+}
+
+[data-bs-theme="dark"] .ea-health-card{
+    background:linear-gradient(180deg,#171a20,#171c1b);
+}
+
+[data-bs-theme="dark"] .ea-flash{
+    border-color:#294838;
+    background:#182820;
+    color:#83c9a5;
+}
+
+/* Responsive */
+
+@media (max-width:1199.98px){
+    .ea-today-kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .ea-today-layout{
+        grid-template-columns:1fr;
+    }
+
+    .ea-today-side{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media (max-width:991.98px){
+    .enfas-shell .app-content-header{
+        padding:22px 20px 10px;
+    }
+
+    .enfas-shell .app-content{
+        padding:0 20px 28px;
+    }
+
+    .ea-today-hero{
+        grid-template-columns:1fr;
+    }
+
+    .ea-appointment-row{
+        grid-template-columns:72px minmax(0,1fr) auto;
+    }
+
+    .ea-appointment-service{
+        grid-column:2;
+    }
+
+    .ea-appointment-channel{
+        grid-column:2;
+        flex-direction:row;
+        flex-wrap:wrap;
+    }
+
+    .ea-appointment-actions{
+        grid-column:3;
+        grid-row:1/4;
+    }
+}
+
+@media (max-width:767.98px){
+    .ea-pagehead{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:.8rem;
+    }
+
+    .ea-pagehead-actions{
+        width:100%;
+        justify-content:flex-start;
+    }
+
+    .ea-today-kpis,
+    .ea-today-side{
+        grid-template-columns:1fr;
+    }
+
+    .ea-appointment-row{
+        grid-template-columns:64px minmax(0,1fr);
+        gap:.65rem;
+        padding:.78rem .82rem;
+    }
+
+    .ea-appointment-service,
+    .ea-appointment-channel{
+        grid-column:2;
+    }
+
+    .ea-appointment-actions{
+        grid-column:1/-1;
+        grid-row:auto;
+        justify-content:flex-end;
+    }
+}
+
+@media (max-width:479.98px){
+    .enfas-shell .app-content-header{
+        padding:18px 14px 8px;
+    }
+
+    .enfas-shell .app-content{
+        padding:0 14px 22px;
+    }
+
+    .ea-btn-main,
+    .ea-btn-secondary{
+        flex:1;
+    }
+
+    .ea-today-hero{
+        padding:.85rem;
+    }
+}
