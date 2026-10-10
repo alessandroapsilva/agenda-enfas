@@ -5159,3 +5159,159 @@ body.enfas-shell,
         padding:.85rem;
     }
 }
+
+
+/* SAAS TOPBAR */
+
+.ea-topbar-shell{
+    min-height:64px;
+    padding-left:.65rem;
+    padding-right:1rem;
+}
+
+.ea-topbar-left,
+.ea-topbar-actions{
+    gap:.3rem;
+}
+
+.ea-topbar-menu,
+.ea-topbar-icon{
+    width:36px;
+    height:36px;
+    display:grid!important;
+    place-items:center;
+    border-radius:9px!important;
+    color:#667488!important;
+    text-decoration:none!important;
+    transition:background .14s ease,color .14s ease;
+}
+
+.ea-topbar-menu{
+    font-size:1.05rem;
+}
+
+.ea-topbar-icon:hover,
+.ea-topbar-menu:hover{
+    background:#f3f6fa!important;
+    color:#253044!important;
+}
+
+.ea-topbar-product{
+    align-items:center;
+    gap:.55rem;
+    margin-left:.25rem;
+    padding-left:.65rem;
+    border-left:1px solid #e8edf3;
+}
+
+.ea-topbar-product-mark{
+    width:7px;
+    height:7px;
+    flex:0 0 7px;
+    border-radius:50%;
+    background:#4c7bea;
+    box-shadow:0 0 0 4px rgba(76,123,234,.1);
+}
+
+.ea-topbar-product strong{
+    display:block;
+    color:#303b4e;
+    font-size:.69rem;
+    font-weight:820;
+    line-height:1.1;
+}
+
+.ea-topbar-product small{
+    display:block;
+    margin-top:.12rem;
+    color:#97a2b1;
+    font-size:.53rem;
+    line-height:1.1;
+}
+
+.ea-global-search{
+    min-width:220px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    padding:0 .6rem 0 .7rem;
+    border:1px solid #e4e9f0;
+    border-radius:9px;
+    background:#f8fafc;
+    color:#7a8798;
+    font-size:.64rem;
+    text-align:left;
+}
+
+.ea-global-search span{
+    flex:1;
+}
+
+.ea-global-search kbd{
+    padding:.14rem .32rem;
+    border:1px solid #dfe5ec;
+    border-radius:5px;
+    background:#fff;
+    color:#7d8897;
+    font-family:inherit;
+    font-size:.5rem;
+    font-weight:750;
+    box-shadow:none;
+}
+
+.ea-alert-badge{
+    position:absolute;
+    top:1px;
+    right:0;
+    min-width:16px;
+    height:16px;
+    display:grid;
+    place-items:center;
+    padding:0 4px;
+    border:2px solid #fff;
+    border-radius:999px;
+    background:#d85050;
+    color:#fff;
+    font-size:.48rem;
+    font-weight:850;
+}
+
+[data-bs-theme="dark"] .ea-topbar-icon,
+[data-bs-theme="dark"] .ea-topbar-menu{
+    color:#9aa6b7!important;
+}
+
+[data-bs-theme="dark"] .ea-topbar-icon:hover,
+[data-bs-theme="dark"] .ea-topbar-menu:hover{
+    background:#222730!important;
+    color:#eef3f8!important;
+}
+
+[data-bs-theme="dark"] .ea-topbar-product{
+    border-left-color:#2b3038;
+}
+
+[data-bs-theme="dark"] .ea-topbar-product strong{
+    color:#e9edf4;
+}
+
+[data-bs-theme="dark"] .ea-topbar-product small{
+    color:#7f8b9b;
+}
+
+[data-bs-theme="dark"] .ea-global-search{
+    border-color:#2d333d;
+    background:#1b1f26;
+    color:#8c98a8;
+}
+
+[data-bs-theme="dark"] .ea-global-search kbd{
+    border-color:#343b45;
+    background:#232831;
+    color:#9aa6b6;
+}
+
+[data-bs-theme="dark"] .ea-alert-badge{
+    border-color:#14171c;
+}
