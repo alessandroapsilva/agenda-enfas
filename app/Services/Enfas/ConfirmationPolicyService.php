@@ -107,27 +107,46 @@ class ConfirmationPolicyService
     public function allowsAppointment(
         object $appointment
     ): bool {
-        if (! $this->voiceFallbackEnabled()) {
+        return $this->voiceFallbackEnabled()
+            && $this->patientContactAllowed(
+                $appointment
+            )
+            && $this->matchesScope(
+                $appointment
+            )
+            && $this->hasVoiceNumber(
+                $appointment
+            );
+    }
+
+    public function patientContactAllowed(
+        object $appointment
+    ): bool {
+        if (! $this->respectConsent()) {
+            return true;
+        }
+
+        if ((bool) (
+            $appointment->do_not_contact
+            ?? false
+        )) {
             return false;
         }
 
-        if ($this->respectConsent()) {
-            if ((bool) (
-                $appointment->do_not_contact
-                ?? false
-            )) {
-                return false;
-            }
-
-            if (property_exists(
-                $appointment,
-                'contact_consent'
-            )
-                && ! (bool) $appointment->contact_consent) {
-                return false;
-            }
+        if (property_exists(
+            $appointment,
+            'contact_consent'
+        )
+            && ! (bool) $appointment->contact_consent) {
+            return false;
         }
 
+        return true;
+    }
+
+    public function matchesScope(
+        object $appointment
+    ): bool {
         $professionalIds =
             $this->professionalIds();
 
@@ -159,6 +178,25 @@ class ConfirmationPolicyService
         }
 
         return true;
+    }
+
+    public function hasVoiceNumber(
+        object $appointment
+    ): bool {
+        $digits = preg_replace(
+            '/\D+/',
+            '',
+            (string) (
+                $appointment->patient_phone
+                ?? ''
+            )
+        );
+
+        return in_array(
+            strlen($digits),
+            [10, 11, 12, 13],
+            true
+        );
     }
 
     public function isWithinCallWindow(
