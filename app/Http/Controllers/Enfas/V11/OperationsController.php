@@ -802,10 +802,7 @@ class OperationsController extends Controller
                 ->count()
             : 0;
 
-        $insights = $operations->snapshot(
-            $start,
-            $end
-        );
+        $insights = $operations->snapshot();
 
         return view(
             'enfas.v11.confirmations',
