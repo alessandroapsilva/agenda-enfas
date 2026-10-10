@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Enfas;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
+use App\Services\Enfas\ConfirmationPolicyService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
@@ -212,8 +214,58 @@ class SettingsController extends Controller
         }
     }
 
-    public function agenda()
-    {
+    public function agenda(
+        ConfirmationPolicyService $policy
+    ) {
+        $professionals = DB::table(
+            'professionals'
+        )
+            ->orderBy('name')
+            ->get([
+                'id',
+                'name',
+            ]);
+
+        $services = DB::table(
+            'services'
+        )
+            ->orderBy('name')
+            ->get([
+                'id',
+                'name',
+            ]);
+
+        $voiceSystem = [
+            'enabled' => (bool) config(
+                'services.voice.enabled',
+                false
+            ),
+            'provider' => (string) config(
+                'services.voice.provider',
+                'twilio'
+            ),
+            'configured' =>
+                filled(
+                    config(
+                        'services.voice.twilio.account_sid'
+                    )
+                )
+                && filled(
+                    config(
+                        'services.voice.twilio.auth_token'
+                    )
+                )
+                && filled(
+                    config(
+                        'services.voice.twilio.from'
+                    )
+                ),
+            'webhook_validation' => (bool) config(
+                'services.voice.twilio.validate_webhooks',
+                true
+            ),
+        ];
+
         return view(
             'enfas.admin.agenda-settings',
             [
@@ -244,6 +296,14 @@ class SettingsController extends Controller
                         'reminders_enabled',
                         true
                     ),
+                'confirmationPolicy' =>
+                    $policy->summary(),
+                'professionals' =>
+                    $professionals,
+                'services' =>
+                    $services,
+                'voiceSystem' =>
+                    $voiceSystem,
             ]
         );
     }
@@ -266,6 +326,55 @@ class SettingsController extends Controller
                 'required',
                 'date_format:H:i',
                 'after:day_start',
+            ],
+            'voice_escalation_minutes' => [
+                'required',
+                'integer',
+                'min:15',
+                'max:1440',
+            ],
+            'voice_no_whatsapp_minutes' => [
+                'required',
+                'integer',
+                'min:30',
+                'max:2880',
+            ],
+            'voice_retry_minutes' => [
+                'required',
+                'integer',
+                'min:5',
+                'max:1440',
+            ],
+            'voice_max_attempts' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:10',
+            ],
+            'voice_allowed_start' => [
+                'required',
+                'date_format:H:i',
+            ],
+            'voice_allowed_end' => [
+                'required',
+                'date_format:H:i',
+                'after:voice_allowed_start',
+            ],
+            'voice_professional_ids' => [
+                'nullable',
+                'array',
+            ],
+            'voice_professional_ids.*' => [
+                'integer',
+                'exists:professionals,id',
+            ],
+            'voice_service_ids' => [
+                'nullable',
+                'array',
+            ],
+            'voice_service_ids.*' => [
+                'integer',
+                'exists:services,id',
             ],
         ]);
 
@@ -306,9 +415,100 @@ class SettingsController extends Controller
             'boolean'
         );
 
+        AppSetting::setValue(
+            'confirmation',
+            'voice_fallback_enabled',
+            $request->boolean(
+                'voice_fallback_enabled'
+            ),
+            'boolean'
+        );
+
+        AppSetting::setValue(
+            'confirmation',
+            'human_fallback_enabled',
+            $request->boolean(
+                'human_fallback_enabled'
+            ),
+            'boolean'
+        );
+
+        AppSetting::setValue(
+            'confirmation',
+            'respect_contact_consent',
+            $request->boolean(
+                'respect_contact_consent'
+            ),
+            'boolean'
+        );
+
+        foreach ([
+            'voice_escalation_minutes',
+            'voice_no_whatsapp_minutes',
+            'voice_retry_minutes',
+            'voice_max_attempts',
+        ] as $key) {
+            AppSetting::setValue(
+                'confirmation',
+                $key,
+                (int) $data[$key],
+                'integer'
+            );
+        }
+
+        AppSetting::setValue(
+            'confirmation',
+            'voice_allowed_start',
+            $data['voice_allowed_start']
+        );
+
+        AppSetting::setValue(
+            'confirmation',
+            'voice_allowed_end',
+            $data['voice_allowed_end']
+        );
+
+        AppSetting::setValue(
+            'confirmation',
+            'voice_professional_ids',
+            implode(
+                ',',
+                collect(
+                    $data['voice_professional_ids']
+                    ?? []
+                )
+                    ->map(
+                        fn ($id) => (int) $id
+                    )
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all()
+            )
+        );
+
+        AppSetting::setValue(
+            'confirmation',
+            'voice_service_ids',
+            implode(
+                ',',
+                collect(
+                    $data['voice_service_ids']
+                    ?? []
+                )
+                    ->map(
+                        fn ($id) => (int) $id
+                    )
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all()
+            )
+        );
+
         return back()->with(
             'success',
-            'Preferências da agenda atualizadas.'
+            'Preferências da agenda e régua de confirmação atualizadas.'
         );
     }
 }
