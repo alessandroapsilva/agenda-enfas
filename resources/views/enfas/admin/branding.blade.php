@@ -49,7 +49,7 @@
         </div>
 
         <div class="small text-secondary mt-3">
-          O logo salvo será usado na sidebar e nas telas do sistema.
+          O logo salvo será usado no sistema e ficará disponível como cabeçalho oficial dos modelos de WhatsApp.
         </div>
       </div>
     </div>
@@ -92,14 +92,14 @@
           </div>
 
           <div class="col-md-9">
-            <label class="form-label">Logo</label>
+            <label class="form-label">Logo oficial</label>
             <input
               class="form-control"
               type="file"
               name="logo"
               accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
             <small class="text-secondary">
-              PNG, JPG ou WebP. Até 4 MB.
+              PNG, JPG ou WebP. Até 4 MB. Esta imagem também poderá ser usada no cabeçalho das mensagens aprovadas pela Meta.
             </small>
           </div>
 
