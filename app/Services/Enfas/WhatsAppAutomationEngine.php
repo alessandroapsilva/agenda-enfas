@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Enfas;
 
 use App\Jobs\SendAppointmentWhatsApp;
@@ -8,32 +9,113 @@ use Illuminate\Support\Facades\DB;
 
 class WhatsAppAutomationEngine
 {
-    public function trigger(string $event, int $appointmentId): void
-    {
-        $a = DB::table('appointments')->where('id',$appointmentId)->first();
-        if (! $a) return;
+    public function __construct(
+        private readonly WhatsAppDispatchPolicy $policy
+    ) {
+    }
+
+    public function trigger(
+        string $event,
+        int $appointmentId
+    ): void {
+        $appointment = DB::table(
+            'appointments'
+        )
+            ->where(
+                'id',
+                $appointmentId
+            )
+            ->first();
+
+        if (! $appointment) {
+            return;
+        }
 
         $rules = WaAutomation::with('template')
-            ->where('is_active',true)
-            ->where('trigger_event',$event)
+            ->where(
+                'is_active',
+                true
+            )
+            ->where(
+                'trigger_event',
+                $event
+            )
+            ->orderBy('id')
             ->get();
 
         foreach ($rules as $rule) {
-            if (! $rule->template || $rule->template->status !== 'APPROVED') continue;
-            if ($rule->service_id && (int)$rule->service_id !== (int)$a->service_id) continue;
+            $template = $rule->template;
 
-            $isConfirmation = $rule->template->purpose === 'confirmation';
+            if (! $template
+                || $template->status !== 'APPROVED'
+                || ! (bool) ($template->is_active ?? true)
+                || $template->archived_at !== null) {
+                continue;
+            }
 
-            $dedupe = $isConfirmation
-                ? 'auto:confirmation:event:'.$event.':appointment:'.$appointmentId
-                : ($rule->send_once
-                    ? 'auto:'.$rule->id.':appointment:'.$appointmentId
-                    : null);
+            if ($rule->service_id
+                && (int) $rule->service_id
+                    !== (int) $appointment->service_id) {
+                continue;
+            }
 
-            if ($dedupe && WaMessage::where('dedupe_key',$dedupe)->exists()) continue;
+            $purpose = (string) (
+                $template->purpose
+                ?: 'general'
+            );
+
+            if (! $this->policy
+                ->automatedMessageAllowed(
+                    $appointmentId,
+                    $purpose
+                )) {
+                continue;
+            }
+
+            $offset = (int) (
+                $rule->offset_minutes
+                ?? 0
+            );
+
+            $dedupe = $this->policy
+                ->canonicalDedupeKey(
+                    $appointment,
+                    $purpose,
+                    $event,
+                    $offset
+                );
+
+            $exact = WaMessage::query()
+                ->where(
+                    'dedupe_key',
+                    $dedupe
+                )
+                ->first();
+
+            if ($this->policy->blocksRetry(
+                $exact,
+                (int) $rule->template_id
+            )) {
+                continue;
+            }
+
+            $equivalent = $this->policy
+                ->existingEquivalentMessage(
+                    $appointment,
+                    $purpose,
+                    $event,
+                    $offset
+                );
+
+            if ($equivalent) {
+                continue;
+            }
 
             SendAppointmentWhatsApp::dispatch(
-                $appointmentId,$rule->template_id,$rule->id,$dedupe
+                $appointmentId,
+                (int) $rule->template_id,
+                (int) $rule->id,
+                $dedupe
             );
         }
     }
