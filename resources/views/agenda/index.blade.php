@@ -1877,12 +1877,7 @@ document.addEventListener('DOMContentLoaded', function () {
     )?.addEventListener(
         'submit',
         function (event) {
-            if (
-                ! document.getElementById(
-                    'recurrenceToggle'
-                )?.checked
-                && ! appointmentStartInput?.value
-            ) {
+            if (! appointmentStartInput?.value) {
                 event.preventDefault();
 
                 appointmentSlotResults.innerHTML =
@@ -2060,10 +2055,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 '#appointmentModal select[name="service_id"]'
             );
 
-        startInput.value =
+        const startValue =
             String(start)
                 .replace(' ', 'T')
                 .slice(0, 16);
+
+        if (appointmentDateInput) {
+            appointmentDateInput.value =
+                startValue.slice(0, 10);
+        }
 
         if (professionalInput) {
             professionalInput.value =
@@ -2074,6 +2074,14 @@ document.addEventListener('DOMContentLoaded', function () {
             serviceInput.value =
                 String(serviceId);
         }
+
+        const timeLabel =
+            startValue.slice(11, 16);
+
+        selectAppointmentSlot(
+            startValue,
+            timeLabel
+        );
 
         const openAppointmentModal = () => {
             appointmentModal.show();
