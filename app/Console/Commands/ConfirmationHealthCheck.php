@@ -636,29 +636,59 @@ class ConfirmationHealthCheck extends Command
     private function appendDuplicateSnapshot(
         array &$rows
     ): void {
-        if (! Schema::hasTable('wa_messages')
-            || ! Schema::hasTable('wa_templates')) {
+        if (! Schema::hasTable(
+            'wa_messages'
+        )) {
             return;
         }
 
-        $messages = DB::table('wa_messages as wm')
-            ->leftJoin(
-                'wa_templates as wt',
-                'wt.id',
-                '=',
-                'wm.template_id'
+        $since = now()->subDay();
+
+        $repeatedKeys = DB::table(
+            'wa_messages'
+        )
+            ->select(
+                'dedupe_key',
+                DB::raw(
+                    'COUNT(*) as total'
+                )
+            )
+            ->whereNotNull(
+                'dedupe_key'
             )
             ->where(
-                'wm.direction',
+                'created_at',
+                '>=',
+                $since
+            )
+            ->groupBy(
+                'dedupe_key'
+            )
+            ->havingRaw(
+                'COUNT(*) > 1'
+            )
+            ->count();
+
+        $automaticWithoutKey = DB::table(
+            'wa_messages'
+        )
+            ->where(
+                'direction',
                 'outbound'
             )
+            ->whereNotNull(
+                'automation_id'
+            )
+            ->whereNull(
+                'dedupe_key'
+            )
             ->where(
-                'wm.created_at',
+                'created_at',
                 '>=',
-                now()->subDay()
+                $since
             )
             ->whereIn(
-                'wm.status',
+                'status',
                 [
                     'queued',
                     'sending',
@@ -667,105 +697,54 @@ class ConfirmationHealthCheck extends Command
                     'read',
                 ]
             )
-            ->orderBy('wm.created_at')
-            ->get([
-                'wm.id',
-                'wm.appointment_id',
-                'wm.patient_id',
-                'wm.automation_id',
-                'wm.body',
-                'wm.created_at',
-                'wt.purpose',
-            ]);
+            ->count();
 
-        $semanticDuplicates = 0;
-
-        $messages
-            ->filter(
-                fn ($row) =>
-                    $row->automation_id
-                    && $row->appointment_id
+        $manualWithoutKey = DB::table(
+            'wa_messages'
+        )
+            ->where(
+                'direction',
+                'outbound'
             )
-            ->groupBy(
-                fn ($row) =>
-                    $row->appointment_id
-                    .'|'
-                    .($row->purpose ?: 'general')
+            ->whereNull(
+                'automation_id'
             )
-            ->each(function ($group) use (
-                &$semanticDuplicates
-            ) {
-                $previous = null;
-
-                foreach ($group as $row) {
-                    $at = \Illuminate\Support\Carbon::parse(
-                        $row->created_at
-                    );
-
-                    if ($previous
-                        && $previous->diffInMinutes(
-                            $at
-                        ) <= 10) {
-                        $semanticDuplicates++;
-                    }
-
-                    $previous = $at;
-                }
-            });
-
-        $manualDuplicates = 0;
-
-        $messages
-            ->filter(
-                fn ($row) =>
-                    ! $row->automation_id
-                    && filled($row->body)
+            ->whereNull(
+                'dedupe_key'
             )
-            ->groupBy(
-                fn ($row) =>
-                    ($row->appointment_id
-                        ?: 'patient-'.$row->patient_id)
-                    .'|'
-                    .sha1(
-                        trim(
-                            (string) $row->body
-                        )
-                    )
+            ->where(
+                'created_at',
+                '>=',
+                $since
             )
-            ->each(function ($group) use (
-                &$manualDuplicates
-            ) {
-                $previous = null;
+            ->whereIn(
+                'status',
+                [
+                    'queued',
+                    'sending',
+                    'sent',
+                    'delivered',
+                    'read',
+                ]
+            )
+            ->count();
 
-                foreach ($group as $row) {
-                    $at = \Illuminate\Support\Carbon::parse(
-                        $row->created_at
-                    );
-
-                    if ($previous
-                        && $previous->diffInMinutes(
-                            $at
-                        ) <= 2) {
-                        $manualDuplicates++;
-                    }
-
-                    $previous = $at;
-                }
-            });
-
-        $total = $semanticDuplicates
-            + $manualDuplicates;
+        $problems =
+            $repeatedKeys
+            + $automaticWithoutKey;
 
         $rows[] = [
             'WhatsApp',
-            'Duplicidade 24h',
-            $total > 0
+            'Dedupe real 24h',
+            $problems > 0
                 ? 'ATENCAO'
                 : 'OK',
-            $semanticDuplicates
-                .' automatica(s) suspeita(s) · '
-                .$manualDuplicates
-                .' manual(is) suspeita(s)',
+            $repeatedKeys
+                .' chave(s) repetida(s) · '
+                .$automaticWithoutKey
+                .' automatica(s) sem chave · '
+                .$manualWithoutKey
+                .' manual(is) legado(s) sem chave',
         ];
     }
 
