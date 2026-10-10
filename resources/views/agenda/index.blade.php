@@ -282,7 +282,10 @@
 
                             @foreach($professionals as $professional)
 
-                                <option value="{{ $professional->id }}">
+                                <option
+                                    value="{{ $professional->id }}"
+                                    data-services="{{ $professional->services->pluck('id')->implode(',') }}"
+                                >
                                     {{ $professional->name }}
                                 </option>
 
@@ -1271,16 +1274,78 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-    [
-        appointmentDateInput,
-        appointmentServiceInput,
-        appointmentProfessionalInput
-    ].forEach(field => {
-        field?.addEventListener(
-            'change',
-            window.loadAppointmentAvailability
-        );
-    });
+    const syncAppointmentProfessionalsByService = () => {
+        const serviceId =
+            appointmentServiceInput?.value || '';
+
+        if (! appointmentProfessionalInput) {
+            return;
+        }
+
+        let selectedStillValid = true;
+
+        Array.from(
+            appointmentProfessionalInput.options
+        ).forEach(option => {
+            if (! option.value) {
+                option.disabled = false;
+                option.hidden = false;
+                return;
+            }
+
+            const serviceIds =
+                String(
+                    option.dataset.services || ''
+                )
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(Boolean);
+
+            const allowed =
+                ! serviceId
+                || serviceIds.includes(
+                    String(serviceId)
+                );
+
+            option.disabled =
+                ! allowed;
+
+            option.hidden =
+                ! allowed;
+
+            if (
+                option.selected
+                && ! allowed
+            ) {
+                selectedStillValid = false;
+            }
+        });
+
+        if (! selectedStillValid) {
+            appointmentProfessionalInput.value =
+                '';
+        }
+    };
+
+    appointmentServiceInput?.addEventListener(
+        'change',
+        () => {
+            syncAppointmentProfessionalsByService();
+            window.loadAppointmentAvailability();
+        }
+    );
+
+    appointmentDateInput?.addEventListener(
+        'change',
+        window.loadAppointmentAvailability
+    );
+
+    appointmentProfessionalInput?.addEventListener(
+        'change',
+        window.loadAppointmentAvailability
+    );
+
+    syncAppointmentProfessionalsByService();
 
 
     const calendar = new FullCalendar.Calendar(
