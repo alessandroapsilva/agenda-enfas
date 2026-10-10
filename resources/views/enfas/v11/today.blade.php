@@ -66,7 +66,7 @@
         (int) $automation['active'] > 0;
 
     $dayLabel =
-        IlluminateSupportStr::ucfirst(
+        \Illuminate\Support\Str::ucfirst(
             $day->translatedFormat('l, d \d\e F')
         );
 @endphp
@@ -260,7 +260,7 @@
                             ?? ['Não enviado', 'neutral'];
 
                         $startAt =
-                            IlluminateSupportCarbon::parse(
+                            \Illuminate\Support\Carbon::parse(
                                 $row->start_at
                             );
 
@@ -286,8 +286,8 @@
                         <div class="ea-appointment-person">
                             <div class="ea-avatar">
                                 {{
-                                    IlluminateSupportStr::upper(
-                                        IlluminateSupportStr::substr(
+                                    \Illuminate\Support\Str::upper(
+                                        \Illuminate\Support\Str::substr(
                                             $row->patient_name
                                                 ?: 'P',
                                             0,
@@ -531,7 +531,7 @@
                         <span>
                             Último evento
                             {{
-                                IlluminateSupportCarbon::parse(
+                                \Illuminate\Support\Carbon::parse(
                                     $lastWebhook->received_at
                                     ?? $lastWebhook->created_at
                                 )->format('H:i:s')
@@ -581,7 +581,7 @@
 
                             <span>
                                 {{
-                                    IlluminateSupportStr::limit(
+                                    \Illuminate\Support\Str::limit(
                                         $failure->error_message
                                             ?: 'Envio não concluído.',
                                         70
