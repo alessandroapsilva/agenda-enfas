@@ -8,7 +8,6 @@ use App\Models\WaMessage;
 use App\Services\Enfas\AvailabilityService;
 use App\Services\Enfas\PatientNotificationService;
 use App\Services\Enfas\ProfessionalNotificationService;
-use App\Services\Enfas\WhatsAppAutomationEngine;
 use App\Services\Enfas\WhatsAppConversationEngine;
 use App\Services\Enfas\WaitlistService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +25,6 @@ class PremiumWhatsAppInboxTest extends TestCase
             Mockery::mock(AvailabilityService::class),
             Mockery::mock(PatientNotificationService::class),
             Mockery::mock(ProfessionalNotificationService::class),
-            Mockery::mock(WhatsAppAutomationEngine::class),
             Mockery::mock(WaitlistService::class),
         );
 
@@ -74,6 +72,127 @@ class PremiumWhatsAppInboxTest extends TestCase
         $this->assertSame(1, WaMessage::count());
         $this->assertSame(1, WaConversation::count());
         $this->assertSame(1, WaConversation::firstOrFail()->unread_count);
+    }
+
+    public function test_plain_text_opt_out_blocks_future_automatic_contact(): void
+    {
+        $patientId = DB::table('patients')->insertGetId([
+            'name' => 'Paciente Opt Out',
+            'phone' => '5511999990001',
+            'email' => null,
+            'contact_consent' => true,
+            'do_not_contact' => false,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        WaConversation::create([
+            'phone' => '5511999990001',
+            'patient_id' => $patientId,
+            'status' => 'active',
+            'mode' => 'bot',
+            'state' => 'IDLE',
+            'unread_count' => 0,
+            'last_message_at' => now(),
+        ]);
+
+        $notifications = Mockery::mock(
+            PatientNotificationService::class
+        );
+
+        $notifications
+            ->shouldReceive('contactPreferenceChanged')
+            ->once()
+            ->with(
+                $patientId,
+                '5511999990001',
+                false
+            );
+
+        $engine = new WhatsAppConversationEngine(
+            Mockery::mock(AvailabilityService::class),
+            $notifications,
+            Mockery::mock(ProfessionalNotificationService::class),
+            Mockery::mock(WaitlistService::class),
+        );
+
+        $engine->handle([
+            'id' => 'wamid.optout.1',
+            'from' => '5511999990001',
+            'type' => 'text',
+            'text' => [
+                'body' => 'PARAR',
+            ],
+        ]);
+
+        $this->assertDatabaseHas('patients', [
+            'id' => $patientId,
+            'contact_consent' => 0,
+            'do_not_contact' => 1,
+            'contact_consent_source' => 'whatsapp_opt_out',
+        ]);
+    }
+
+    public function test_plain_text_opt_in_reenables_contact(): void
+    {
+        $patientId = DB::table('patients')->insertGetId([
+            'name' => 'Paciente Opt In',
+            'phone' => '5511999990002',
+            'email' => null,
+            'contact_consent' => false,
+            'do_not_contact' => true,
+            'contact_consent_source' => 'whatsapp_opt_out',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        WaConversation::create([
+            'phone' => '5511999990002',
+            'patient_id' => $patientId,
+            'status' => 'active',
+            'mode' => 'bot',
+            'state' => 'IDLE',
+            'unread_count' => 0,
+            'last_message_at' => now(),
+        ]);
+
+        $notifications = Mockery::mock(
+            PatientNotificationService::class
+        );
+
+        $notifications
+            ->shouldReceive('contactPreferenceChanged')
+            ->once()
+            ->with(
+                $patientId,
+                '5511999990002',
+                true
+            );
+
+        $engine = new WhatsAppConversationEngine(
+            Mockery::mock(AvailabilityService::class),
+            $notifications,
+            Mockery::mock(ProfessionalNotificationService::class),
+            Mockery::mock(WaitlistService::class),
+        );
+
+        $engine->handle([
+            'id' => 'wamid.optin.1',
+            'from' => '5511999990002',
+            'type' => 'text',
+            'text' => [
+                'body' => 'ATIVAR',
+            ],
+        ]);
+
+        $this->assertDatabaseHas('patients', [
+            'id' => $patientId,
+            'contact_consent' => 1,
+            'do_not_contact' => 0,
+            'contact_consent_source' => 'whatsapp_opt_in',
+        ]);
     }
 
     public function test_admin_can_manage_conversation_context_and_follow_up_task(): void
