@@ -41,6 +41,8 @@ class WhatsAppDispatchPolicy
             )
             ->first([
                 'a.id',
+                'a.status',
+                'a.confirmation_status',
                 'p.contact_consent',
                 'p.do_not_contact',
             ]);
@@ -63,6 +65,22 @@ class WhatsAppDispatchPolicy
         );
 
         if ($purpose === 'confirmation') {
+            if (in_array(
+                (string) $row->status,
+                [
+                    'confirmed',
+                    'cancelled',
+                    'canceled',
+                    'completed',
+                    'no_show',
+                ],
+                true
+            )
+                || (string) $row->confirmation_status
+                    === 'confirmed') {
+                return false;
+            }
+
             return (bool) AppSetting::getValue(
                 'agenda',
                 'confirmation_enabled',
@@ -71,6 +89,19 @@ class WhatsAppDispatchPolicy
         }
 
         if ($purpose === 'reminder') {
+            if (in_array(
+                (string) $row->status,
+                [
+                    'cancelled',
+                    'canceled',
+                    'completed',
+                    'no_show',
+                ],
+                true
+            )) {
+                return false;
+            }
+
             return (bool) AppSetting::getValue(
                 'agenda',
                 'reminders_enabled',
