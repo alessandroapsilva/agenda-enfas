@@ -1364,7 +1364,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             selectable: @json(auth()->user()->canAccess('agenda.manage')),
 
-            editable: @json(auth()->user()->canAccess('agenda.manage')),
+            editable: false,
+
+            eventStartEditable: @json(auth()->user()->canAccess('agenda.manage')),
+
+            eventDurationEditable: false,
 
             eventInteractive: true,
 
