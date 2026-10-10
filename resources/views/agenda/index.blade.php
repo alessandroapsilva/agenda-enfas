@@ -156,7 +156,7 @@
                     </h5>
 
                     <small class="text-secondary">
-                        Atendimento interno
+                        Cadastre o paciente, serviço, profissional e horário em uma única etapa.
                     </small>
 
                 </div>
@@ -304,15 +304,15 @@
                 <hr class="my-4">
 
                 <div class="mb-3">
-                    <h6 class="fw-semibold mb-1">Tipo de agendamento</h6>
-                    <small class="text-secondary">Use retirada de medicamento quando o paciente vier apenas buscar medicação.</small>
+                    <h6 class="fw-semibold mb-1">Finalidade do agendamento</h6>
+                    <small class="text-secondary">Escolha o fluxo adequado para este horário.</small>
                 </div>
 
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Tipo</label>
                         <select name="appointment_type" id="appointmentType" class="form-select" required>
-                            <option value="care">Atendimento</option>
+                            <option value="care">Consulta / procedimento agendado</option>
                             <option value="medication_pickup">Retirada de medicamento</option>
                         </select>
                     </div>
