@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Enfas\ConfirmationPolicyService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,9 @@ class ConfirmationHealthCheck extends Command
     protected $description =
         'Valida a saude operacional da central de confirmacoes';
 
-    public function handle(): int
+    public function handle(
+        ConfirmationPolicyService $policy
+    ): int
     {
         $rows = [];
         $critical = 0;
@@ -44,6 +47,11 @@ class ConfirmationHealthCheck extends Command
         $this->checkVoiceConfiguration(
             $rows,
             $critical
+        );
+
+        $this->appendPolicySnapshot(
+            $rows,
+            $policy
         );
 
         $this->appendQueueSnapshot(
@@ -274,6 +282,89 @@ class ConfirmationHealthCheck extends Command
             'Validacao desativada',
             $critical
         );
+    }
+
+    private function appendPolicySnapshot(
+        array &$rows,
+        ConfirmationPolicyService $policy
+    ): void {
+        $summary = $policy->summary();
+
+        $rows[] = [
+            'Regua',
+            'Fallback voz',
+            $summary['voice_fallback_enabled']
+                ? 'ATIVO'
+                : 'PAUSADO',
+            'Escalada em '
+                .$summary['voice_escalation_minutes']
+                .'min · sem WhatsApp em '
+                .$summary['voice_no_whatsapp_minutes']
+                .'min',
+        ];
+
+        $rows[] = [
+            'Regua',
+            'Janela de ligacao',
+            'OK',
+            $summary['voice_allowed_start']
+                .'–'
+                .$summary['voice_allowed_end'],
+        ];
+
+        $rows[] = [
+            'Regua',
+            'Tentativas',
+            'OK',
+            'max '
+                .$summary['voice_max_attempts']
+                .' · retry '
+                .$summary['voice_retry_minutes']
+                .'min',
+        ];
+
+        $rows[] = [
+            'Regua',
+            'Consentimento',
+            $summary['respect_contact_consent']
+                ? 'OK'
+                : 'ATENCAO',
+            $summary['respect_contact_consent']
+                ? 'Consentimento e opt-out respeitados'
+                : 'Regra de consentimento desativada',
+        ];
+
+        $rows[] = [
+            'Regua',
+            'Fallback humano',
+            $summary['human_fallback_enabled']
+                ? 'ATIVO'
+                : 'PAUSADO',
+            $summary['human_fallback_enabled']
+                ? 'Tarefa operacional apos esgotamento'
+                : 'Sem criacao automatica de tarefa',
+        ];
+
+        $professionalCount = count(
+            $summary['voice_professional_ids']
+        );
+
+        $serviceCount = count(
+            $summary['voice_service_ids']
+        );
+
+        $rows[] = [
+            'Regua',
+            'Escopo',
+            'OK',
+            ($professionalCount > 0
+                ? $professionalCount.' profissional(is)'
+                : 'todos profissionais')
+            .' · '
+            .($serviceCount > 0
+                ? $serviceCount.' servico(s)'
+                : 'todos servicos'),
+        ];
     }
 
     private function appendQueueSnapshot(
