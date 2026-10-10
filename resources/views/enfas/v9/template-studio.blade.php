@@ -226,7 +226,7 @@
 
                             <p>
                                 {{
-                                    IlluminateSupportStr::limit(
+                                    \Illuminate\Support\Str::limit(
                                         trim($row->body),
                                         140
                                     )
@@ -237,7 +237,7 @@
                                 <small class="ea-template-error">
                                     <i class="bi bi-exclamation-triangle"></i>
                                     {{
-                                        IlluminateSupportStr::limit(
+                                        \Illuminate\Support\Str::limit(
                                             $row->last_error,
                                             150
                                         )
