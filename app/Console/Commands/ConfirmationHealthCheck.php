@@ -647,12 +647,6 @@ class ConfirmationHealthCheck extends Command
         $repeatedKeys = DB::table(
             'wa_messages'
         )
-            ->select(
-                'dedupe_key',
-                DB::raw(
-                    'COUNT(*) as total'
-                )
-            )
             ->whereNotNull(
                 'dedupe_key'
             )
@@ -667,6 +661,12 @@ class ConfirmationHealthCheck extends Command
             ->havingRaw(
                 'COUNT(*) > 1'
             )
+            ->get([
+                'dedupe_key',
+                DB::raw(
+                    'COUNT(*) as total'
+                ),
+            ])
             ->count();
 
         $automaticWithoutKey = DB::table(
