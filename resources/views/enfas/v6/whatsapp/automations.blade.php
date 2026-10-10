@@ -250,7 +250,13 @@ $active = $rows->where('is_active',1)->count();
                     </td>
 
                     <td>
-                        {{ $purpose }}
+                        <div class="fw-semibold">
+                            {{ $purpose }}
+                        </div>
+
+                        <div class="small text-secondary">
+                            {{ $r->template?->name ?: 'Template indisponível' }}
+                        </div>
                     </td>
 
                     <td>
@@ -415,14 +421,18 @@ $active = $rows->where('is_active',1)->count();
                         </select>
                     </div>
 
-                    <div class="col-md-6">
+                    <div
+                        class="col-md-6"
+                        data-offset-field
+                    >
                         <label class="form-label">
                             Antecedência
                         </label>
 
                         <select
                             class="form-select"
-                            name="offset_minutes">
+                            name="offset_minutes"
+                            data-offset-select>
 
                             <option value="0">
                                 No mesmo momento
@@ -473,7 +483,7 @@ $active = $rows->where('is_active',1)->count();
                                 @endphp
 
                                 <option value="{{ $template->id }}">
-                                    {{ $friendly }}
+                                    {{ $friendly }} — {{ $template->name }}
                                 </option>
 
                             @endforeach
@@ -553,6 +563,46 @@ $active = $rows->where('is_active',1)->count();
 document.addEventListener(
     'DOMContentLoaded',
     () => {
+
+        const trigger =
+            document.getElementById(
+                'ruleTrigger'
+            );
+
+        const offsetField =
+            document.querySelector(
+                '[data-offset-field]'
+            );
+
+        const offsetSelect =
+            document.querySelector(
+                '[data-offset-select]'
+            );
+
+        const syncOffset = () => {
+            const visible =
+                trigger?.value
+                === 'appointment_before';
+
+            if (offsetField) {
+                offsetField.hidden = ! visible;
+            }
+
+            if (offsetSelect) {
+                offsetSelect.disabled = ! visible;
+
+                if (! visible) {
+                    offsetSelect.value = '0';
+                }
+            }
+        };
+
+        trigger?.addEventListener(
+            'change',
+            syncOffset
+        );
+
+        syncOffset();
 
         const input =
             document.getElementById(
