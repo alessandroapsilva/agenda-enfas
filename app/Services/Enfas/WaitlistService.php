@@ -72,6 +72,21 @@ class WaitlistService
             return null;
         }
 
+        if (
+            DB::table('professional_service')
+                ->where(
+                    'professional_id',
+                    $appointment->professional_id
+                )
+                ->where(
+                    'service_id',
+                    $appointment->service_id
+                )
+                ->doesntExist()
+        ) {
+            return null;
+        }
+
         if (! $this->availability->isBookable(
             $appointment->professional_id,
             $start,
@@ -148,6 +163,23 @@ class WaitlistService
 
             $start = $entry->offered_start_at->copy();
             $end = $entry->offered_end_at->copy();
+
+            if (
+                DB::table('professional_service')
+                    ->where(
+                        'professional_id',
+                        $professionalId
+                    )
+                    ->where(
+                        'service_id',
+                        $entry->service_id
+                    )
+                    ->doesntExist()
+            ) {
+                throw new RuntimeException(
+                    'O profissional não está mais habilitado para este serviço.'
+                );
+            }
 
             if (! $this->availability->isBookable(
                 $professionalId,
