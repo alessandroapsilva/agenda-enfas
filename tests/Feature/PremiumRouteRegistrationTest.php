@@ -37,6 +37,9 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('activities.index'));
         $this->assertTrue(Route::has('activities.store'));
         $this->assertTrue(Route::has('activities.complete'));
+        $this->assertTrue(Route::has('enfas.agenda-settings'));
+        $this->assertTrue(Route::has('enfas.agenda-settings.save'));
+        $this->assertTrue(Route::has('enfas.branding'));
         $this->assertTrue(Route::has('voice.twilio.answer'));
         $this->assertTrue(Route::has('voice.twilio.gather'));
         $this->assertTrue(Route::has('voice.twilio.status'));
