@@ -23,6 +23,8 @@ class Professional extends Model
         'color',
         'is_active',
         'whatsapp_notifications_enabled',
+        'email_notifications_enabled',
+        'sms_notifications_enabled',
     ];
 
     protected function casts(): array
@@ -31,6 +33,8 @@ class Professional extends Model
             'active_days' => 'array',
             'is_active' => 'boolean',
             'whatsapp_notifications_enabled' => 'boolean',
+            'email_notifications_enabled' => 'boolean',
+            'sms_notifications_enabled' => 'boolean',
         ];
     }
 
