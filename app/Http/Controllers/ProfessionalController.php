@@ -51,6 +51,8 @@ class ProfessionalController extends Controller
             'active_days' => $data['active_days'] ?? [1,2,3,4,5],
             'is_active' => true,
             'whatsapp_notifications_enabled' => (bool) ($data['whatsapp_notifications_enabled'] ?? false),
+            'email_notifications_enabled' => (bool) ($data['email_notifications_enabled'] ?? false),
+            'sms_notifications_enabled' => (bool) ($data['sms_notifications_enabled'] ?? false),
         ]);
 
         $professional->services()->sync($data['services'] ?? []);
@@ -267,6 +269,8 @@ class ProfessionalController extends Controller
             'services' => ['nullable','array'],
             'services.*' => ['integer','exists:services,id'],
             'whatsapp_notifications_enabled' => ['nullable','boolean'],
+            'email_notifications_enabled' => ['nullable','boolean'],
+            'sms_notifications_enabled' => ['nullable','boolean'],
         ]);
     }
 }
