@@ -1,7 +1,7 @@
 @extends('enfas.layout')
 
-@section('title','Confirmações automáticas')
-@section('page_title','Confirmações automáticas')
+@section('title','Regras automáticas')
+@section('page_title','Regras automáticas')
 @section(
     'page_subtitle',
     'Escolha em que momento cada paciente deve receber uma confirmação ou lembrete.'
@@ -32,7 +32,7 @@ $purposes = [
     'post_service' => 'Após o atendimento',
     'return' => 'Lembrete de retorno',
     'medication_pickup' => 'Retirada de medicamento',
-    'general' => 'Mensagem ao paciente',
+    'general' => 'Comunicação ao paciente',
 ];
 
 $active = $rows->where('is_active',1)->count();
@@ -55,7 +55,7 @@ $active = $rows->where('is_active',1)->count();
     <div>
         <div class="ea-saas-hero__eyebrow">
             <i class="bi bi-lightning-charge"></i>
-            Confirmação automática
+            Comunicação automática
         </div>
 
         <h2>Acompanhe o paciente até o horário</h2>
@@ -132,7 +132,7 @@ $active = $rows->where('is_active',1)->count();
     <div class="ea-kpi">
         <div class="ea-kpi__top">
             <span class="ea-kpi__label">
-                Mensagens disponíveis
+                Modelos disponíveis
             </span>
 
             <span class="ea-kpi__icon">
@@ -196,7 +196,7 @@ $active = $rows->where('is_active',1)->count();
 
                 $purpose =
                     $purposes[$r->template?->purpose ?? 'general']
-                    ?? 'Mensagem ao paciente';
+                    ?? 'Comunicação ao paciente';
 
                 $timing = '';
 
@@ -255,7 +255,7 @@ $active = $rows->where('is_active',1)->count();
                         </div>
 
                         <div class="small text-secondary">
-                            {{ $r->template?->name ?: 'Template indisponível' }}
+                            {{ $r->template?->name ?: 'Modelo não disponível' }}
                         </div>
                     </td>
 
@@ -479,7 +479,7 @@ $active = $rows->where('is_active',1)->count();
                                 @php
                                 $friendly =
                                     $purposes[$template->purpose ?? 'general']
-                                    ?? 'Mensagem ao paciente';
+                                    ?? 'Comunicação ao paciente';
                                 @endphp
 
                                 <option value="{{ $template->id }}">
