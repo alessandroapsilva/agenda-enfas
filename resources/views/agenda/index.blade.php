@@ -2024,6 +2024,70 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     );
 
+    const bestSlotService =
+        document.getElementById(
+            'bestSlotService'
+        );
+
+    const bestSlotProfessional =
+        document.getElementById(
+            'bestSlotProfessional'
+        );
+
+    const syncBestSlotProfessionalsByService = () => {
+        const serviceId =
+            bestSlotService?.value || '';
+
+        if (! bestSlotProfessional) {
+            return;
+        }
+
+        Array.from(
+            bestSlotProfessional.options
+        ).forEach(option => {
+            if (! option.value) {
+                option.disabled = false;
+                option.hidden = false;
+                return;
+            }
+
+            const serviceIds =
+                String(
+                    option.dataset.services || ''
+                )
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(Boolean);
+
+            const allowed =
+                ! serviceId
+                || serviceIds.includes(
+                    String(serviceId)
+                );
+
+            option.disabled =
+                ! allowed;
+
+            option.hidden =
+                ! allowed;
+
+            if (
+                option.selected
+                && ! allowed
+            ) {
+                bestSlotProfessional.value =
+                    '';
+            }
+        });
+    };
+
+    bestSlotService?.addEventListener(
+        'change',
+        syncBestSlotProfessionalsByService
+    );
+
+    syncBestSlotProfessionalsByService();
+
     window.findBestSlots = async function() {
         const professional =
             document.getElementById('bestSlotProfessional')?.value || '';
