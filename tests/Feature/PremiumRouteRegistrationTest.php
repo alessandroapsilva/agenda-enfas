@@ -134,6 +134,21 @@ class PremiumRouteRegistrationTest extends TestCase
         $index = Route::getRoutes()->getByName('v9.templates.index');
         $store = Route::getRoutes()->getByName('v9.templates.store');
         $sync = Route::getRoutes()->getByName('v9.templates.sync');
+        $brand = Route::getRoutes()->getByName('v9.templates.brand');
+        $promote = Route::getRoutes()->getByName('v9.templates.promote');
+
+        $this->assertNotNull($brand);
+        $this->assertNotNull($promote);
+
+        $this->assertSame(
+            TemplateStudioController::class.'@brandedRevision',
+            $brand->getActionName()
+        );
+
+        $this->assertSame(
+            TemplateStudioController::class.'@promote',
+            $promote->getActionName()
+        );
 
         $this->assertSame(
             TemplateStudioController::class.'@index',
