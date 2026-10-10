@@ -133,6 +133,29 @@ class PatientNotificationService
         );
     }
 
+    public function contactPreferenceChanged(
+        int $patientId,
+        string $phone,
+        bool $enabled
+    ): void {
+        $text = $enabled
+            ? "Preferência atualizada. Você voltou a autorizar comunicações automáticas da ENFAS Agenda sobre seus agendamentos. Se quiser interromper novamente, responda PARAR."
+            : "Preferência registrada. Não enviaremos novas comunicações automáticas da ENFAS Agenda. Se quiser voltar a receber, responda ATIVAR.";
+
+        $this->meta->sendTextMessage(
+            $phone,
+            $text,
+            null,
+            $patientId,
+            'contact-preference:'
+                .($enabled ? 'on' : 'off')
+                .':'
+                .$patientId
+                .':'
+                .now()->format('YmdH')
+        );
+    }
+
     private function data(int $appointmentId): object
     {
         $q = DB::table('appointments')
