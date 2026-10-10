@@ -91,6 +91,8 @@
         'no_input' => 'Sem resposta',
         'provider_failed' => 'Falha no provedor',
         'resolved_elsewhere' => 'Resolvido em outro canal',
+        'blocked_by_policy' => 'Bloqueado pela política',
+        'window_expired' => 'Janela expirada',
     ];
 
     $performance = $insights['performance'];
