@@ -68,9 +68,25 @@ class ProcessConfirmationEscalations extends Command
         ];
 
         foreach ($rows as $row) {
-            if (! $policy->allowsAppointment(
+            if (! $policy->voiceFallbackEnabled()
+                || ! $policy->patientContactAllowed(
+                    $row
+                )
+                || ! $policy->matchesScope(
+                    $row
+                )) {
+                $stats['skipped']++;
+                continue;
+            }
+
+            if (! $policy->hasVoiceNumber(
                 $row
             )) {
+                $this->createHumanFallbackTask(
+                    $row,
+                    $policy
+                );
+
                 $stats['skipped']++;
                 continue;
             }
