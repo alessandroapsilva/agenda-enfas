@@ -99,7 +99,7 @@ class ProfessionalNotificationService
                 $this->meta->sendTextMessage(
                     $a->professional_phone,
                     $text,
-                    $appointmentId,
+                    null,
                     null,
                     'professional:whatsapp:'
                     .$event
