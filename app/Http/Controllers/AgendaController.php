@@ -13,6 +13,8 @@ use App\Services\Enfas\AccessScopeService;
 use App\Services\Enfas\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class AgendaController extends Controller
@@ -236,10 +238,10 @@ class AgendaController extends Controller
 
         $linkedProfessionalIds = collect();
 
-        if (IlluminateSupportFacadesSchema::hasTable(
+        if (Schema::hasTable(
             'professional_service'
         )) {
-            $linkedProfessionalIds = IlluminateSupportFacadesDB::table(
+            $linkedProfessionalIds = DB::table(
                 'professional_service'
             )
                 ->where(
