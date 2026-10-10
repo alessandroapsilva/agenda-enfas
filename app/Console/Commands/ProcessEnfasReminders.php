@@ -239,7 +239,8 @@ class ProcessEnfasReminders extends Command
                 $this->beforeAppointments(
                     clone $base,
                     (int) ($rule->offset_minutes ?? 0),
-                    $now
+                    $now,
+                    app(WhatsAppDispatchPolicy::class)
                 ),
 
             'appointment_return_due' =>
@@ -255,7 +256,8 @@ class ProcessEnfasReminders extends Command
     private function beforeAppointments(
         Builder $query,
         int $offsetMinutes,
-        Carbon $now
+        Carbon $now,
+        WhatsAppDispatchPolicy $policy
     ): \Illuminate\Support\Collection {
         if (! Schema::hasColumn(
             'appointments',
@@ -264,20 +266,13 @@ class ProcessEnfasReminders extends Command
             return collect();
         }
 
-        $offset = max(
-            0,
-            $offsetMinutes
+        [
+            $windowStart,
+            $windowEnd,
+        ] = $policy->reminderWindow(
+            $offsetMinutes,
+            $now
         );
-
-        $target = $now->copy()->addMinutes(
-            $offset
-        );
-
-        $windowStart = $target->copy()
-            ->subMinutes(5);
-
-        $windowEnd = $target->copy()
-            ->addMinute();
 
         return $query
             ->whereNotIn(
