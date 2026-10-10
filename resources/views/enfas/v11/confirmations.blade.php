@@ -930,7 +930,7 @@
                             <span class="ea-row-title">
                                 {{
                                     $row->patient_name
-                                    ?: 'Paciente sem nome'
+                                    ?: 'Paciente não identificado'
                                 }}
                             </span>
 
@@ -959,7 +959,7 @@
                             <span class="ea-row-title">
                                 {{
                                     $row->service_name
-                                    ?: 'Atendimento'
+                                    ?: 'Serviço não informado'
                                 }}
                             </span>
 
