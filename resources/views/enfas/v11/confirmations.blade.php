@@ -88,6 +88,45 @@
         'provider_failed' => 'Falha no provedor',
         'resolved_elsewhere' => 'Resolvido em outro canal',
     ];
+
+    $performance = $insights['performance'];
+    $risk = $insights['risk'];
+    $whatsapp = $insights['whatsapp'];
+    $voice = $insights['voice'];
+
+    $waOperational =
+        $whatsapp['available']
+        && $whatsapp['active_automations'] > 0
+        && $whatsapp['failed_24h'] === 0;
+
+    $waAttention =
+        $whatsapp['available']
+        && $whatsapp['failed_24h'] > 0;
+
+    $voiceReady =
+        $voice['available']
+        && $voice['configured']
+        && $voice['webhook_validation'];
+
+    $voiceLabel = $voice['enabled']
+        ? (
+            $voiceReady
+                ? 'Ativo'
+                : 'Configuração incompleta'
+        )
+        : (
+            $voiceReady
+                ? 'Pronto para ativar'
+                : 'Modo seguro'
+        );
+
+    $voiceTone = $voice['enabled']
+        ? (
+            $voiceReady
+                ? 'success'
+                : 'danger'
+        )
+        : 'neutral';
 @endphp
 
 @if(session('success'))
@@ -153,6 +192,260 @@
             Precisam de atenção
         </div>
     </div>
+</div>
+
+<div class="ea-confirmation-cockpit mb-3">
+    <section class="ea-ops-panel">
+        <div class="ea-ops-panel-head">
+            <div>
+                <span class="ea-ops-eyebrow">
+                    Performance
+                </span>
+
+                <h3>
+                    Últimos 7 dias
+                </h3>
+            </div>
+
+            <span class="ea-ops-period">
+                {{
+                    $insights['period']['start']->format('d/m')
+                }}
+                –
+                {{
+                    $insights['period']['end']->format('d/m')
+                }}
+            </span>
+        </div>
+
+        <div class="ea-ops-kpis">
+            <div class="ea-ops-kpi">
+                <strong>
+                    {{ number_format($performance['confirmation_rate'], 1, ',', '.') }}%
+                </strong>
+                <span>Taxa de confirmação</span>
+            </div>
+
+            <div class="ea-ops-kpi">
+                <strong>
+                    {{ number_format($performance['resolution_rate'], 1, ',', '.') }}%
+                </strong>
+                <span>Horários resolvidos</span>
+            </div>
+
+            <div class="ea-ops-kpi">
+                <strong>
+                    {{ $performance['no_show_7d'] }}
+                </strong>
+                <span>Faltas registradas</span>
+            </div>
+
+            <div class="ea-ops-kpi">
+                <strong>
+                    {{
+                        $performance['avg_lead_hours'] !== null
+                            ? number_format(
+                                $performance['avg_lead_hours'],
+                                1,
+                                ',',
+                                '.'
+                            ).'h'
+                            : '—'
+                    }}
+                </strong>
+                <span>Antecedência média</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="ea-ops-panel">
+        <div class="ea-ops-panel-head">
+            <div>
+                <span class="ea-ops-eyebrow">
+                    SLA operacional
+                </span>
+
+                <h3>
+                    Risco imediato
+                </h3>
+            </div>
+
+            <span class="ea-status {{
+                $risk['next_2h'] > 0
+                    ? 'failed'
+                    : 'confirmed'
+            }}">
+                {{
+                    $risk['next_2h'] > 0
+                        ? $risk['next_2h'].' urgente(s)'
+                        : 'Sob controle'
+                }}
+            </span>
+        </div>
+
+        <div class="ea-risk-grid">
+            <div class="ea-risk-item {{
+                $risk['next_2h'] > 0
+                    ? 'is-danger'
+                    : ''
+            }}">
+                <i class="bi bi-alarm"></i>
+                <div>
+                    <strong>{{ $risk['next_2h'] }}</strong>
+                    <span>sem resposta em até 2h</span>
+                </div>
+            </div>
+
+            <div class="ea-risk-item">
+                <i class="bi bi-clock-history"></i>
+                <div>
+                    <strong>{{ $risk['next_24h'] }}</strong>
+                    <span>pendentes nas próximas 24h</span>
+                </div>
+            </div>
+
+            <div class="ea-risk-item {{
+                $risk['failed_contact'] > 0
+                    ? 'is-danger'
+                    : ''
+            }}">
+                <i class="bi bi-exclamation-octagon"></i>
+                <div>
+                    <strong>{{ $risk['failed_contact'] }}</strong>
+                    <span>com falha de WhatsApp</span>
+                </div>
+            </div>
+
+            <div class="ea-risk-item {{
+                $risk['without_phone'] > 0
+                    ? 'is-warning'
+                    : ''
+            }}">
+                <i class="bi bi-telephone-x"></i>
+                <div>
+                    <strong>{{ $risk['without_phone'] }}</strong>
+                    <span>sem telefone válido</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ea-ops-panel ea-channel-health">
+        <div class="ea-ops-panel-head">
+            <div>
+                <span class="ea-ops-eyebrow">
+                    Canais
+                </span>
+
+                <h3>
+                    Saúde operacional
+                </h3>
+            </div>
+        </div>
+
+        <div class="ea-channel-health-row">
+            <div class="ea-channel-health-name">
+                <span class="ea-channel-health-icon is-whatsapp">
+                    <i class="bi bi-whatsapp"></i>
+                </span>
+
+                <div>
+                    <strong>WhatsApp</strong>
+                    <span>
+                        {{ $whatsapp['active_automations'] }}
+                        automações ativas
+                    </span>
+                </div>
+            </div>
+
+            <span class="ea-status {{
+                $waAttention
+                    ? 'failed'
+                    : (
+                        $waOperational
+                            ? 'confirmed'
+                            : 'neutral'
+                    )
+            }}">
+                {{
+                    $waAttention
+                        ? 'Atenção'
+                        : (
+                            $waOperational
+                                ? 'Operacional'
+                                : 'Monitorando'
+                        )
+                }}
+            </span>
+        </div>
+
+        <div class="ea-channel-health-meta">
+            <span>
+                <strong>{{ $whatsapp['outbound_7d'] }}</strong>
+                envios / 7d
+            </span>
+
+            <span>
+                <strong>{{ $whatsapp['read_7d'] }}</strong>
+                leituras
+            </span>
+
+            <span>
+                <strong>
+                    {{ number_format($whatsapp['failure_rate'], 1, ',', '.') }}%
+                </strong>
+                falha
+            </span>
+        </div>
+
+        <div class="ea-channel-health-row">
+            <div class="ea-channel-health-name">
+                <span class="ea-channel-health-icon is-voice">
+                    <i class="bi bi-telephone"></i>
+                </span>
+
+                <div>
+                    <strong>
+                        Voz · {{ strtoupper($voice['provider']) }}
+                    </strong>
+                    <span>
+                        {{
+                            $voice['configured']
+                                ? 'Credenciais presentes'
+                                : 'Credenciais pendentes'
+                        }}
+                    </span>
+                </div>
+            </div>
+
+            <span class="ea-status {{ $voiceTone }}">
+                {{ $voiceLabel }}
+            </span>
+        </div>
+
+        <div class="ea-channel-health-meta">
+            <span>
+                <strong>{{ $voice['queued'] }}</strong>
+                na fila
+            </span>
+
+            <span>
+                <strong>{{ $voice['attempts_7d'] }}</strong>
+                tentativas / 7d
+            </span>
+
+            <span>
+                <strong>
+                    {{
+                        $voice['webhook_validation']
+                            ? 'ON'
+                            : 'OFF'
+                    }}
+                </strong>
+                assinatura
+            </span>
+        </div>
+    </section>
 </div>
 
 <div class="ea-card">
@@ -349,6 +642,34 @@
                 Cancelados
                 <strong class="ms-1">
                     {{ $stats['cancelled'] }}
+                </strong>
+            </a>
+
+            <a
+                class="ea-chip {{
+                    $state === 'no_show'
+                        ? 'active'
+                        : ''
+                }}"
+                href="{{
+                    route(
+                        'v11.confirmations',
+                        array_filter([
+                            'date' =>
+                                $day->format('Y-m-d'),
+
+                            'state' =>
+                                'no_show',
+
+                            'q' =>
+                                $search ?: null,
+                        ])
+                    )
+                }}"
+            >
+                Faltas
+                <strong class="ms-1">
+                    {{ $stats['no_show'] ?? 0 }}
                 </strong>
             </a>
 
