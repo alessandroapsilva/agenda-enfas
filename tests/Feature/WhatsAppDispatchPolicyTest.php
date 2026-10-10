@@ -213,7 +213,7 @@ class WhatsAppDispatchPolicyTest extends TestCase
         }
     }
 
-    public function test_manual_text_is_idempotent_inside_same_minute(): void
+    public function test_manual_text_is_idempotent_inside_five_minute_bucket(): void
     {
         Carbon::setTestNow(
             '2026-10-10 12:34:10'
@@ -230,10 +230,10 @@ class WhatsAppDispatchPolicyTest extends TestCase
         );
 
         Carbon::setTestNow(
-            '2026-10-10 12:34:59'
+            '2026-10-10 12:33:59'
         );
 
-        $sameMinute = $policy->manualTextDedupeKey(
+        $sameBucket = $policy->manualTextDedupeKey(
             10,
             20,
             'Confirmando seu horário.'
@@ -243,7 +243,7 @@ class WhatsAppDispatchPolicyTest extends TestCase
             '2026-10-10 12:35:01'
         );
 
-        $nextMinute = $policy->manualTextDedupeKey(
+        $nextBucket = $policy->manualTextDedupeKey(
             10,
             20,
             'Confirmando seu horário.'
@@ -251,12 +251,12 @@ class WhatsAppDispatchPolicyTest extends TestCase
 
         $this->assertSame(
             $first,
-            $sameMinute
+            $sameBucket
         );
 
         $this->assertNotSame(
             $first,
-            $nextMinute
+            $nextBucket
         );
 
         Carbon::setTestNow();
