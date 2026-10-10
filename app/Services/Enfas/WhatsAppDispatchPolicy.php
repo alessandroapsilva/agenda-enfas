@@ -107,6 +107,42 @@ class WhatsAppDispatchPolicy
         return true;
     }
 
+    public function hasRecentAutomatedMessage(
+        int $appointmentId,
+        int $minutes = 10
+    ): bool {
+        return WaMessage::query()
+            ->where(
+                'appointment_id',
+                $appointmentId
+            )
+            ->where(
+                'direction',
+                'outbound'
+            )
+            ->whereNotNull(
+                'automation_id'
+            )
+            ->whereIn(
+                'status',
+                [
+                    'queued',
+                    'sending',
+                    'sent',
+                    'delivered',
+                    'read',
+                ]
+            )
+            ->where(
+                'created_at',
+                '>=',
+                now()->subMinutes(
+                    max(1, $minutes)
+                )
+            )
+            ->exists();
+    }
+
     public function manualTextDedupeKey(
         ?int $appointmentId,
         ?int $patientId,
