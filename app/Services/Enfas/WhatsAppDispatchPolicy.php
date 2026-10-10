@@ -299,7 +299,7 @@ class WhatsAppDispatchPolicy
                     0,
                     16
                 ),
-                now()->format('YmdHi'),
+                $this->manualBucket(),
             ]
         );
     }
@@ -316,9 +316,33 @@ class WhatsAppDispatchPolicy
                 'template',
                 $appointmentId,
                 $templateId,
-                now()->format('YmdHi'),
+                $this->manualBucket(),
             ]
         );
+    }
+
+    private function manualBucket(
+        ?Carbon $at = null
+    ): string {
+        $at = $at
+            ? $at->copy()
+            : now();
+
+        $minute = (int) $at->format('i');
+
+        $bucketMinute = intdiv(
+            $minute,
+            5
+        ) * 5;
+
+        return $at
+            ->copy()
+            ->setTime(
+                (int) $at->format('H'),
+                $bucketMinute,
+                0
+            )
+            ->format('YmdHi');
     }
 
     public function patientAllowsContact(
