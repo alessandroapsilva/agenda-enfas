@@ -442,7 +442,7 @@
                 <span>
                     <strong>
                         {{
-                            IlluminateSupportCarbon::parse(
+                            \Illuminate\Support\Carbon::parse(
                                 $voice['oldest_queue_at']
                             )->diffForHumans(
                                 now(),
