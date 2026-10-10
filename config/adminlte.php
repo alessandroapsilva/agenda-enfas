@@ -247,6 +247,12 @@ return [
             'can' => 'agenda.view',
         ],
         [
+            'text' => 'Relacionamento',
+            'route' => 'relationship.index',
+            'icon' => 'bi bi-diagram-3',
+            'can' => 'agenda.view',
+        ],
+        [
             'text' => 'Confirmações',
             'route' => 'v11.confirmations',
             'icon' => 'bi bi-patch-check',
