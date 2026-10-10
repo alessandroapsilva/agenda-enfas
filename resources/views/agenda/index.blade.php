@@ -656,7 +656,10 @@
                                     Qualquer profissional disponível
                                 </option>
                                 @foreach($professionals as $professional)
-                                    <option value="{{ $professional->id }}">
+                                    <option
+                                        value="{{ $professional->id }}"
+                                        data-services="{{ $professional->services->pluck('id')->implode(',') }}"
+                                    >
                                         {{ $professional->name }}
                                     </option>
                                 @endforeach
