@@ -9,6 +9,59 @@ use Illuminate\Support\Facades\DB;
 
 class WhatsAppDispatchPolicy
 {
+    public function automationCoreKey(
+        string $purpose,
+        string $event,
+        int $offsetMinutes = 0
+    ): string {
+        $purpose = strtolower(
+            trim($purpose)
+        );
+
+        if ($purpose === '') {
+            $purpose = 'general';
+        }
+
+        if ($purpose === 'confirmation') {
+            return 'confirmation';
+        }
+
+        if ($purpose === 'reminder') {
+            return 'reminder:'
+                .max(
+                    0,
+                    $offsetMinutes
+                );
+        }
+
+        return implode(
+            ':',
+            [
+                $purpose,
+                strtolower(
+                    trim($event)
+                ),
+                max(
+                    0,
+                    $offsetMinutes
+                ),
+            ]
+        );
+    }
+
+    public function automationScopesOverlap(
+        ?int $firstServiceId,
+        ?int $secondServiceId
+    ): bool {
+        if (! $firstServiceId
+            || ! $secondServiceId) {
+            return true;
+        }
+
+        return $firstServiceId
+            === $secondServiceId;
+    }
+
     public function reminderWindow(
         int $offsetMinutes,
         ?Carbon $now = null,
