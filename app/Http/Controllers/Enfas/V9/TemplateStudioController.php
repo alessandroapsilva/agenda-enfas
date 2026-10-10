@@ -688,7 +688,9 @@ class TemplateStudioController extends Controller
             'sample_values'=>$samples,
             'buttons'=>$buttons,
             'updated_by'=>auth()->id(),
-            'version'=>((int)($template->version??1))+1,
+            'version'=>$template->exists
+                ? ((int)($template->version??1))+1
+                : (int)($template->version??1),
             'last_error'=>null,
         ])->save();
     }
