@@ -116,7 +116,7 @@ class WhatsAppAutomationEngine
                 (int) $rule->template_id,
                 (int) $rule->id,
                 $dedupe
-            );
+            )->afterCommit();
         }
     }
 }
