@@ -125,68 +125,84 @@ class ConfirmationHealthCheck extends Command
             return;
         }
 
-        $rules = DB::table(
-            'wa_automations as a'
-        )
-            ->leftJoin(
-                'wa_templates as t',
-                't.id',
-                '=',
-                'a.template_id'
+        foreach ([
+            1440 => 'Lembrete 24 horas',
+            120 => 'Lembrete 2 horas',
+        ] as $offset => $label) {
+            $rules = DB::table(
+                'wa_automations as a'
             )
-            ->whereIn(
-                'a.id',
-                [2, 3]
-            )
-            ->orderBy(
-                'a.id'
-            )
-            ->get([
-                'a.id',
-                'a.name',
-                'a.is_active',
-                'a.offset_minutes',
-                't.id as template_id',
-                't.name as template_name',
-                't.status as template_status',
-                't.is_active as template_active',
-                't.archived_at',
-            ]);
+                ->join(
+                    'wa_templates as t',
+                    't.id',
+                    '=',
+                    'a.template_id'
+                )
+                ->where(
+                    'a.is_active',
+                    true
+                )
+                ->where(
+                    'a.trigger_event',
+                    'appointment_before'
+                )
+                ->where(
+                    'a.offset_minutes',
+                    $offset
+                )
+                ->where(
+                    't.purpose',
+                    'reminder'
+                )
+                ->where(
+                    't.status',
+                    'APPROVED'
+                )
+                ->where(
+                    't.is_active',
+                    true
+                )
+                ->whereNull(
+                    't.archived_at'
+                )
+                ->orderBy(
+                    'a.id'
+                )
+                ->get([
+                    'a.id',
+                    'a.name',
+                    'a.service_id',
+                    't.id as template_id',
+                    't.name as template_name',
+                ]);
 
-        if ($rules->count() !== 2) {
-            $rows[] = [
-                'WhatsApp',
-                'Lembretes 24h/2h',
-                'ERRO',
-                'Automacoes #2/#3 incompletas',
-            ];
+            $valid = $rules->isNotEmpty();
 
-            $critical++;
-
-            return;
-        }
-
-        foreach ($rules as $rule) {
-            $valid =
-                (bool) $rule->is_active
-                && $rule->template_id
-                && $rule->template_status === 'APPROVED'
-                && (bool) $rule->template_active
-                && $rule->archived_at === null;
+            $detail = $valid
+                ? $rules
+                    ->map(
+                        fn ($rule) =>
+                            '#'
+                            .$rule->id
+                            .' '
+                            .$rule->template_name
+                            .(
+                                $rule->service_id
+                                    ? ' · servico '
+                                        .$rule->service_id
+                                    : ' · global'
+                            )
+                    )
+                    ->implode(' | ')
+                : 'Nenhuma regra ativa valida';
 
             $this->check(
                 $rows,
                 'WhatsApp',
-                $rule->name
-                    ?: 'Automacao #'.$rule->id,
+                $label,
                 $valid,
-                sprintf(
-                    '%smin · template #%s %s',
-                    $rule->offset_minutes,
-                    $rule->template_id ?: '-',
-                    $rule->template_name ?: '-'
-                ),
-                'Regra ou template indisponivel',
+                $detail,
+                $detail,
                 $critical
             );
         }
