@@ -819,8 +819,42 @@
                             onchange="syncPatientContactChannel()"
                         >
                             <option value="whatsapp">WhatsApp</option>
-                            <option value="email">E-mail</option>
-                            <option value="sms">SMS</option>
+                            <option
+                                value="email"
+                                @disabled(
+                                    ! $communicationChannels['email']['enabled']
+                                    || ! $communicationChannels['email']['configured']
+                                )
+                            >
+                                E-mail
+                                {{
+                                    ! $communicationChannels['email']['enabled']
+                                        ? ' · desativado'
+                                        : (
+                                            ! $communicationChannels['email']['configured']
+                                                ? ' · não configurado'
+                                                : ''
+                                        )
+                                }}
+                            </option>
+                            <option
+                                value="sms"
+                                @disabled(
+                                    ! $communicationChannels['sms']['enabled']
+                                    || ! $communicationChannels['sms']['configured']
+                                )
+                            >
+                                SMS
+                                {{
+                                    ! $communicationChannels['sms']['enabled']
+                                        ? ' · desativado'
+                                        : (
+                                            ! $communicationChannels['sms']['configured']
+                                                ? ' · não configurado'
+                                                : ''
+                                        )
+                                }}
+                            </option>
                         </select>
                     </div>
 
