@@ -78,6 +78,8 @@ class ProfessionalController extends Controller
             'color' => $data['color'],
             'active_days' => $data['active_days'] ?? [],
             'whatsapp_notifications_enabled' => (bool) ($data['whatsapp_notifications_enabled'] ?? false),
+            'email_notifications_enabled' => (bool) ($data['email_notifications_enabled'] ?? false),
+            'sms_notifications_enabled' => (bool) ($data['sms_notifications_enabled'] ?? false),
         ]);
 
         $professional->services()->sync($data['services'] ?? []);
