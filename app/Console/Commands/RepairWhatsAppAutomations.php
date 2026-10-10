@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,9 @@ class RepairWhatsAppAutomations extends Command
     protected $description =
         'Audita e corrige automacoes WhatsApp invalidas ou equivalentes';
 
-    public function handle(): int
+    public function handle(
+        WhatsAppDispatchPolicy $policy
+    ): int
     {
         if (! Schema::hasTable('wa_automations')
             || ! Schema::hasTable('wa_templates')) {
@@ -71,50 +74,54 @@ class RepairWhatsAppAutomations extends Command
         }
 
         $duplicates = collect();
+        $canonicalRules = collect();
 
-        $valid
-            ->groupBy(
-                fn ($row) =>
-                    strtolower(
-                        (string) $row->trigger_event
-                    )
-                    .'|'
-                    .(int) $row->offset_minutes
-                    .'|'
-                    .($row->service_id ?: 0)
-                    .'|'
-                    .strtolower(
-                        (string) (
-                            $row->purpose
-                            ?: 'general'
-                        )
-                    )
-            )
-            ->each(
-                function ($group) use (
-                    $duplicates
-                ) {
-                    if ($group->count() <= 1) {
-                        return;
-                    }
+        foreach (
+            $valid->sortBy('id')
+            as $row
+        ) {
+            $core = $policy
+                ->automationCoreKey(
+                    (string) (
+                        $row->purpose
+                        ?: 'general'
+                    ),
+                    (string) $row->trigger_event,
+                    (int) $row->offset_minutes
+                );
 
-                    $canonical = $group
-                        ->sortBy('id')
-                        ->first();
-
-                    foreach (
-                        $group->sortBy('id')->skip(1)
-                        as $duplicate
+            $canonical = $canonicalRules
+                ->first(
+                    function ($candidate) use (
+                        $policy,
+                        $core,
+                        $row
                     ) {
-                        $duplicate->canonical_id =
-                            $canonical->id;
-
-                        $duplicates->push(
-                            $duplicate
-                        );
+                        return $candidate->core
+                            === $core
+                            && $policy
+                                ->automationScopesOverlap(
+                                    $candidate->service_id
+                                        ? (int) $candidate->service_id
+                                        : null,
+                                    $row->service_id
+                                        ? (int) $row->service_id
+                                        : null
+                                );
                     }
-                }
-            );
+                );
+
+            if ($canonical) {
+                $row->canonical_id =
+                    $canonical->id;
+
+                $duplicates->push($row);
+                continue;
+            }
+
+            $row->core = $core;
+            $canonicalRules->push($row);
+        }
 
         $this->table(
             [
