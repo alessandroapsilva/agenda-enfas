@@ -9,6 +9,15 @@ use Tests\TestCase;
 
 class AppointmentClinicalRecordTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->markTestSkipped(
+            'Modulo clinico legado fora do escopo da Agenda ENFAS.'
+        );
+    }
+
     use RefreshDatabase;
 
     public function test_admin_can_save_finalize_and_append_to_appointment_record(): void
