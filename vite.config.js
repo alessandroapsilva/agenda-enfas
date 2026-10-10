@@ -8,7 +8,6 @@ export default defineConfig({
                 'resources/css/adminlte.css',
                 'resources/css/enfas-agenda.css',
                 'resources/js/adminlte.js',
-                'resources/js/enfas-scan.js',
             ],
             refresh: true,
         }),
