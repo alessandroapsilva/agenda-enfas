@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Enfas;
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Services\Enfas\BrandMediaService;
+use App\Services\Enfas\CommunicationPolicyService;
 use App\Services\Enfas\ConfirmationPolicyService;
+use App\Services\Enfas\EmailChannelService;
+use App\Services\Enfas\SmsChannelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -232,7 +235,10 @@ class SettingsController extends Controller
     }
 
     public function agenda(
-        ConfirmationPolicyService $policy
+        ConfirmationPolicyService $policy,
+        CommunicationPolicyService $communication,
+        EmailChannelService $email,
+        SmsChannelService $sms
     ) {
         $professionals = DB::table(
             'professionals'
@@ -283,6 +289,43 @@ class SettingsController extends Controller
             ),
         ];
 
+        $channelSystem = [
+            'email' => [
+                'enabled' =>
+                    $communication->patientEmailEnabled()
+                    || $communication->professionalEmailEnabled(),
+                'configured' =>
+                    $email->configured(),
+                'provider' =>
+                    (string) config(
+                        'mail.default',
+                        'log'
+                    ),
+                'from' =>
+                    (string) config(
+                        'mail.from.address',
+                        ''
+                    ),
+            ],
+            'sms' => [
+                'enabled' =>
+                    $communication->patientSmsEnabled()
+                    || $communication->professionalSmsEnabled(),
+                'configured' =>
+                    $sms->configured(),
+                'provider' =>
+                    (string) config(
+                        'services.sms.provider',
+                        'twilio'
+                    ),
+                'from' =>
+                    (string) config(
+                        'services.sms.twilio.from',
+                        ''
+                    ),
+            ],
+        ];
+
         return view(
             'enfas.admin.agenda-settings',
             [
@@ -321,6 +364,10 @@ class SettingsController extends Controller
                     $services,
                 'voiceSystem' =>
                     $voiceSystem,
+                'communicationPolicy' =>
+                    $communication->summary(),
+                'channelSystem' =>
+                    $channelSystem,
             ]
         );
     }
@@ -432,6 +479,30 @@ class SettingsController extends Controller
             'boolean'
         );
 
+        foreach ([
+            'patient_email_enabled',
+            'patient_sms_enabled',
+            'patient_reminders_enabled',
+            'patient_created_enabled',
+            'patient_confirmed_enabled',
+            'patient_cancelled_enabled',
+            'patient_rescheduled_enabled',
+            'professional_whatsapp_enabled',
+            'professional_email_enabled',
+            'professional_sms_enabled',
+            'professional_created_enabled',
+            'professional_confirmed_enabled',
+            'professional_cancelled_enabled',
+            'professional_rescheduled_enabled',
+        ] as $key) {
+            AppSetting::setValue(
+                'communication',
+                $key,
+                $request->boolean($key),
+                'boolean'
+            );
+        }
+
         AppSetting::setValue(
             'confirmation',
             'voice_fallback_enabled',
@@ -525,7 +596,7 @@ class SettingsController extends Controller
 
         return back()->with(
             'success',
-            'Preferências da agenda e régua de confirmação atualizadas.'
+            'Preferências da agenda, disponibilidade e comunicação atualizadas.'
         );
     }
 }
