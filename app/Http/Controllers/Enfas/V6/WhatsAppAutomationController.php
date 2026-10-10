@@ -8,6 +8,7 @@ use App\Models\WaTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class WhatsAppAutomationController extends Controller
 {
@@ -41,6 +42,12 @@ class WhatsAppAutomationController extends Controller
     {
         $data = $this->validated($request);
 
+        if ($request->boolean('is_active')) {
+            $this->ensureNoEquivalentActiveRule(
+                $data
+            );
+        }
+
         WaAutomation::create([
             'name' => $data['name'],
             'trigger_event' => $data['trigger_event'],
@@ -69,6 +76,13 @@ class WhatsAppAutomationController extends Controller
     ) {
         $data = $this->validated($request);
 
+        if ($request->boolean('is_active')) {
+            $this->ensureNoEquivalentActiveRule(
+                $data,
+                $automation->id
+            );
+        }
+
         $automation->update([
             'name' => $data['name'],
             'trigger_event' => $data['trigger_event'],
@@ -93,8 +107,23 @@ class WhatsAppAutomationController extends Controller
 
     public function toggle(WaAutomation $automation)
     {
+        $activating = ! $automation->is_active;
+
+        if ($activating) {
+            $this->ensureNoEquivalentActiveRule([
+                'trigger_event' =>
+                    $automation->trigger_event,
+                'offset_minutes' =>
+                    $automation->offset_minutes,
+                'template_id' =>
+                    $automation->template_id,
+                'service_id' =>
+                    $automation->service_id,
+            ], $automation->id);
+        }
+
         $automation->update([
-            'is_active' => ! $automation->is_active,
+            'is_active' => $activating,
             'last_run_at' => now(),
         ]);
 
@@ -114,6 +143,88 @@ class WhatsAppAutomationController extends Controller
             'success',
             'Automação excluída.'
         );
+    }
+
+    private function ensureNoEquivalentActiveRule(
+        array $data,
+        ?int $ignoreId = null
+    ): void {
+        $template = WaTemplate::find(
+            (int) $data['template_id']
+        );
+
+        if (! $template) {
+            return;
+        }
+
+        $offset = $this->offset(
+            (string) $data['trigger_event'],
+            (int) ($data['offset_minutes'] ?? 0)
+        );
+
+        $query = WaAutomation::query()
+            ->join(
+                'wa_templates as wt',
+                'wt.id',
+                '=',
+                'wa_automations.template_id'
+            )
+            ->where(
+                'wa_automations.is_active',
+                true
+            )
+            ->where(
+                'wa_automations.trigger_event',
+                $data['trigger_event']
+            )
+            ->where(
+                'wa_automations.offset_minutes',
+                $offset
+            )
+            ->where(
+                'wt.purpose',
+                $template->purpose
+            );
+
+        $serviceId = $data['service_id']
+            ?? null;
+
+        if ($serviceId) {
+            $query->where(
+                'wa_automations.service_id',
+                $serviceId
+            );
+        } else {
+            $query->whereNull(
+                'wa_automations.service_id'
+            );
+        }
+
+        if ($ignoreId) {
+            $query->where(
+                'wa_automations.id',
+                '!=',
+                $ignoreId
+            );
+        }
+
+        $duplicate = $query->first([
+            'wa_automations.id',
+            'wa_automations.name',
+        ]);
+
+        if (! $duplicate) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'trigger_event' =>
+                'Já existe uma automação ativa equivalente: '
+                .$duplicate->name
+                .' (#'
+                .$duplicate->id
+                .'). Pause ou edite a regra existente.',
+        ]);
     }
 
     private function validated(
