@@ -70,6 +70,20 @@ class PremiumAvailabilityTest extends TestCase
             $service->isBookable($professionalId, $outside, $outside->copy()->addMinutes(30))
         );
 
+
+        $misaligned = Carbon::parse(
+            '2026-09-28 09:10:00',
+            config('app.timezone')
+        );
+
+        $this->assertFalse(
+            $service->isBookable(
+                $professionalId,
+                $misaligned,
+                $misaligned->copy()->addMinutes(30)
+            )
+        );
+
         DB::table('professional_blocks')->insert([
             'professional_id' => $professionalId,
             'starts_at' => '2026-09-28 09:00:00',
@@ -86,6 +100,92 @@ class PremiumAvailabilityTest extends TestCase
             $service->isBookable($professionalId, $monday, $monday->copy()->addMinutes(30))
         );
     }
+    public function test_day_slots_only_returns_configured_available_times(): void
+    {
+        Carbon::setTestNow(
+            Carbon::parse(
+                '2026-10-10 10:00:00',
+                config('app.timezone')
+            )
+        );
+
+        $serviceId = DB::table(
+            'services'
+        )->insertGetId([
+            'name' => 'Consulta',
+            'duration_minutes' => 30,
+            'color' => '#2563eb',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $professionalId = DB::table(
+            'professionals'
+        )->insertGetId([
+            'name' => 'Profissional',
+            'work_start' => '08:00:00',
+            'work_end' => '12:00:00',
+            'active_days' => json_encode([1]),
+            'slot_interval' => 30,
+            'color' => '#2563eb',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table(
+            'professional_service'
+        )->insert([
+            'professional_id' =>
+                $professionalId,
+            'service_id' =>
+                $serviceId,
+        ]);
+
+        DB::table(
+            'professional_availabilities'
+        )->insert([
+            'professional_id' =>
+                $professionalId,
+            'day_of_week' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+            'break_start' => '09:00:00',
+            'break_end' => '09:30:00',
+            'location_id' => null,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $slots = app(
+            AvailabilityService::class
+        )->slotsForDay(
+            $professionalId,
+            $serviceId,
+            Carbon::parse(
+                '2026-10-12',
+                config('app.timezone')
+            )
+        );
+
+        $times = collect($slots)
+            ->pluck('time')
+            ->all();
+
+        $this->assertSame(
+            [
+                '08:00',
+                '08:30',
+                '09:30',
+            ],
+            $times
+        );
+
+        Carbon::setTestNow();
+    }
+
     public function test_best_slot_search_can_find_across_available_professionals(): void
     {
         Carbon::setTestNow(
