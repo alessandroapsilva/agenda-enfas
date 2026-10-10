@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Jobs\SendAppointmentWhatsApp;
 use App\Models\WaAutomation;
 use App\Models\WaMessage;
+use App\Services\Enfas\PatientMultichannelNotificationService;
 use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
@@ -21,7 +22,8 @@ class ProcessEnfasReminders extends Command
         'Processa apenas automacoes temporais e lembretes do ENFAS Agenda';
 
     public function handle(
-        WhatsAppDispatchPolicy $policy
+        WhatsAppDispatchPolicy $policy,
+        PatientMultichannelNotificationService $multichannel
     ): int {
         if (! Schema::hasTable('appointments')
             || ! Schema::hasTable('wa_automations')) {
@@ -57,6 +59,8 @@ class ProcessEnfasReminders extends Command
             'cooldown' => 0,
             'blocked' => 0,
             'unsupported' => 0,
+            'email_planned' => 0,
+            'sms_planned' => 0,
         ];
 
         foreach ($rules as $rule) {
@@ -121,6 +125,29 @@ class ProcessEnfasReminders extends Command
                     $rule->offset_minutes
                     ?? 0
                 );
+
+                $plannedChannels =
+                    $multichannel->reminder(
+                        (int) $appointment->id,
+                        $offset,
+                        $this->option('dry-run')
+                    );
+
+                if (in_array(
+                    'email',
+                    $plannedChannels,
+                    true
+                )) {
+                    $stats['email_planned']++;
+                }
+
+                if (in_array(
+                    'sms',
+                    $plannedChannels,
+                    true
+                )) {
+                    $stats['sms_planned']++;
+                }
 
                 if ($policy->hasRecentOutboundMessage(
                     (int) $appointment->id,
@@ -205,6 +232,8 @@ class ProcessEnfasReminders extends Command
                 'Cooldown',
                 'Bloqueadas',
                 'Sem suporte',
+                'E-mail',
+                'SMS',
             ],
             [[
                 $stats['rules'],
@@ -216,6 +245,8 @@ class ProcessEnfasReminders extends Command
                 $stats['cooldown'],
                 $stats['blocked'],
                 $stats['unsupported'],
+                $stats['email_planned'],
+                $stats['sms_planned'],
             ]]
         );
 
