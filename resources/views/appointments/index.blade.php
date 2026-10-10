@@ -91,11 +91,13 @@
                     </td>
 
                     <td class="text-end">
-                        @can('records.view')
-                        <a href="{{ route('appointments.record',$appointment) }}" class="btn btn-sm btn-light border">
-                            <i class="bi bi-file-earmark-medical"></i>Prontuário
+                        <a
+                            href="{{ url('/agenda?agendamento='.$appointment->id) }}"
+                            class="btn btn-sm btn-light border"
+                        >
+                            <i class="bi bi-calendar-event me-1"></i>
+                            Abrir na agenda
                         </a>
-                        @endcan
                     </td>
 
                 </tr>
