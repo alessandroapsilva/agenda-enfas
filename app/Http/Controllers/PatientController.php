@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Services\Enfas\MetaWhatsAppService;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use App\Services\Enfas\AccessScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -116,7 +117,8 @@ class PatientController extends Controller
     public function contact(
         Request $request,
         Patient $patient,
-        MetaWhatsAppService $meta
+        MetaWhatsAppService $meta,
+        WhatsAppDispatchPolicy $policy
     ) {
         $data = $request->validate([
             'message' => ['required', 'string', 'min:1', 'max:4000'],
@@ -134,11 +136,20 @@ class PatientController extends Controller
             ]);
         }
 
+        $body = trim(
+            $data['message']
+        );
+
         $message = $meta->sendTextMessage(
             $patient->phone,
-            trim($data['message']),
+            $body,
             null,
-            $patient->id
+            $patient->id,
+            $policy->manualTextDedupeKey(
+                null,
+                (int) $patient->id,
+                $body
+            )
         );
 
         $patient->update(['last_contact_at' => now()]);
