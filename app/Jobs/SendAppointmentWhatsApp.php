@@ -3,6 +3,7 @@ namespace App\Jobs;
 
 use App\Models\WaTemplate;
 use App\Services\Enfas\MetaWhatsAppService;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -20,11 +21,34 @@ class SendAppointmentWhatsApp implements ShouldQueue
         public ?string $dedupeKey = null
     ) {}
 
-    public function handle(MetaWhatsAppService $meta): void
-    {
+    public function handle(
+        MetaWhatsAppService $meta,
+        WhatsAppDispatchPolicy $policy
+    ): void {
+        $template = WaTemplate::findOrFail(
+            $this->templateId
+        );
+
+        if (! $policy->patientAllowsContact(
+            $this->appointmentId
+        )) {
+            return;
+        }
+
+        if ($this->automationId
+            && ! $policy->automatedMessageAllowed(
+                $this->appointmentId,
+                (string) (
+                    $template->purpose
+                    ?: 'general'
+                )
+            )) {
+            return;
+        }
+
         $meta->sendAppointmentTemplate(
             $this->appointmentId,
-            WaTemplate::findOrFail($this->templateId),
+            $template,
             $this->automationId,
             $this->dedupeKey
         );
