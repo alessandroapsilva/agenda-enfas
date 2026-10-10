@@ -3,6 +3,7 @@
 namespace App\Services\Enfas;
 
 use App\Models\MetaIntegration;
+use App\Models\WaAutomation;
 use App\Models\WaMessage;
 use App\Models\WaTemplate;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -634,6 +635,44 @@ class MetaWhatsAppService
 
         $integration = $this->integration();
         $appointment = $this->appointmentData($appointmentId);
+
+        if ($automationId) {
+            $automation = WaAutomation::find(
+                $automationId
+            );
+
+            if ($automation) {
+                $policy = app(
+                    WhatsAppDispatchPolicy::class
+                );
+
+                $purpose = (string) (
+                    $template->purpose
+                    ?: 'general'
+                );
+
+                $dedupeKey = $policy
+                    ->canonicalDedupeKey(
+                        $appointment,
+                        $purpose,
+                        (string) $automation->trigger_event,
+                        (int) ($automation->offset_minutes ?? 0)
+                    );
+
+                $equivalent = $policy
+                    ->existingEquivalentMessage(
+                        $appointment,
+                        $purpose,
+                        (string) $automation->trigger_event,
+                        (int) ($automation->offset_minutes ?? 0)
+                    );
+
+                if ($equivalent
+                    && $equivalent->dedupe_key !== $dedupeKey) {
+                    return $equivalent;
+                }
+            }
+        }
 
         $phone = $this->normalizeWhatsAppPhone(
             (string) $appointment->patient_phone
