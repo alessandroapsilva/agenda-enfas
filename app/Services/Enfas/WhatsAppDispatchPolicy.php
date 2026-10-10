@@ -138,7 +138,7 @@ class WhatsAppDispatchPolicy
         return true;
     }
 
-    public function hasRecentAutomatedMessage(
+    public function hasRecentOutboundMessage(
         int $appointmentId,
         int $minutes = 10
     ): bool {
@@ -150,9 +150,6 @@ class WhatsAppDispatchPolicy
             ->where(
                 'direction',
                 'outbound'
-            )
-            ->whereNotNull(
-                'automation_id'
             )
             ->whereIn(
                 'status',
