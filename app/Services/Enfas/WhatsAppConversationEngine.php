@@ -8,6 +8,7 @@ use App\Models\WaMessage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class WhatsAppConversationEngine
@@ -91,6 +92,15 @@ class WhatsAppConversationEngine
             'payload' => $incoming,
         ]);
 
+        if ($this->handleContactPreference(
+            $conversation,
+            $phone,
+            $text,
+            $payload
+        )) {
+            return;
+        }
+
         // Atendimento humano sempre tem prioridade sobre o robô.
         if ($conversation->mode === 'human') {
             return;
@@ -169,6 +179,213 @@ class WhatsAppConversationEngine
             'SLOT' => $this->chooseSlot($appointment, $phone, (int) ($parts[1] ?? 0)),
             default => null,
         };
+    }
+
+    private function handleContactPreference(
+        WaConversation $conversation,
+        string $phone,
+        mixed $text,
+        mixed $payload
+    ): bool {
+        if ($payload) {
+            return false;
+        }
+
+        $patientId = (int) (
+            $conversation->patient_id
+            ?? 0
+        );
+
+        if ($patientId <= 0
+            || ! is_string($text)
+            || trim($text) === '') {
+            return false;
+        }
+
+        $normalized = Str::of($text)
+            ->ascii()
+            ->lower()
+            ->squish()
+            ->toString();
+
+        $optOut = in_array(
+            $normalized,
+            [
+                'parar',
+                'pare',
+                'stop',
+                'sair',
+                'remover',
+                'remova',
+                'nao quero mensagens',
+                'nao quero mais mensagens',
+                'nao quero receber mensagens',
+                'nao me contate',
+                'nao entrar em contato',
+                'remover meu contato',
+            ],
+            true
+        );
+
+        $optIn = in_array(
+            $normalized,
+            [
+                'ativar',
+                'reativar',
+                'voltar',
+                'quero receber mensagens',
+                'voltar a receber mensagens',
+                'pode me avisar',
+            ],
+            true
+        );
+
+        if (! $optOut && ! $optIn) {
+            return false;
+        }
+
+        if ($optOut) {
+            DB::table('patients')
+                ->where('id', $patientId)
+                ->update([
+                    'do_not_contact' => true,
+                    'contact_consent' => false,
+                    'contact_consent_at' => now(),
+                    'contact_consent_source' => 'whatsapp_opt_out',
+                    'updated_at' => now(),
+                ]);
+
+            $this->closePendingVoiceAttempts(
+                $patientId
+            );
+
+            $this->closeHumanConfirmationTasks(
+                $patientId
+            );
+
+            $conversation->update([
+                'status' => 'completed',
+                'state' => 'IDLE',
+                'closed_at' => now(),
+                'last_message_at' => now(),
+            ]);
+
+            try {
+                $this->patientNotifications
+                    ->contactPreferenceChanged(
+                        $patientId,
+                        $phone,
+                        false
+                    );
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            return true;
+        }
+
+        DB::table('patients')
+            ->where('id', $patientId)
+            ->update([
+                'do_not_contact' => false,
+                'contact_consent' => true,
+                'contact_consent_at' => now(),
+                'contact_consent_source' => 'whatsapp_opt_in',
+                'updated_at' => now(),
+            ]);
+
+        $conversation->update([
+            'status' => 'active',
+            'state' => 'IDLE',
+            'closed_at' => null,
+            'last_message_at' => now(),
+        ]);
+
+        try {
+            $this->patientNotifications
+                ->contactPreferenceChanged(
+                    $patientId,
+                    $phone,
+                    true
+                );
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return true;
+    }
+
+    private function closePendingVoiceAttempts(
+        int $patientId
+    ): void {
+        if (! Schema::hasTable(
+            'confirmation_attempts'
+        )) {
+            return;
+        }
+
+        $appointmentIds = DB::table(
+            'appointments'
+        )
+            ->where(
+                'patient_id',
+                $patientId
+            )
+            ->pluck('id');
+
+        if ($appointmentIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('confirmation_attempts')
+            ->whereIn(
+                'appointment_id',
+                $appointmentIds->all()
+            )
+            ->where(
+                'channel',
+                'voice'
+            )
+            ->where(
+                'status',
+                'queued'
+            )
+            ->update([
+                'status' => 'completed',
+                'outcome' => 'blocked_by_policy',
+                'completed_at' => now(),
+                'notes' => 'Opt-out registrado pelo WhatsApp.',
+                'updated_at' => now(),
+            ]);
+    }
+
+    private function closeHumanConfirmationTasks(
+        int $patientId
+    ): void {
+        if (! Schema::hasTable(
+            'clinic_tasks'
+        )) {
+            return;
+        }
+
+        DB::table('clinic_tasks')
+            ->where(
+                'patient_id',
+                $patientId
+            )
+            ->where(
+                'status',
+                'open'
+            )
+            ->where(
+                'title',
+                'Confirmar agendamento por contato humano'
+            )
+            ->update([
+                'status' => 'completed',
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]);
     }
 
     private function confirm(object $appointment, string $phone): void
