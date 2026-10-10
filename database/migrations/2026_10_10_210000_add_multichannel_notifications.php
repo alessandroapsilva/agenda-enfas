@@ -24,6 +24,16 @@ return new class extends Migration
             });
         }
 
+        if (Schema::hasTable('professional_availabilities')) {
+            Schema::table('professional_availabilities', function (Blueprint $table) {
+                if (! Schema::hasColumn('professional_availabilities', 'slot_minutes')) {
+                    $table->unsignedSmallInteger('slot_minutes')
+                        ->nullable()
+                        ->after('end_time');
+                }
+            });
+        }
+
         if (! Schema::hasTable('communication_deliveries')) {
             Schema::create('communication_deliveries', function (Blueprint $table) {
                 $table->id();
