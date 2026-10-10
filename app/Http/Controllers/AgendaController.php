@@ -174,32 +174,204 @@ class AgendaController extends Controller
 
 
 
-    public function bestSlots(Request $request, AvailabilityService $availability, AccessScopeService $access)
-    {
+    public function bestSlots(
+        Request $request,
+        AvailabilityService $availability,
+        AccessScopeService $access
+    ) {
         $data = $request->validate([
-            'professional_id' => ['required','integer','exists:professionals,id'],
-            'service_id' => ['required','integer','exists:services,id'],
-            'period' => ['nullable','in:morning,afternoon,evening'],
-            'from' => ['nullable','date'],
-            'limit' => ['nullable','integer','min:1','max:12'],
+            'professional_id' => [
+                'nullable',
+                'integer',
+                'exists:professionals,id',
+            ],
+            'service_id' => [
+                'required',
+                'integer',
+                'exists:services,id',
+            ],
+            'period' => [
+                'nullable',
+                'in:morning,afternoon,evening',
+            ],
+            'from' => [
+                'nullable',
+                'date',
+            ],
+            'limit' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:20',
+            ],
         ]);
 
-        abort_unless(
-            $access->canUseProfessional($request->user(), (int) $data['professional_id']),
-            403
+        $service = Service::query()
+            ->whereKey(
+                (int) $data['service_id']
+            )
+            ->where(
+                'is_active',
+                true
+            )
+            ->firstOrFail();
+
+        $professionalsQuery = $access
+            ->professionals(
+                Professional::query(),
+                $request->user()
+            )
+            ->where(
+                'is_active',
+                true
+            );
+
+        if (! empty(
+            $data['professional_id']
+        )) {
+            $professionalsQuery->whereKey(
+                (int) $data['professional_id']
+            );
+        }
+
+        $linkedProfessionalIds = collect();
+
+        if (IlluminateSupportFacadesSchema::hasTable(
+            'professional_service'
+        )) {
+            $linkedProfessionalIds = IlluminateSupportFacadesDB::table(
+                'professional_service'
+            )
+                ->where(
+                    'service_id',
+                    $service->id
+                )
+                ->pluck(
+                    'professional_id'
+                )
+                ->map(
+                    fn ($id) => (int) $id
+                );
+
+            if ($linkedProfessionalIds->isNotEmpty()) {
+                $professionalsQuery->whereIn(
+                    'id',
+                    $linkedProfessionalIds->all()
+                );
+            }
+        }
+
+        $professionals = $professionalsQuery
+            ->orderBy('name')
+            ->get();
+
+        $from = isset($data['from'])
+            ? Carbon::parse(
+                $data['from'],
+                config('app.timezone')
+            )
+            : now();
+
+        if ($from->isPast()) {
+            $from = now();
+        }
+
+        $limit = (int) (
+            $data['limit']
+            ?? 8
         );
 
-        $slots = $availability->nextSlots(
-            $data['professional_id'],
-            $data['service_id'],
-            isset($data['from']) ? Carbon::parse($data['from']) : now(),
-            $data['period'] ?? null,
-            $data['limit'] ?? 6
-        );
+        $slots = collect();
+
+        foreach ($professionals as $professional) {
+            $perProfessional = $availability
+                ->nextSlots(
+                    (int) $professional->id,
+                    (int) $service->id,
+                    $from,
+                    $data['period'] ?? null,
+                    max(
+                        3,
+                        min(
+                            $limit,
+                            10
+                        )
+                    ),
+                    null,
+                    60
+                );
+
+            foreach ($perProfessional as $slot) {
+                $startAt = Carbon::parse(
+                    $slot['start'],
+                    config('app.timezone')
+                );
+
+                $slots->push([
+                    ...$slot,
+                    'professional_id' =>
+                        (int) $professional->id,
+                    'professional_name' =>
+                        $professional->name,
+                    'service_id' =>
+                        (int) $service->id,
+                    'service_name' =>
+                        $service->name,
+                    'duration_minutes' =>
+                        (int) (
+                            $service->duration_minutes
+                            ?: 30
+                        ),
+                    'day_label' =>
+                        $startAt
+                            ->translatedFormat(
+                                'D, d/m'
+                            ),
+                    'time_label' =>
+                        $startAt->format('H:i'),
+                ]);
+            }
+        }
+
+        $slots = $slots
+            ->sortBy('start')
+            ->unique(
+                fn ($slot) =>
+                    $slot['professional_id']
+                    .'|'
+                    .$slot['start']
+            )
+            ->take($limit)
+            ->values();
 
         return response()->json([
             'success' => true,
             'slots' => $slots,
+            'meta' => [
+                'service' => [
+                    'id' => (int) $service->id,
+                    'name' => $service->name,
+                    'duration_minutes' =>
+                        (int) (
+                            $service->duration_minutes
+                            ?: 30
+                        ),
+                ],
+                'professionals_checked' =>
+                    $professionals->count(),
+                'from' =>
+                    $from->toIso8601String(),
+                'period' =>
+                    $data['period'] ?? null,
+                'message' =>
+                    $slots->isEmpty()
+                        ? (
+                            $professionals->isEmpty()
+                                ? 'Nenhum profissional habilitado para este serviço.'
+                                : 'Não encontramos horário disponível nos próximos 60 dias com estes filtros.'
+                        )
+                        : null,
+            ],
         ]);
     }
 
