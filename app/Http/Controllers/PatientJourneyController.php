@@ -148,6 +148,24 @@ class PatientJourneyController extends Controller
             'start_at' => ['required','date','after:now'],
         ]);
 
+        if (
+            DB::table('professional_service')
+                ->where(
+                    'professional_id',
+                    $appointment->professional_id
+                )
+                ->where(
+                    'service_id',
+                    $appointment->service_id
+                )
+                ->doesntExist()
+        ) {
+            throw ValidationException::withMessages([
+                'start_at' =>
+                    'Este profissional não está mais habilitado para este serviço. Entre em contato com a equipe para escolher outro profissional.',
+            ]);
+        }
+
         $start = Carbon::parse($data['start_at']);
         $end = $start->copy()->addMinutes($appointment->duration_minutes);
 
