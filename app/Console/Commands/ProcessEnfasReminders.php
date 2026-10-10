@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Jobs\SendAppointmentWhatsApp;
 use App\Models\WaAutomation;
 use App\Models\WaMessage;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
@@ -13,14 +14,21 @@ use Illuminate\Support\Facades\Schema;
 
 class ProcessEnfasReminders extends Command
 {
-    protected $signature = 'enfas:reminders {--dry-run : Mostra o que seria processado sem enviar}';
-    protected $description = 'Processa automações e lembretes do ENFAS Agenda';
+    protected $signature =
+        'enfas:reminders {--dry-run : Mostra o que seria processado sem enviar}';
 
-    public function handle(): int
-    {
+    protected $description =
+        'Processa apenas automacoes temporais e lembretes do ENFAS Agenda';
+
+    public function handle(
+        WhatsAppDispatchPolicy $policy
+    ): int {
         if (! Schema::hasTable('appointments')
             || ! Schema::hasTable('wa_automations')) {
-            $this->warn('Estrutura de automações não disponível.');
+            $this->warn(
+                'Estrutura de automacoes nao disponivel.'
+            );
+
             return self::SUCCESS;
         }
 
@@ -30,79 +38,129 @@ class ProcessEnfasReminders extends Command
             ->get();
 
         if ($rules->isEmpty()) {
-            $this->warn('Nenhuma automação ativa.');
+            $this->warn(
+                'Nenhuma automacao ativa.'
+            );
+
             return self::SUCCESS;
         }
 
         $now = now();
+
         $stats = [
             'rules' => 0,
+            'scheduled' => 0,
+            'event_driven' => 0,
             'due' => 0,
             'queued' => 0,
             'deduped' => 0,
+            'blocked' => 0,
             'unsupported' => 0,
         ];
 
         foreach ($rules as $rule) {
             $stats['rules']++;
 
-            if (! $rule->template
-                || $rule->template->status !== 'APPROVED') {
-                $this->warn(
-                    "Regra #{$rule->id} ignorada: template não aprovado."
-                );
+            if (! $policy->isScheduledEvent(
+                (string) $rule->trigger_event
+            )) {
+                $stats['event_driven']++;
                 continue;
             }
 
-            if (isset($rule->template->is_active)
-                && ! (bool) $rule->template->is_active) {
+            $stats['scheduled']++;
+
+            $template = $rule->template;
+
+            if (! $template
+                || $template->status !== 'APPROVED'
+                || ! (bool) ($template->is_active ?? true)
+                || $template->archived_at !== null) {
                 $this->warn(
-                    "Regra #{$rule->id} ignorada: template inativo."
+                    "Regra #{$rule->id} ignorada: template indisponivel."
                 );
+
                 continue;
             }
 
-            $appointments = $this->appointmentsFor($rule, $now);
+            $appointments = $this->appointmentsFor(
+                $rule,
+                $now
+            );
 
             if ($appointments === null) {
                 $stats['unsupported']++;
+
                 $this->warn(
-                    "Regra #{$rule->id} ({$rule->trigger_event}) sem evento confiável nesta base."
+                    "Regra #{$rule->id} ({$rule->trigger_event}) sem evento temporal confiavel."
                 );
-                $this->touchRule($rule, $now);
+
                 continue;
             }
 
-            $stats['due'] += $appointments->count();
+            $stats['due'] +=
+                $appointments->count();
 
             foreach ($appointments as $appointment) {
-                $dedupe = $this->dedupeKey(
-                    (int) $rule->id,
-                    (int) $appointment->id,
-                    (string) $rule->trigger_event,
-                    (int) ($rule->offset_minutes ?? 0),
-                    (string) ($rule->template->purpose ?? '')
+                $purpose = (string) (
+                    $template->purpose
+                    ?: 'general'
                 );
 
-                $existing = $dedupe
-                    ? WaMessage::where('dedupe_key', $dedupe)->first()
-                    : null;
+                if (! $policy->automatedMessageAllowed(
+                    (int) $appointment->id,
+                    $purpose
+                )) {
+                    $stats['blocked']++;
+                    continue;
+                }
 
-                $retryWithChangedTemplate = $existing
-                    && $existing->status === 'failed'
-                    && (int) $existing->template_id !== (int) $rule->template_id;
+                $offset = (int) (
+                    $rule->offset_minutes
+                    ?? 0
+                );
 
-                if ($rule->send_once
-                    && $existing
-                    && ! $retryWithChangedTemplate) {
+                $dedupe = $policy
+                    ->canonicalDedupeKey(
+                        $appointment,
+                        $purpose,
+                        (string) $rule->trigger_event,
+                        $offset
+                    );
+
+                $exact = WaMessage::query()
+                    ->where(
+                        'dedupe_key',
+                        $dedupe
+                    )
+                    ->first();
+
+                if ($policy->blocksRetry(
+                    $exact,
+                    (int) $rule->template_id
+                )) {
+                    $stats['deduped']++;
+                    continue;
+                }
+
+                $equivalent = $policy
+                    ->existingEquivalentMessage(
+                        $appointment,
+                        $purpose,
+                        (string) $rule->trigger_event,
+                        $offset
+                    );
+
+                if ($equivalent) {
                     $stats['deduped']++;
                     continue;
                 }
 
                 if ($this->option('dry-run')) {
                     $this->line(
-                        "DRY-RUN regra={$rule->id} evento={$rule->trigger_event} agendamento={$appointment->id}"
+                        "DRY-RUN regra={$rule->id} evento={$rule->trigger_event} agendamento={$appointment->id} dedupe={$dedupe}"
                     );
+
                     continue;
                 }
 
@@ -114,27 +172,37 @@ class ProcessEnfasReminders extends Command
                 );
 
                 $stats['queued']++;
-
-                if ($rule->trigger_event === 'appointment_created') {
-                    $this->markConfirmationRequested(
-                        (int) $appointment->id
-                    );
-                }
             }
 
             if (! $this->option('dry-run')) {
-                $this->touchRule($rule, $now);
+                $this->touchRule(
+                    $rule,
+                    $now
+                );
             }
         }
 
         $this->newLine();
+
         $this->table(
-            ['Regras', 'Elegíveis', 'Enfileiradas', 'Duplicadas', 'Sem suporte'],
+            [
+                'Regras',
+                'Temporais',
+                'Por evento',
+                'Elegiveis',
+                'Enfileiradas',
+                'Deduplicadas',
+                'Bloqueadas',
+                'Sem suporte',
+            ],
             [[
                 $stats['rules'],
+                $stats['scheduled'],
+                $stats['event_driven'],
                 $stats['due'],
                 $stats['queued'],
                 $stats['deduped'],
+                $stats['blocked'],
                 $stats['unsupported'],
             ]]
         );
@@ -155,80 +223,22 @@ class ProcessEnfasReminders extends Command
             );
         }
 
-        $since = $rule->last_run_at
-            ? Carbon::parse($rule->last_run_at)
-            : $now->copy()->subMinutes(5);
-
         return match ($rule->trigger_event) {
-            'appointment_created' => $this->createdAppointments(
-                clone $base,
-                $since,
-                $now
-            ),
+            'appointment_before' =>
+                $this->beforeAppointments(
+                    clone $base,
+                    (int) ($rule->offset_minutes ?? 0),
+                    $now
+                ),
 
-            'appointment_before' => $this->beforeAppointments(
-                clone $base,
-                (int) ($rule->offset_minutes ?? 0),
-                $now
-            ),
-
-            'appointment_confirmed' => $this->timestampAppointments(
-                clone $base,
-                'confirmed_at',
-                $since,
-                $now
-            ),
-
-            'appointment_cancelled' => $this->timestampAppointments(
-                clone $base,
-                'cancelled_at',
-                $since,
-                $now
-            ),
-
-            'appointment_completed' => $this->completedAppointments(
-                clone $base,
-                $since,
-                $now
-            ),
-
-            'appointment_rescheduled' => $this->timestampAppointments(
-                clone $base,
-                'rescheduled_at',
-                $since,
-                $now
-            ),
-
-            'appointment_return_due' => $this->returnDueAppointments(
-                clone $base,
-                $since,
-                $now
-            ),
+            'appointment_return_due' =>
+                $this->returnDueAppointments(
+                    clone $base,
+                    $now
+                ),
 
             default => null,
         };
-    }
-
-    private function createdAppointments(
-        Builder $query,
-        Carbon $since,
-        Carbon $now
-    ): \Illuminate\Support\Collection {
-        if (! Schema::hasColumn('appointments', 'created_at')
-            || ! Schema::hasColumn('appointments', 'start_at')) {
-            return collect();
-        }
-
-        return $query
-            ->whereNotIn('status', [
-                'cancelled',
-                'completed',
-                'canceled',
-            ])
-            ->where('start_at', '>', $now)
-            ->where('created_at', '>', $since)
-            ->where('created_at', '<=', $now)
-            ->get();
     }
 
     private function beforeAppointments(
@@ -236,107 +246,68 @@ class ProcessEnfasReminders extends Command
         int $offsetMinutes,
         Carbon $now
     ): \Illuminate\Support\Collection {
-        if (! Schema::hasColumn('appointments', 'start_at')) {
+        if (! Schema::hasColumn(
+            'appointments',
+            'start_at'
+        )) {
             return collect();
         }
 
         $limit = $now->copy()->addMinutes(
-            max(0, $offsetMinutes)
+            max(
+                0,
+                $offsetMinutes
+            )
         );
 
         return $query
-            ->whereNotIn('status', [
-                'cancelled',
-                'completed',
-                'canceled',
-            ])
-            ->where('start_at', '>', $now)
-            ->where('start_at', '<=', $limit)
-            ->get();
-    }
-
-    private function timestampAppointments(
-        Builder $query,
-        string $column,
-        Carbon $since,
-        Carbon $now
-    ): \Illuminate\Support\Collection {
-        if (! Schema::hasColumn('appointments', $column)) {
-            return collect();
-        }
-
-        return $query
-            ->whereNotNull($column)
-            ->where($column, '>', $since)
-            ->where($column, '<=', $now)
-            ->get();
-    }
-
-    private function completedAppointments(
-        Builder $query,
-        Carbon $since,
-        Carbon $now
-    ): \Illuminate\Support\Collection {
-        if (Schema::hasColumn('appointments', 'completed_at')) {
-            return $this->timestampAppointments(
-                $query,
-                'completed_at',
-                $since,
+            ->whereNotIn(
+                'status',
+                [
+                    'cancelled',
+                    'canceled',
+                    'completed',
+                    'no_show',
+                ]
+            )
+            ->where(
+                'start_at',
+                '>',
                 $now
-            );
-        }
-
-        if (Schema::hasColumn('appointments', 'attended_at')) {
-            return $this->timestampAppointments(
-                $query,
-                'attended_at',
-                $since,
-                $now
-            );
-        }
-
-        return collect();
+            )
+            ->where(
+                'start_at',
+                '<=',
+                $limit
+            )
+            ->get();
     }
 
     private function returnDueAppointments(
         Builder $query,
-        Carbon $since,
         Carbon $now
     ): \Illuminate\Support\Collection {
-        if (! Schema::hasColumn('appointments', 'return_due_at')) {
+        if (! Schema::hasColumn(
+            'appointments',
+            'return_due_at'
+        )) {
             return collect();
         }
 
         return $query
-            ->where('status', 'completed')
-            ->whereNotNull('return_due_at')
-            ->whereDate('return_due_at', '>=', $since->toDateString())
-            ->whereDate('return_due_at', '<=', $now->toDateString())
+            ->where(
+                'status',
+                'completed'
+            )
+            ->whereNotNull(
+                'return_due_at'
+            )
+            ->whereDate(
+                'return_due_at',
+                '<=',
+                $now->toDateString()
+            )
             ->get();
-    }
-
-    private function dedupeKey(
-        int $ruleId,
-        int $appointmentId,
-        string $event,
-        int $offset,
-        string $purpose
-    ): string {
-        if ($purpose === 'confirmation') {
-            return 'auto:confirmation:event:'
-                .$event
-                .':appointment:'
-                .$appointmentId;
-        }
-
-        return implode(':', [
-            'auto',
-            $ruleId,
-            $event,
-            $offset,
-            'appointment',
-            $appointmentId,
-        ]);
     }
 
     private function touchRule(
@@ -346,31 +317,5 @@ class ProcessEnfasReminders extends Command
         $rule->forceFill([
             'last_run_at' => $time,
         ])->save();
-    }
-
-    private function markConfirmationRequested(
-        int $appointmentId
-    ): void {
-        $payload = [];
-
-        if (Schema::hasColumn(
-            'appointments',
-            'confirmation_requested_at'
-        )) {
-            $payload['confirmation_requested_at'] = now();
-        }
-
-        if (Schema::hasColumn(
-            'appointments',
-            'confirmation_channel'
-        )) {
-            $payload['confirmation_channel'] = 'whatsapp';
-        }
-
-        if ($payload !== []) {
-            DB::table('appointments')
-                ->where('id', $appointmentId)
-                ->update($payload);
-        }
     }
 }
