@@ -113,7 +113,7 @@
                         </div>
 
                         <div class="ea-conversation-meta text-truncate">
-                            {{ $conversation->appointment?->service?->name ?: 'Conversa geral' }}
+                            {{ $conversation->appointment?->service?->name ?: 'Sem agendamento vinculado' }}
                             @if($conversation->appointment?->code)
                                 · {{ $conversation->appointment->code }}
                             @endif
@@ -201,7 +201,7 @@
                     @forelse($messages as $message)
                         <div class="ea-message-row {{ $message->direction === 'outbound' ? 'is-outbound':'is-inbound' }}">
                             <div class="ea-message-bubble">
-                                <div class="ea-message-text">{{ $message->body ?: 'Mensagem sem texto' }}</div>
+                                <div class="ea-message-text">{{ $message->body ?: 'Conteúdo não disponível' }}</div>
                                 <div class="ea-message-meta">
                                     {{ $message->created_at?->format('d/m H:i') }}
                                     @if($message->direction === 'outbound') · {{ $message->status }} @endif
@@ -264,7 +264,7 @@
         @if($selected)
             <div class="card mb-3">
                 <div class="card-header">
-                    <strong class="d-block">Contexto do atendimento</strong>
+                    <strong class="d-block">Contexto da conversa</strong>
                     <span class="small text-secondary">Funil, prioridade e etiquetas.</span>
                 </div>
                 <div class="card-body">
