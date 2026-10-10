@@ -177,7 +177,7 @@
                             @csrf
                             <div class="table-responsive">
                                 <table class="table align-middle">
-                                    <thead><tr><th>Dia</th><th>Atende</th><th>Início</th><th>Fim</th><th>Pausa início</th><th>Pausa fim</th></tr></thead>
+                                    <thead><tr><th>Dia</th><th>Atende</th><th>Início</th><th>Fim</th><th>Intervalo</th><th>Pausa início</th><th>Pausa fim</th></tr></thead>
                                     <tbody>
                                     @foreach($dayNames as $day => $label)
                                         @php $row=$availabilityByDay->get($day); @endphp
@@ -189,6 +189,19 @@
                                             </td>
                                             <td><input type="time" class="form-control form-control-sm" name="availability[{{ $day }}][start_time]" value="{{ $row ? substr($row->start_time,0,5) : substr($professional->work_start,0,5) }}"></td>
                                             <td><input type="time" class="form-control form-control-sm" name="availability[{{ $day }}][end_time]" value="{{ $row ? substr($row->end_time,0,5) : substr($professional->work_end,0,5) }}"></td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <input
+                                                        type="number"
+                                                        class="form-control"
+                                                        name="availability[{{ $day }}][slot_minutes]"
+                                                        min="5"
+                                                        max="240"
+                                                        value="{{ $row?->slot_minutes ?: $professional->slot_interval }}"
+                                                    >
+                                                    <span class="input-group-text">min</span>
+                                                </div>
+                                            </td>
                                             <td><input type="time" class="form-control form-control-sm" name="availability[{{ $day }}][break_start]" value="{{ $row?->break_start ? substr($row->break_start,0,5) : '' }}"></td>
                                             <td><input type="time" class="form-control form-control-sm" name="availability[{{ $day }}][break_end]" value="{{ $row?->break_end ? substr($row->break_end,0,5) : '' }}"></td>
                                         </tr>
