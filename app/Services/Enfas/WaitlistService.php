@@ -12,7 +12,8 @@ class WaitlistService
 {
     public function __construct(
         private AvailabilityService $availability,
-        private MetaWhatsAppService $meta
+        private MetaWhatsAppService $meta,
+        private WhatsAppDispatchPolicy $dispatchPolicy
     ) {
     }
 
@@ -56,8 +57,15 @@ class WaitlistService
             ->get()
             ->first(function (WaitlistEntry $entry) use ($start) {
                 return $entry->patient?->phone
+                    && $this->dispatchPolicy
+                        ->patientAllowsContactByPatientId(
+                            (int) $entry->patient_id
+                        )
                     && (! $entry->preferred_period
-                        || $this->matchesPeriod($start, $entry->preferred_period));
+                        || $this->matchesPeriod(
+                            $start,
+                            $entry->preferred_period
+                        ));
             });
 
         if (! $candidate) {
