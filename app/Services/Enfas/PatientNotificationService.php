@@ -85,7 +85,11 @@ class PatientNotificationService
                 $phone,
                 "Não encontrei horários nesse período no momento. Nossa equipe foi avisada e pode ajudar você a encontrar outra opção.",
                 $appointmentId,
-                $a->patient_id
+                $a->patient_id,
+                'reschedule-no-slots:'
+                    .$appointmentId
+                    .':'
+                    .now()->format('YmdHi')
             );
             return;
         }
@@ -103,13 +107,30 @@ class PatientNotificationService
             ];
         }
 
+        $slotFingerprint = substr(
+            sha1(
+                json_encode(
+                    array_map(
+                        fn ($slot) =>
+                            (string) ($slot['start'] ?? ''),
+                        array_slice($slots, 0, 3)
+                    )
+                )
+            ),
+            0,
+            16
+        );
+
         $this->meta->sendInteractiveButtons(
             $phone,
             "📅 *Horários disponíveis com {$a->professional_name}*\n\n".implode("\n", $lines)."\n\nEscolha uma opção:",
             $buttons,
             $appointmentId,
             $a->patient_id,
-            null,
+            'reschedule-slots:'
+                .$appointmentId
+                .':'
+                .$slotFingerprint,
             'Os horários são validados novamente na confirmação.'
         );
     }
@@ -117,6 +138,10 @@ class PatientNotificationService
     public function rescheduled(int $appointmentId, string $phone): void
     {
         $a = $this->data($appointmentId);
+
+        $slot = Carbon::parse(
+            $a->start_at
+        )->format('YmdHi');
 
         $this->meta->sendTextMessage(
             $phone,
@@ -129,7 +154,11 @@ class PatientNotificationService
             ."🔗 Acompanhe sua jornada:\n"
             .route('patient-journey.show', $a->public_token),
             $appointmentId,
-            $a->patient_id
+            $a->patient_id,
+            'patient-rescheduled:'
+                .$appointmentId
+                .':'
+                .$slot
         );
     }
 
