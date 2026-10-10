@@ -998,6 +998,239 @@ document.addEventListener('DOMContentLoaded', function () {
     appointmentType?.addEventListener('change', syncAppointmentType);
     syncAppointmentType();
 
+    const appointmentDateInput =
+        document.getElementById('appointmentDate');
+
+    const appointmentStartInput =
+        document.getElementById('appointmentStart');
+
+    const appointmentServiceInput =
+        document.querySelector(
+            '#appointmentModal select[name="service_id"]'
+        );
+
+    const appointmentProfessionalInput =
+        document.querySelector(
+            '#appointmentModal select[name="professional_id"]'
+        );
+
+    const appointmentSlotResults =
+        document.getElementById(
+            'appointmentSlotResults'
+        );
+
+    const appointmentSelectedSlot =
+        document.getElementById(
+            'appointmentSelectedSlot'
+        );
+
+    const clearSelectedAppointmentSlot = () => {
+        if (appointmentStartInput) {
+            appointmentStartInput.value = '';
+        }
+
+        if (appointmentSelectedSlot) {
+            appointmentSelectedSlot.textContent =
+                'Nenhum horário selecionado';
+
+            appointmentSelectedSlot.classList
+                .add('is-empty');
+        }
+
+        appointmentSlotResults
+            ?.querySelectorAll(
+                '.ea-availability-slot.is-selected'
+            )
+            .forEach(
+                item =>
+                    item.classList.remove(
+                        'is-selected'
+                    )
+            );
+    };
+
+    const selectAppointmentSlot = (
+        start,
+        label,
+        button = null
+    ) => {
+        if (! appointmentStartInput) {
+            return;
+        }
+
+        appointmentStartInput.value =
+            String(start)
+                .replace(' ', 'T')
+                .slice(0, 16);
+
+        if (appointmentSelectedSlot) {
+            appointmentSelectedSlot.textContent =
+                label;
+
+            appointmentSelectedSlot.classList
+                .remove('is-empty');
+        }
+
+        appointmentSlotResults
+            ?.querySelectorAll(
+                '.ea-availability-slot'
+            )
+            .forEach(
+                item =>
+                    item.classList.toggle(
+                        'is-selected',
+                        item === button
+                    )
+            );
+
+        appointmentStartInput.dispatchEvent(
+            new Event(
+                'change',
+                { bubbles: true }
+            )
+        );
+    };
+
+    window.loadAppointmentAvailability =
+        async function () {
+            const date =
+                appointmentDateInput?.value || '';
+
+            const service =
+                appointmentServiceInput?.value || '';
+
+            const professional =
+                appointmentProfessionalInput?.value || '';
+
+            clearSelectedAppointmentSlot();
+
+            if (! appointmentSlotResults) {
+                return;
+            }
+
+            if (! date || ! service || ! professional) {
+                appointmentSlotResults.innerHTML =
+                    '<div class="ea-availability-empty">' +
+                        'Selecione data, serviço e profissional para carregar os horários.' +
+                    '</div>';
+
+                return;
+            }
+
+            appointmentSlotResults.innerHTML =
+                '<div class="ea-availability-loading">' +
+                    '<span class="spinner-border spinner-border-sm"></span>' +
+                    '<span>Consultando agenda...</span>' +
+                '</div>';
+
+            const params = new URLSearchParams({
+                date,
+                service_id: service,
+                professional_id: professional
+            });
+
+            try {
+                const response = await fetch(
+                    @json(route('agenda.day-slots'))
+                    + '?'
+                    + params.toString(),
+                    {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+
+                const data = await response.json();
+
+                if (! response.ok) {
+                    const error =
+                        Object.values(
+                            data.errors || {}
+                        )
+                            .flat()[0]
+                        || data.message
+                        || 'Não foi possível consultar a disponibilidade.';
+
+                    throw new Error(error);
+                }
+
+                if (! data.slots?.length) {
+                    appointmentSlotResults.innerHTML =
+                        '<div class="ea-availability-empty is-warning">' +
+                            '<i class="bi bi-calendar-x"></i>' +
+                            '<span>' +
+                                escapeHtml(
+                                    data.message
+                                    || 'Nenhum horário livre nesta data.'
+                                ) +
+                            '</span>' +
+                        '</div>';
+
+                    return;
+                }
+
+                appointmentSlotResults.innerHTML =
+                    data.slots
+                        .map(
+                            slot =>
+                                '<button type="button" ' +
+                                    'class="ea-availability-slot" ' +
+                                    'data-start="' +
+                                        escapeHtml(slot.start) +
+                                    '" ' +
+                                    'data-label="' +
+                                        escapeHtml(slot.label) +
+                                    '">' +
+                                    '<strong>' +
+                                        escapeHtml(slot.time) +
+                                    '</strong>' +
+                                    '<span>' +
+                                        escapeHtml(slot.label) +
+                                    '</span>' +
+                                '</button>'
+                        )
+                        .join('');
+
+                appointmentSlotResults
+                    .querySelectorAll(
+                        '.ea-availability-slot'
+                    )
+                    .forEach(button => {
+                        button.addEventListener(
+                            'click',
+                            () => {
+                                selectAppointmentSlot(
+                                    button.dataset.start,
+                                    button.dataset.label,
+                                    button
+                                );
+                            }
+                        );
+                    });
+
+            } catch (error) {
+                appointmentSlotResults.innerHTML =
+                    '<div class="ea-availability-empty is-danger">' +
+                        '<i class="bi bi-exclamation-triangle"></i>' +
+                        '<span>' +
+                            escapeHtml(error.message) +
+                        '</span>' +
+                    '</div>';
+            }
+        };
+
+    [
+        appointmentDateInput,
+        appointmentServiceInput,
+        appointmentProfessionalInput
+    ].forEach(field => {
+        field?.addEventListener(
+            'change',
+            window.loadAppointmentAvailability
+        );
+    });
+
 
     const calendar = new FullCalendar.Calendar(
         calendarElement,
@@ -1064,17 +1297,50 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             select: function(info) {
+                if (appointmentDateInput) {
+                    appointmentDateInput.value =
+                        info.startStr.substring(
+                            0,
+                            10
+                        );
+                }
 
-                const input =
+                const agendaProfessional =
                     document.getElementById(
-                        'appointmentStart'
+                        'agendaFilterProfessional'
+                    )?.value;
+
+                const agendaService =
+                    document.getElementById(
+                        'agendaFilterService'
+                    )?.value;
+
+                if (
+                    agendaProfessional
+                    && appointmentProfessionalInput
+                ) {
+                    appointmentProfessionalInput.value =
+                        agendaProfessional;
+                }
+
+                if (
+                    agendaService
+                    && appointmentServiceInput
+                ) {
+                    appointmentServiceInput.value =
+                        agendaService;
+                }
+
+                const createButton =
+                    document.getElementById(
+                        'newAppointmentBtn'
                     );
 
-                input.value =
-                    info.startStr.substring(0, 16);
+                if (createButton) {
+                    createButton.click();
+                }
 
-                const createButton = document.getElementById('newAppointmentBtn');
-                if (createButton) createButton.click();
+                window.loadAppointmentAvailability();
             },
 
             eventClick: async function(info) {
@@ -1586,7 +1852,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    const appointmentStartInput = document.getElementById('appointmentStart');
     appointmentStartInput?.addEventListener('change', function () {
         if (! this.value) return;
         const date = this.value.slice(0,10);
@@ -1606,6 +1871,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         hiddenTime.value = time;
     });
+
+    document.querySelector(
+        '#appointmentModal form'
+    )?.addEventListener(
+        'submit',
+        function (event) {
+            if (
+                ! document.getElementById(
+                    'recurrenceToggle'
+                )?.checked
+                && ! appointmentStartInput?.value
+            ) {
+                event.preventDefault();
+
+                appointmentSlotResults.innerHTML =
+                    '<div class="ea-availability-empty is-danger">' +
+                        '<i class="bi bi-exclamation-triangle"></i>' +
+                        '<span>Escolha um horário disponível antes de salvar.</span>' +
+                    '</div>';
+            }
+        }
+    );
 
     window.findBestSlots = async function() {
         const professional =
