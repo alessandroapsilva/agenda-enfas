@@ -14,22 +14,64 @@ class AppointmentObserver
         }
     }
 
-    public function updated(Appointment $appointment): void
-    {
-        if (! Schema::hasTable('wa_automations')) return;
-
-        if ($appointment->wasChanged('start_at')) {
-            app(WhatsAppAutomationEngine::class)->trigger('appointment_rescheduled',$appointment->id);
+    public function updated(
+        Appointment $appointment
+    ): void {
+        if (! Schema::hasTable(
+            'wa_automations'
+        )) {
+            return;
         }
 
-        if ($appointment->wasChanged('status')) {
-            $trigger = match($appointment->status) {
-                'confirmed'=>'appointment_confirmed',
-                'cancelled'=>'appointment_cancelled',
-                'completed'=>'appointment_completed',
-                default=>null,
-            };
-            if ($trigger) app(WhatsAppAutomationEngine::class)->trigger($trigger,$appointment->id);
+        $rescheduled =
+            $appointment->wasChanged(
+                'start_at'
+            );
+
+        if ($rescheduled) {
+            app(
+                WhatsAppAutomationEngine::class
+            )->trigger(
+                'appointment_rescheduled',
+                $appointment->id
+            );
+        }
+
+        if (! $appointment->wasChanged(
+            'status'
+        )) {
+            return;
+        }
+
+        /*
+         * Um reagendamento que também deixa o horário confirmado
+         * representa uma única intenção de comunicação. Evitamos
+         * disparar "reagendado" e "confirmado" na mesma operação.
+         */
+        if ($rescheduled
+            && $appointment->status === 'confirmed') {
+            return;
+        }
+
+        $trigger = match (
+            $appointment->status
+        ) {
+            'confirmed' =>
+                'appointment_confirmed',
+            'cancelled' =>
+                'appointment_cancelled',
+            'completed' =>
+                'appointment_completed',
+            default => null,
+        };
+
+        if ($trigger) {
+            app(
+                WhatsAppAutomationEngine::class
+            )->trigger(
+                $trigger,
+                $appointment->id
+            );
         }
     }
 }
