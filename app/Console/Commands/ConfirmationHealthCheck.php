@@ -74,6 +74,10 @@ class ConfirmationHealthCheck extends Command
             $rows
         );
 
+        $this->appendBrandingSnapshot(
+            $rows
+        );
+
         $this->table(
             [
                 'Area',
@@ -834,6 +838,94 @@ class ConfirmationHealthCheck extends Command
                 .' automatica(s) sem chave · '
                 .$manualWithoutKey
                 .' manual(is) legado(s) sem chave',
+        ];
+    }
+
+    private function appendBrandingSnapshot(
+        array &$rows
+    ): void {
+        if (! Schema::hasTable(
+            'wa_automations'
+        )
+            || ! Schema::hasTable(
+                'wa_templates'
+            )) {
+            return;
+        }
+
+        $columns = Schema::getColumnListing(
+            'wa_automations'
+        );
+
+        $templateColumn = in_array(
+            'template_id',
+            $columns,
+            true
+        )
+            ? 'template_id'
+            : (
+                in_array(
+                    'wa_template_id',
+                    $columns,
+                    true
+                )
+                    ? 'wa_template_id'
+                    : null
+            );
+
+        if (! $templateColumn) {
+            return;
+        }
+
+        $active = DB::table(
+            'wa_automations as a'
+        )
+            ->join(
+                'wa_templates as t',
+                't.id',
+                '=',
+                'a.'.$templateColumn
+            )
+            ->where(
+                'a.is_active',
+                true
+            )
+            ->get([
+                'a.id',
+                't.id as template_id',
+                't.name',
+                't.header_type',
+                't.header_media_id',
+                't.status',
+            ]);
+
+        $total = $active->count();
+
+        $withImage = $active
+            ->filter(
+                fn ($row) =>
+                    strtoupper(
+                        (string) $row->header_type
+                    ) === 'IMAGE'
+                    && $row->header_media_id
+                    && $row->status === 'APPROVED'
+            )
+            ->count();
+
+        $rows[] = [
+            'WhatsApp',
+            'Identidade visual',
+            $total === 0
+                ? 'NEUTRO'
+                : (
+                    $withImage === $total
+                        ? 'OK'
+                        : 'ATENCAO'
+                ),
+            $withImage
+                .' de '
+                .$total
+                .' automacao(oes) ativa(s) usam modelo aprovado com imagem',
         ];
     }
 
