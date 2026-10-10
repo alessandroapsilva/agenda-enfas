@@ -12,12 +12,15 @@ use App\Models\Service;
 use App\Models\WaMessage;
 use App\Services\Enfas\AvailabilityService;
 use App\Services\Enfas\AccessScopeService;
+use App\Services\Enfas\CommunicationDeliveryService;
+use App\Services\Enfas\CommunicationPolicyService;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\RecurringAppointmentService;
 use App\Services\Enfas\WaitlistService;
 use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class AppointmentController extends Controller
@@ -307,20 +310,82 @@ class AppointmentController extends Controller
             ->get();
 
         $communications = WaMessage::query()
-            ->where('appointment_id', $appointment->id)
+            ->where(
+                'appointment_id',
+                $appointment->id
+            )
             ->orderByDesc('id')
-            ->limit(20)
+            ->limit(30)
             ->get()
             ->map(fn ($message) => [
-                'id' => $message->id,
-                'direction' => $message->direction,
-                'type' => $message->message_type,
-                'status' => $message->status,
-                'body' => $message->body,
-                'recipient' => $message->recipient,
-                'date' => $message->created_at?->format('d/m/Y H:i'),
-            ])
-            ->values();
+                'id' => 'wa-'.$message->id,
+                'direction' =>
+                    $message->direction,
+                'channel' => 'whatsapp',
+                'type' =>
+                    $message->message_type,
+                'status' =>
+                    $message->status,
+                'body' =>
+                    $message->body,
+                'recipient' =>
+                    $message->recipient,
+                'timestamp' =>
+                    $message->created_at?->timestamp
+                    ?? 0,
+                'date' =>
+                    $message->created_at
+                        ?->format('d/m/Y H:i'),
+            ]);
+
+        if (Schema::hasTable(
+            'communication_deliveries'
+        )) {
+            $other = DB::table(
+                'communication_deliveries'
+            )
+                ->where(
+                    'appointment_id',
+                    $appointment->id
+                )
+                ->orderByDesc('id')
+                ->limit(30)
+                ->get()
+                ->map(fn ($message) => [
+                    'id' =>
+                        'comm-'.$message->id,
+                    'direction' =>
+                        'outbound',
+                    'channel' =>
+                        $message->channel,
+                    'type' =>
+                        $message->event,
+                    'status' =>
+                        $message->status,
+                    'body' =>
+                        $message->body,
+                    'recipient' =>
+                        $message->recipient,
+                    'timestamp' =>
+                        Carbon::parse(
+                            $message->created_at
+                        )->timestamp,
+                    'date' =>
+                        Carbon::parse(
+                            $message->created_at
+                        )->format('d/m/Y H:i'),
+                ]);
+
+            $communications =
+                $communications
+                    ->concat($other);
+        }
+
+        $communications =
+            $communications
+                ->sortByDesc('timestamp')
+                ->take(30)
+                ->values();
 
         return response()->json([
             'appointment' => [
@@ -549,19 +614,61 @@ class AppointmentController extends Controller
         Appointment $appointment,
         MetaWhatsAppService $meta,
         AccessScopeService $access,
-        WhatsAppDispatchPolicy $policy
+        WhatsAppDispatchPolicy $policy,
+        CommunicationPolicyService $communicationPolicy,
+        CommunicationDeliveryService $deliveries
     ) {
         abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
         $data = $request->validate([
-            'channel' => ['required', 'in:whatsapp'],
+            'channel' => ['required', 'in:whatsapp,email,sms'],
             'message' => ['required', 'string', 'min:1', 'max:4000'],
         ]);
 
         $appointment->load('patient');
 
-        if (! $appointment->patient?->phone) {
+        if (
+            in_array(
+                $data['channel'],
+                ['whatsapp', 'sms'],
+                true
+            )
+            && ! $appointment->patient?->phone
+        ) {
             throw ValidationException::withMessages([
-                'message' => 'O paciente não possui telefone/WhatsApp cadastrado.',
+                'message' =>
+                    'O paciente não possui telefone cadastrado.',
+            ]);
+        }
+
+        if (
+            $data['channel'] === 'email'
+            && ! $appointment->patient?->email
+        ) {
+            throw ValidationException::withMessages([
+                'message' =>
+                    'O paciente não possui e-mail cadastrado.',
+            ]);
+        }
+
+        if (
+            $data['channel'] === 'email'
+            && ! $communicationPolicy
+                ->patientEmailEnabled()
+        ) {
+            throw ValidationException::withMessages([
+                'message' =>
+                    'O canal de e-mail está desativado nas Preferências da Agenda.',
+            ]);
+        }
+
+        if (
+            $data['channel'] === 'sms'
+            && ! $communicationPolicy
+                ->patientSmsEnabled()
+        ) {
+            throw ValidationException::withMessages([
+                'message' =>
+                    'O canal SMS está desativado nas Preferências da Agenda.',
             ]);
         }
 
@@ -578,17 +685,135 @@ class AppointmentController extends Controller
                 $data['message']
             );
 
-            $message = $meta->sendTextMessage(
-                $appointment->patient->phone,
-                $body,
-                $appointment->id,
-                $appointment->patient_id,
-                $policy->manualTextDedupeKey(
-                    (int) $appointment->id,
-                    (int) $appointment->patient_id,
-                    $body
-                )
-            );
+            if ($data['channel'] === 'whatsapp') {
+                $message = $meta->sendTextMessage(
+                    $appointment->patient->phone,
+                    $body,
+                    $appointment->id,
+                    $appointment->patient_id,
+                    $policy->manualTextDedupeKey(
+                        (int) $appointment->id,
+                        (int) $appointment->patient_id,
+                        $body
+                    )
+                );
+
+                $communication = [
+                    'id' =>
+                        'wa-'.$message->id,
+                    'direction' =>
+                        $message->direction,
+                    'channel' =>
+                        'whatsapp',
+                    'type' =>
+                        $message->message_type,
+                    'status' =>
+                        $message->status,
+                    'body' =>
+                        $message->body,
+                    'recipient' =>
+                        $message->recipient,
+                    'date' =>
+                        $message->created_at
+                            ?->format('d/m/Y H:i'),
+                ];
+            } else {
+                $minuteBucket =
+                    intdiv(
+                        (int) now()->format('i'),
+                        5
+                    ) * 5;
+
+                $dedupe =
+                    'manual:'
+                    .$data['channel']
+                    .':appointment:'
+                    .$appointment->id
+                    .':'
+                    .substr(
+                        sha1($body),
+                        0,
+                        16
+                    )
+                    .':'
+                    .now()->format('YmdH')
+                    .str_pad(
+                        (string) $minuteBucket,
+                        2,
+                        '0',
+                        STR_PAD_LEFT
+                    );
+
+                if ($data['channel'] === 'email') {
+                    $delivery = $deliveries->email(
+                        appointmentId:
+                            (int) $appointment->id,
+                        recipientType:
+                            'patient',
+                        recipientId:
+                            (int) $appointment->patient_id,
+                        recipient:
+                            $appointment->patient->email,
+                        event:
+                            'manual',
+                        subject:
+                            'Mensagem sobre o agendamento '
+                            .$appointment->code,
+                        body:
+                            $body,
+                        dedupeKey:
+                            $dedupe
+                    );
+                } else {
+                    $delivery = $deliveries->sms(
+                        appointmentId:
+                            (int) $appointment->id,
+                        recipientType:
+                            'patient',
+                        recipientId:
+                            (int) $appointment->patient_id,
+                        recipient:
+                            $appointment->patient->phone,
+                        event:
+                            'manual',
+                        body:
+                            $body,
+                        dedupeKey:
+                            $dedupe
+                    );
+                }
+
+                if (
+                    ! $delivery
+                    || $delivery->status === 'failed'
+                ) {
+                    throw new \RuntimeException(
+                        $delivery?->error_message
+                        ?: 'Não foi possível concluir o envio.'
+                    );
+                }
+
+                $communication = [
+                    'id' =>
+                        'comm-'.$delivery->id,
+                    'direction' =>
+                        'outbound',
+                    'channel' =>
+                        $delivery->channel,
+                    'type' =>
+                        $delivery->event,
+                    'status' =>
+                        $delivery->status,
+                    'body' =>
+                        $delivery->body,
+                    'recipient' =>
+                        $delivery->recipient,
+                    'date' =>
+                        Carbon::parse(
+                            $delivery->created_at
+                        )->format('d/m/Y H:i'),
+                ];
+            }
         } catch (\Throwable $e) {
             report($e);
 
@@ -602,26 +827,29 @@ class AppointmentController extends Controller
             'user_id' => auth()->id(),
             'event_type' => 'patient_contact',
             'title' => 'Contato enviado ao paciente',
-            'description' => 'Mensagem enviada pelo WhatsApp por '.auth()->user()->name.'.',
+            'description' =>
+                'Mensagem enviada por '
+                .strtoupper($data['channel'])
+                .' por '
+                .auth()->user()->name
+                .'.',
             'metadata' => [
-                'channel' => 'whatsapp',
-                'wa_message_id' => $message->id,
+                'channel' =>
+                    $data['channel'],
             ],
             'occurred_at' => now(),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Mensagem enviada com sucesso.',
-            'communication' => [
-                'id' => $message->id,
-                'direction' => $message->direction,
-                'type' => $message->message_type,
-                'status' => $message->status,
-                'body' => $message->body,
-                'recipient' => $message->recipient,
-                'date' => $message->created_at?->format('d/m/Y H:i'),
-            ],
+            'message' =>
+                'Mensagem enviada por '
+                .strtoupper(
+                    $data['channel']
+                )
+                .'.',
+            'communication' =>
+                $communication,
         ]);
     }
 
