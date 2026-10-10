@@ -346,13 +346,13 @@ return [
             'can' => 'whatsapp.manage',
             'submenu' => [
                 [
-                    'text' => 'Templates',
+                    'text' => 'Modelos de mensagem',
                     'route' => 'v9.templates.index',
                     'icon' => 'bi bi-chat-square-text',
                     'can' => 'whatsapp.manage',
                 ],
                 [
-                    'text' => 'Automações',
+                    'text' => 'Regras automáticas',
                     'route' => 'enfas.v6.automations',
                     'icon' => 'bi bi-lightning-charge',
                     'can' => 'whatsapp.manage',
