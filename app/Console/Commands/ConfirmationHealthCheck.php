@@ -584,7 +584,9 @@ class ConfirmationHealthCheck extends Command
             return;
         }
 
-        $failed24h = DB::table(
+        $since = now()->subDay();
+
+        $failedRows = DB::table(
             'wa_messages'
         )
             ->where(
@@ -594,11 +596,62 @@ class ConfirmationHealthCheck extends Command
             ->where(
                 'created_at',
                 '>=',
-                now()->subDay()
+                $since
             )
             ->where(
                 'status',
                 'failed'
+            )
+            ->orderByDesc(
+                'created_at'
+            )
+            ->get([
+                'id',
+                'appointment_id',
+                'recipient',
+                'created_at',
+            ]);
+
+        $unresolved = $failedRows
+            ->filter(
+                function ($failed) {
+                    $recovery = DB::table(
+                        'wa_messages'
+                    )
+                        ->where(
+                            'direction',
+                            'outbound'
+                        )
+                        ->whereIn(
+                            'status',
+                            [
+                                'sent',
+                                'delivered',
+                                'read',
+                            ]
+                        )
+                        ->where(
+                            'created_at',
+                            '>',
+                            $failed->created_at
+                        );
+
+                    if ($failed->appointment_id) {
+                        $recovery->where(
+                            'appointment_id',
+                            $failed->appointment_id
+                        );
+                    } elseif ($failed->recipient) {
+                        $recovery->where(
+                            'recipient',
+                            $failed->recipient
+                        );
+                    } else {
+                        return true;
+                    }
+
+                    return ! $recovery->exists();
+                }
             )
             ->count();
 
@@ -624,11 +677,13 @@ class ConfirmationHealthCheck extends Command
         $rows[] = [
             'WhatsApp',
             'Ultimas 24h',
-            $failed24h > 0
+            $unresolved > 0
                 ? 'ATENCAO'
                 : 'OK',
-            $failed24h
-                .' falha(s) · ultimo sucesso '
+            $failedRows->count()
+                .' falha(s) registrada(s) · '
+                .$unresolved
+                .' pendente(s) · ultimo sucesso '
                 .($lastSuccess ?: '-'),
         ];
     }
