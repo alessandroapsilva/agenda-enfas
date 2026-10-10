@@ -108,6 +108,42 @@
     </section>
 
     <section class="ea-settings-summary">
+        <div class="ea-settings-summary-icon is-multichannel">
+            <i class="bi bi-broadcast"></i>
+        </div>
+
+        <div>
+            <span class="ea-ops-eyebrow">
+                E-mail / SMS
+            </span>
+
+            <strong>
+                {{
+                    (
+                        $channelSystem['email']['configured']
+                        || $channelSystem['sms']['configured']
+                    )
+                        ? 'Canais adicionais disponíveis'
+                        : 'Infraestrutura pendente'
+                }}
+            </strong>
+
+            <small>
+                E-mail {{
+                    $channelSystem['email']['configured']
+                        ? 'pronto'
+                        : 'pendente'
+                }}
+                · SMS {{
+                    $channelSystem['sms']['configured']
+                        ? 'pronto'
+                        : 'pendente'
+                }}
+            </small>
+        </div>
+    </section>
+
+    <section class="ea-settings-summary">
         <div class="ea-settings-summary-icon is-voice">
             <i class="bi bi-telephone"></i>
         </div>
