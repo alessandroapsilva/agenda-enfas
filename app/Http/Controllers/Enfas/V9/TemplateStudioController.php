@@ -10,6 +10,7 @@ use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\V9\TemplateStudioService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -246,6 +247,140 @@ class TemplateStudioController extends Controller
         }
     }
 
+    public function promote(
+        WaTemplate $template
+    ) {
+        if (
+            $template->status !== 'APPROVED'
+            || ! $template->is_active
+            || $template->archived_at
+        ) {
+            return back()->withErrors([
+                'promote' =>
+                    'Somente um modelo aprovado, ativo e não arquivado pode entrar na régua.',
+            ]);
+        }
+
+        if (! Schema::hasTable(
+            'wa_automations'
+        )) {
+            return back()->withErrors([
+                'promote' =>
+                    'A estrutura de automações não está disponível.',
+            ]);
+        }
+
+        $templateIds = WaTemplate::query()
+            ->where(
+                'purpose',
+                $template->purpose
+            )
+            ->pluck('id')
+            ->map(
+                fn ($id) => (int) $id
+            )
+            ->all();
+
+        if ($templateIds === []) {
+            return back()->withErrors([
+                'promote' =>
+                    'Nenhuma automação compatível foi encontrada.',
+            ]);
+        }
+
+        $columns = Schema::getColumnListing(
+            'wa_automations'
+        );
+
+        $query = DB::table(
+            'wa_automations'
+        )
+            ->where(
+                'is_active',
+                true
+            );
+
+        if (in_array(
+            'template_id',
+            $columns,
+            true
+        )) {
+            $query->whereIn(
+                'template_id',
+                $templateIds
+            );
+        } elseif (in_array(
+            'wa_template_id',
+            $columns,
+            true
+        )) {
+            $query->whereIn(
+                'wa_template_id',
+                $templateIds
+            );
+        } else {
+            return back()->withErrors([
+                'promote' =>
+                    'A automação não possui coluna de template compatível.',
+            ]);
+        }
+
+        $ids = $query
+            ->pluck('id')
+            ->all();
+
+        if ($ids === []) {
+            return back()->withErrors([
+                'promote' =>
+                    'Não há automação ativa desta finalidade para atualizar.',
+            ]);
+        }
+
+        $update = [];
+
+        if (in_array(
+            'template_id',
+            $columns,
+            true
+        )) {
+            $update['template_id'] =
+                $template->id;
+        }
+
+        if (in_array(
+            'wa_template_id',
+            $columns,
+            true
+        )) {
+            $update['wa_template_id'] =
+                $template->id;
+        }
+
+        if (in_array(
+            'updated_at',
+            $columns,
+            true
+        )) {
+            $update['updated_at'] =
+                now();
+        }
+
+        DB::table('wa_automations')
+            ->whereIn(
+                'id',
+                $ids
+            )
+            ->update($update);
+
+        return back()->with(
+            'success',
+            count($ids)
+                .' automação(ões) atualizada(s) para o modelo '
+                .$template->name
+                .'.'
+        );
+    }
+
     public function toggle(WaTemplate $template)
     {
         $template->forceFill([
@@ -361,9 +496,50 @@ class TemplateStudioController extends Controller
         MetaWhatsAppService $meta
     ) {
         try {
-            $used=DB::table('wa_automations')
-                ->where('wa_template_id',$template->id)
-                ->exists();
+            $used = false;
+
+            if (Schema::hasTable(
+                'wa_automations'
+            )) {
+                $columns = Schema::getColumnListing(
+                    'wa_automations'
+                );
+
+                $usedQuery = DB::table(
+                    'wa_automations'
+                );
+
+                $usedQuery->where(
+                    function ($query) use (
+                        $columns,
+                        $template
+                    ) {
+                        if (in_array(
+                            'template_id',
+                            $columns,
+                            true
+                        )) {
+                            $query->orWhere(
+                                'template_id',
+                                $template->id
+                            );
+                        }
+
+                        if (in_array(
+                            'wa_template_id',
+                            $columns,
+                            true
+                        )) {
+                            $query->orWhere(
+                                'wa_template_id',
+                                $template->id
+                            );
+                        }
+                    }
+                );
+
+                $used = $usedQuery->exists();
+            }
 
             if ($used) {
                 return back()->withErrors([
