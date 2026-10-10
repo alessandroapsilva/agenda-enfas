@@ -44,10 +44,12 @@ Route::middleware('auth')->group(function () {
         [ManagementController::class,'resolveAlert']
     )->middleware('permission:settings.manage')->name('v92.alerts.resolve');
 
-    Route::get(
+    Route::redirect(
         '/configuracoes',
-        [ManagementController::class,'settings']
-    )->middleware('permission:settings.manage')->name('v92.settings');
+        '/configuracoes/agenda'
+    )
+        ->middleware('permission:settings.manage')
+        ->name('v92.settings');
 
     Route::post(
         '/configuracoes',
