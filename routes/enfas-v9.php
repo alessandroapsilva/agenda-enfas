@@ -70,6 +70,12 @@ Route::middleware('auth')->group(function () {
         [TemplateStudioController::class,'duplicate']
     )->middleware('permission:whatsapp.manage')->name('v9.templates.duplicate');
 
+    Route::post(
+        '/whatsapp/templates/{template}/versao-com-logo',
+        [TemplateStudioController::class,'brandedRevision']
+    )->middleware('permission:whatsapp.manage')->name('v9.templates.brand');
+
+
     Route::patch(
         '/whatsapp/templates/{template}/status',
         [TemplateStudioController::class,'toggle']
