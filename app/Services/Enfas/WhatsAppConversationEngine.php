@@ -493,6 +493,7 @@ class WhatsAppConversationEngine
                 'status' => 'confirmed',
                 'confirmation_status' => 'confirmed',
                 'confirmed_at' => now(),
+                'rescheduled_at' => now(),
                 'updated_at' => now(),
             ]);
 
