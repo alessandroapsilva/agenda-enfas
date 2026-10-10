@@ -69,6 +69,10 @@
             'Cancelado',
             'cancelled',
         ],
+        'no_show' => [
+            'Faltou',
+            'failed',
+        ],
     ];
 
     $voiceMap = [
@@ -434,6 +438,22 @@
                 tentativas / 7d
             </span>
 
+            @if($voice['oldest_queue_at'])
+                <span>
+                    <strong>
+                        {{
+                            IlluminateSupportCarbon::parse(
+                                $voice['oldest_queue_at']
+                            )->diffForHumans(
+                                now(),
+                                true
+                            )
+                        }}
+                    </strong>
+                    fila mais antiga
+                </span>
+            @endif
+
             <span>
                 <strong>
                     {{
@@ -737,7 +757,18 @@
                     @php
                         if (
                             $row->status
-                            === 'cancelled'
+                            === 'no_show'
+                        ) {
+                            $responseUi =
+                                $stateMap[
+                                    'no_show'
+                                ];
+                        } elseif (
+                            in_array(
+                                $row->status,
+                                ['cancelled','canceled'],
+                                true
+                            )
                         ) {
                             $responseUi =
                                 $stateMap[
