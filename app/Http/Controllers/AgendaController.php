@@ -11,6 +11,9 @@ use App\Models\Professional;
 use App\Models\Service;
 use App\Services\Enfas\AccessScopeService;
 use App\Services\Enfas\AvailabilityService;
+use App\Services\Enfas\CommunicationPolicyService;
+use App\Services\Enfas\EmailChannelService;
+use App\Services\Enfas\SmsChannelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +22,13 @@ use Illuminate\Validation\ValidationException;
 
 class AgendaController extends Controller
 {
-    public function index(Request $request, AccessScopeService $access)
-    {
+    public function index(
+        Request $request,
+        AccessScopeService $access,
+        CommunicationPolicyService $communication,
+        EmailChannelService $email,
+        SmsChannelService $sms
+    ) {
         $patients = $access->patients(Patient::query(), $request->user())
             ->where('is_active', true)
             ->orderBy('name')
@@ -49,6 +57,21 @@ class AgendaController extends Controller
             ->orderBy('name')
             ->get();
 
+        $communicationChannels = [
+            'email' => [
+                'enabled' =>
+                    $communication->patientEmailEnabled(),
+                'configured' =>
+                    $email->configured(),
+            ],
+            'sms' => [
+                'enabled' =>
+                    $communication->patientSmsEnabled(),
+                'configured' =>
+                    $sms->configured(),
+            ],
+        ];
+
         return view(
             'agenda.index',
             compact(
@@ -56,7 +79,8 @@ class AgendaController extends Controller
                 'professionals',
                 'services',
                 'locations',
-                'customFields'
+                'customFields',
+                'communicationChannels'
             )
         );
     }
