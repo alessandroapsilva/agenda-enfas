@@ -320,6 +320,24 @@
                             </form>
                         @endif
 
+                        @if($row->status === 'APPROVED' && $row->is_active)
+                            <form
+                                method="POST"
+                                action="{{ route('v9.templates.promote',$row) }}"
+                            >
+                                @csrf
+
+                                <button
+                                    class="ea-btn-main"
+                                    type="submit"
+                                    title="Usar este modelo nas automações ativas da mesma finalidade"
+                                >
+                                    <i class="bi bi-lightning-charge"></i>
+                                    Usar na régua
+                                </button>
+                            </form>
+                        @endif
+
                         <div class="dropdown">
                             <button
                                 class="ea-icon-action"
