@@ -94,6 +94,7 @@ class ProfessionalController extends Controller
             'availability.*.enabled' => ['nullable', 'boolean'],
             'availability.*.start_time' => ['nullable', 'date_format:H:i'],
             'availability.*.end_time' => ['nullable', 'date_format:H:i'],
+            'availability.*.slot_minutes' => ['nullable', 'integer', 'min:5', 'max:240'],
             'availability.*.break_start' => ['nullable', 'date_format:H:i'],
             'availability.*.break_end' => ['nullable', 'date_format:H:i'],
         ])['availability'] ?? [];
@@ -182,6 +183,11 @@ class ProfessionalController extends Controller
                     'day_of_week' => $day,
                     'start_time' => $start,
                     'end_time' => $end,
+                    'slot_minutes' => (int) (
+                        $row['slot_minutes']
+                        ?? $professional->slot_interval
+                        ?? 30
+                    ),
                     'break_start' => $breakStart,
                     'break_end' => $breakEnd,
                     'location_id' => null,
