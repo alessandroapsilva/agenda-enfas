@@ -150,10 +150,6 @@ class PatientNotificationService
     {
         $a = $this->data($appointmentId);
 
-        $slot = Carbon::parse(
-            $a->start_at
-        )->format('YmdHi');
-
         $this->meta->sendTextMessage(
             $phone,
             "✅ *Reagendamento confirmado!*\n\n"
