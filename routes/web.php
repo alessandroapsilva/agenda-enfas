@@ -133,6 +133,12 @@ Route::middleware('auth')->group(function () {
         [AgendaController::class, 'bestSlots']
     )->middleware('permission:agenda.view')->name('agenda.best-slots');
 
+    Route::get(
+        '/agenda/disponibilidade-do-dia',
+        [AgendaController::class, 'daySlots']
+    )->middleware('permission:agenda.view')->name('agenda.day-slots');
+
+
     Route::patch(
         '/agenda/agendamentos/{appointment}/mover',
         [AgendaController::class, 'move']
