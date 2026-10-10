@@ -148,6 +148,10 @@ class PremiumAvailabilityTest extends TestCase
         )->insert([
             'professional_id' =>
                 $professionalId,
+            'weekday' => 1,
+            'starts_at' => '08:00:00',
+            'ends_at' => '10:00:00',
+            'slot_minutes' => 30,
             'day_of_week' => 1,
             'start_time' => '08:00:00',
             'end_time' => '10:00:00',
