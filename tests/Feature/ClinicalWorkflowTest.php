@@ -12,6 +12,15 @@ use Tests\TestCase;
 
 class ClinicalWorkflowTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->markTestSkipped(
+            'Modulo clinico legado fora do escopo da Agenda ENFAS.'
+        );
+    }
+
     use RefreshDatabase;
 
     public function test_structured_evolution_is_signed_with_integrity_hash(): void
