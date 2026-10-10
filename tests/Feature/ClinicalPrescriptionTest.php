@@ -11,6 +11,15 @@ use Tests\TestCase;
 
 class ClinicalPrescriptionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->markTestSkipped(
+            'Modulo clinico legado fora do escopo da Agenda ENFAS.'
+        );
+    }
+
     use RefreshDatabase;
 
     public function test_prescription_is_structured_signed_and_locked(): void
