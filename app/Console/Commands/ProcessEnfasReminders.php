@@ -54,6 +54,7 @@ class ProcessEnfasReminders extends Command
             'due' => 0,
             'queued' => 0,
             'deduped' => 0,
+            'cooldown' => 0,
             'blocked' => 0,
             'unsupported' => 0,
         ];
@@ -119,6 +120,14 @@ class ProcessEnfasReminders extends Command
                     $rule->offset_minutes
                     ?? 0
                 );
+
+                if ($policy->hasRecentAutomatedMessage(
+                    (int) $appointment->id,
+                    10
+                )) {
+                    $stats['cooldown']++;
+                    continue;
+                }
 
                 $dedupe = $policy
                     ->canonicalDedupeKey(
@@ -192,6 +201,7 @@ class ProcessEnfasReminders extends Command
                 'Elegiveis',
                 'Enfileiradas',
                 'Deduplicadas',
+                'Cooldown',
                 'Bloqueadas',
                 'Sem suporte',
             ],
@@ -202,6 +212,7 @@ class ProcessEnfasReminders extends Command
                 $stats['due'],
                 $stats['queued'],
                 $stats['deduped'],
+                $stats['cooldown'],
                 $stats['blocked'],
                 $stats['unsupported'],
             ]]
@@ -253,12 +264,20 @@ class ProcessEnfasReminders extends Command
             return collect();
         }
 
-        $limit = $now->copy()->addMinutes(
-            max(
-                0,
-                $offsetMinutes
-            )
+        $offset = max(
+            0,
+            $offsetMinutes
         );
+
+        $target = $now->copy()->addMinutes(
+            $offset
+        );
+
+        $windowStart = $target->copy()
+            ->subMinutes(5);
+
+        $windowEnd = $target->copy()
+            ->addMinute();
 
         return $query
             ->whereNotIn(
@@ -275,10 +294,12 @@ class ProcessEnfasReminders extends Command
                 '>',
                 $now
             )
-            ->where(
+            ->whereBetween(
                 'start_at',
-                '<=',
-                $limit
+                [
+                    $windowStart,
+                    $windowEnd,
+                ]
             )
             ->get();
     }
@@ -304,7 +325,7 @@ class ProcessEnfasReminders extends Command
             )
             ->whereDate(
                 'return_due_at',
-                '<=',
+                '=',
                 $now->toDateString()
             )
             ->get();
