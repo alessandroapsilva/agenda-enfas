@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Schema;
 
 class ConfirmationOperationsService
 {
-    public function snapshot(
-        Carbon $dayStart,
-        Carbon $dayEnd
-    ): array {
-        $periodStart = $dayEnd
+    public function snapshot(): array
+    {
+        $periodEnd = now()->endOfDay();
+
+        $periodStart = $periodEnd
             ->copy()
             ->subDays(6)
             ->startOfDay();
@@ -22,7 +22,7 @@ class ConfirmationOperationsService
         )
             ->whereBetween(
                 'start_at',
-                [$periodStart, $dayEnd]
+                [$periodStart, $periodEnd]
             )
             ->get([
                 'id',
@@ -119,7 +119,7 @@ class ConfirmationOperationsService
         return [
             'period' => [
                 'start' => $periodStart,
-                'end' => $dayEnd,
+                'end' => $periodEnd,
             ],
 
             'performance' => [
@@ -136,7 +136,7 @@ class ConfirmationOperationsService
 
             'whatsapp' => $this->whatsAppSnapshot(
                 $periodStart,
-                $dayEnd
+                $periodEnd
             ),
 
             'voice' => $this->voiceSnapshot(
