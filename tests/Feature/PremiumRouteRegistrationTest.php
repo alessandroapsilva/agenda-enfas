@@ -19,6 +19,7 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('dashboard'));
         $this->assertTrue(Route::has('agenda.index'));
         $this->assertTrue(Route::has('agenda.best-slots'));
+        $this->assertTrue(Route::has('agenda.day-slots'));
         $this->assertTrue(Route::has('appointments.recurring.store'));
         $this->assertTrue(Route::has('patients.index'));
         $this->assertTrue(Route::has('patients.show'));
