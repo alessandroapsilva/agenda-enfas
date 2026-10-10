@@ -141,7 +141,7 @@ class ConfirmationOperationsService
 
             'voice' => $this->voiceSnapshot(
                 $periodStart,
-                $dayEnd
+                $periodEnd
             ),
         ];
     }
