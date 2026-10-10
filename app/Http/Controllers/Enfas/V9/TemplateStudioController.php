@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Enfas\V9;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\WaTemplate;
+use App\Services\Enfas\BrandMediaService;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\V9\TemplateStudioService;
 use Illuminate\Http\Request;
@@ -13,8 +15,10 @@ use Throwable;
 
 class TemplateStudioController extends Controller
 {
-    public function index(Request $request)
-    {
+    public function index(
+        Request $request,
+        BrandMediaService $brandMedia
+    ) {
         $rows=WaTemplate::query()
             ->whereNull('archived_at')
             ->where(fn($q)=>
@@ -43,17 +47,46 @@ class TemplateStudioController extends Controller
             ->orderBy('name')
             ->get();
 
+        $brandLogo = $brandMedia
+            ->defaultLogo();
+
+        $brandName = AppSetting::getValue(
+            'branding',
+            'organization_name',
+            ''
+        ) ?: AppSetting::getValue(
+            'branding',
+            'system_name',
+            'ENFAS Agenda'
+        );
+
         return view(
             'enfas.v9.template-studio',
-            compact('rows','editing','media')
+            compact(
+                'rows',
+                'editing',
+                'media',
+                'brandLogo',
+                'brandName'
+            )
         );
     }
 
     public function store(
         Request $request,
-        TemplateStudioService $studio
+        TemplateStudioService $studio,
+        BrandMediaService $brandMedia
     ) {
         $data=$this->validateData($request,true);
+
+        if (
+            ($data['header_type'] ?? 'NONE')
+                === 'IMAGE'
+            && empty($data['header_media_id'])
+        ) {
+            $data['header_media_id'] =
+                $brandMedia->defaultLogo()?->id;
+        }
         [$keys,$samples,$buttons]=$this->arrays($data);
 
         $this->validateVariables(
@@ -105,9 +138,19 @@ class TemplateStudioController extends Controller
 
     public function update(
         Request $request,
-        WaTemplate $template
+        WaTemplate $template,
+        BrandMediaService $brandMedia
     ) {
         $data=$this->validateData($request,false);
+
+        if (
+            ($data['header_type'] ?? 'NONE')
+                === 'IMAGE'
+            && empty($data['header_media_id'])
+        ) {
+            $data['header_media_id'] =
+                $brandMedia->defaultLogo()?->id;
+        }
         [$keys,$samples,$buttons]=$this->arrays($data);
 
         $this->validateVariables(
@@ -240,6 +283,58 @@ class TemplateStudioController extends Controller
         )->with(
             'success',
             'Cópia criada. Agora você pode editar tudo antes de enviar.'
+        );
+    }
+
+    public function brandedRevision(
+        WaTemplate $template,
+        BrandMediaService $brandMedia
+    ) {
+        $logo = $brandMedia->defaultLogo();
+
+        if (! $logo) {
+            return back()->withErrors([
+                'branding' =>
+                    'Cadastre um logo PNG, JPG ou WebP em Aparência antes de criar uma versão com marca.',
+            ]);
+        }
+
+        $revision = $template->replicate();
+
+        $nextVersion =
+            ((int) ($template->version ?? 1))
+            + 1;
+
+        $revision->forceFill([
+            'name' => Str::limit(
+                $template->name
+                    .'_logo_v'
+                    .$nextVersion
+                    .'_'
+                    .now()->format('His'),
+                160,
+                ''
+            ),
+            'status' => 'LOCAL',
+            'meta_template_id' => null,
+            'header_type' => 'IMAGE',
+            'header_media_id' => $logo->id,
+            'header_text' => null,
+            'rejection_reason' => null,
+            'last_error' => null,
+            'is_active' => true,
+            'archived_at' => null,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+            'version' => $nextVersion,
+        ])->save();
+
+        return redirect(
+            '/whatsapp/templates?edit='
+            .$revision->id
+        )->with(
+            'success',
+            'Versão com logo criada. Revise a mensagem e envie para aprovação da Meta.'
         );
     }
 
