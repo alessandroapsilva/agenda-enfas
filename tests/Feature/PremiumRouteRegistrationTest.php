@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Controllers\Enfas\HomeController;
 use App\Http\Controllers\Enfas\WhatsAppController;
 use App\Http\Controllers\Enfas\V9\TemplateStudioController;
+use App\Http\Controllers\Enfas\V11\TwilioVoiceWebhookController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ServiceController;
@@ -36,6 +37,9 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertTrue(Route::has('activities.index'));
         $this->assertTrue(Route::has('activities.store'));
         $this->assertTrue(Route::has('activities.complete'));
+        $this->assertTrue(Route::has('voice.twilio.answer'));
+        $this->assertTrue(Route::has('voice.twilio.gather'));
+        $this->assertTrue(Route::has('voice.twilio.status'));
         $this->assertTrue(Route::has('appointments.record'));
         $this->assertTrue(Route::has('appointments.record.save'));
         $this->assertTrue(Route::has('appointments.record.finalize'));
@@ -78,6 +82,55 @@ class PremiumRouteRegistrationTest extends TestCase
         $this->assertSame(
             ServiceController::class.'@index',
             $services->getActionName()
+        );
+    }
+
+    public function test_voice_webhooks_are_registered_on_the_expected_controller(): void
+    {
+        $answer = Route::getRoutes()->getByName(
+            'voice.twilio.answer'
+        );
+
+        $gather = Route::getRoutes()->getByName(
+            'voice.twilio.gather'
+        );
+
+        $status = Route::getRoutes()->getByName(
+            'voice.twilio.status'
+        );
+
+        $this->assertNotNull($answer);
+        $this->assertNotNull($gather);
+        $this->assertNotNull($status);
+
+        $this->assertSame(
+            TwilioVoiceWebhookController::class.'@answer',
+            $answer->getActionName()
+        );
+
+        $this->assertSame(
+            TwilioVoiceWebhookController::class.'@gather',
+            $gather->getActionName()
+        );
+
+        $this->assertSame(
+            TwilioVoiceWebhookController::class.'@status',
+            $status->getActionName()
+        );
+
+        $this->assertContains(
+            'POST',
+            $answer->methods()
+        );
+
+        $this->assertContains(
+            'POST',
+            $gather->methods()
+        );
+
+        $this->assertContains(
+            'POST',
+            $status->methods()
         );
     }
 
