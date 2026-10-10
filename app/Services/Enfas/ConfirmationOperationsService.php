@@ -216,6 +216,22 @@ class ConfirmationOperationsService
             )
             ->count();
 
+        $contactBlocked = (clone $base)
+            ->where(
+                function ($query) {
+                    $query
+                        ->where(
+                            'p.do_not_contact',
+                            true
+                        )
+                        ->orWhere(
+                            'p.contact_consent',
+                            false
+                        );
+                }
+            )
+            ->count();
+
         $failedContact = 0;
 
         if (Schema::hasTable('wa_messages')) {
@@ -230,6 +246,7 @@ class ConfirmationOperationsService
             'next_24h' => $next24h,
             'next_2h' => $next2h,
             'without_phone' => $withoutPhone,
+            'contact_blocked' => $contactBlocked,
             'failed_contact' => $failedContact,
         ];
     }
