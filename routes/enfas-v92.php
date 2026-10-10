@@ -51,11 +51,6 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:settings.manage')
         ->name('v92.settings');
 
-    Route::post(
-        '/configuracoes',
-        [ManagementController::class,'saveSettings']
-    )->middleware('permission:settings.manage')->name('v92.settings.save');
-
     Route::get(
         '/sistema/saude',
         [ManagementController::class,'health']
