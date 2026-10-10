@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Enfas\V6;
 use App\Http\Controllers\Controller;
 use App\Models\WaAutomation;
 use App\Models\WaTemplate;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,11 @@ use Illuminate\Validation\ValidationException;
 
 class WhatsAppAutomationController extends Controller
 {
+    public function __construct(
+        private readonly WhatsAppDispatchPolicy $dispatchPolicy
+    ) {
+    }
+
     public function index(Request $request)
     {
         return view('enfas.v6.whatsapp.automations', [
@@ -157,12 +163,34 @@ class WhatsAppAutomationController extends Controller
             return;
         }
 
+        $purpose = (string) (
+            $template->purpose
+            ?: 'general'
+        );
+
+        $event = (string) $data[
+            'trigger_event'
+        ];
+
         $offset = $this->offset(
-            (string) $data['trigger_event'],
+            $event,
             (int) ($data['offset_minutes'] ?? 0)
         );
 
-        $query = WaAutomation::query()
+        $serviceId = isset(
+            $data['service_id']
+        )
+            ? (int) $data['service_id']
+            : null;
+
+        $core = $this->dispatchPolicy
+            ->automationCoreKey(
+                $purpose,
+                $event,
+                $offset
+            );
+
+        $candidates = WaAutomation::query()
             ->join(
                 'wa_templates as wt',
                 'wt.id',
@@ -173,45 +201,48 @@ class WhatsAppAutomationController extends Controller
                 'wa_automations.is_active',
                 true
             )
-            ->where(
-                'wa_automations.trigger_event',
-                $data['trigger_event']
+            ->when(
+                $ignoreId,
+                fn ($query) => $query->where(
+                    'wa_automations.id',
+                    '!=',
+                    $ignoreId
+                )
             )
-            ->where(
-                'wa_automations.offset_minutes',
-                $offset
-            )
-            ->where(
-                'wt.purpose',
-                $template->purpose
-            );
-
-        $serviceId = $data['service_id']
-            ?? null;
-
-        if ($serviceId) {
-            $query->where(
-                'wa_automations.service_id',
-                $serviceId
-            );
-        } else {
-            $query->whereNull(
-                'wa_automations.service_id'
-            );
-        }
-
-        if ($ignoreId) {
-            $query->where(
+            ->get([
                 'wa_automations.id',
-                '!=',
-                $ignoreId
-            );
-        }
+                'wa_automations.name',
+                'wa_automations.trigger_event',
+                'wa_automations.offset_minutes',
+                'wa_automations.service_id',
+                'wt.purpose',
+            ]);
 
-        $duplicate = $query->first([
-            'wa_automations.id',
-            'wa_automations.name',
-        ]);
+        $duplicate = $candidates
+            ->first(function ($rule) use (
+                $core,
+                $serviceId
+            ) {
+                $candidateCore =
+                    $this->dispatchPolicy
+                        ->automationCoreKey(
+                            (string) (
+                                $rule->purpose
+                                ?: 'general'
+                            ),
+                            (string) $rule->trigger_event,
+                            (int) $rule->offset_minutes
+                        );
+
+                return $candidateCore === $core
+                    && $this->dispatchPolicy
+                        ->automationScopesOverlap(
+                            $serviceId,
+                            $rule->service_id
+                                ? (int) $rule->service_id
+                                : null
+                        );
+            });
 
         if (! $duplicate) {
             return;
@@ -219,7 +250,7 @@ class WhatsAppAutomationController extends Controller
 
         throw ValidationException::withMessages([
             'trigger_event' =>
-                'Já existe uma automação ativa equivalente: '
+                'Já existe uma automação ativa que cobre o mesmo contato: '
                 .$duplicate->name
                 .' (#'
                 .$duplicate->id
