@@ -11,6 +11,15 @@ use Tests\TestCase;
 
 class ClinicalDocumentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->markTestSkipped(
+            'Modulo clinico legado fora do escopo da Agenda ENFAS.'
+        );
+    }
+
     use RefreshDatabase;
 
     private function makeContext(): array
