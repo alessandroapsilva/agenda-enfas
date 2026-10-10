@@ -176,6 +176,79 @@ class AgendaController extends Controller
 
 
 
+    public function daySlots(
+        Request $request,
+        AvailabilityService $availability,
+        AccessScopeService $access
+    ) {
+        $data = $request->validate([
+            'professional_id' => [
+                'required',
+                'integer',
+                'exists:professionals,id',
+            ],
+            'service_id' => [
+                'required',
+                'integer',
+                'exists:services,id',
+            ],
+            'date' => [
+                'required',
+                'date_format:Y-m-d',
+            ],
+            'exclude_appointment_id' => [
+                'nullable',
+                'integer',
+                'exists:appointments,id',
+            ],
+        ]);
+
+        $professional = $access
+            ->professionals(
+                Professional::query(),
+                $request->user()
+            )
+            ->whereKey(
+                (int) $data['professional_id']
+            )
+            ->where(
+                'is_active',
+                true
+            )
+            ->firstOrFail();
+
+        $date = Carbon::createFromFormat(
+            'Y-m-d',
+            $data['date'],
+            config('app.timezone')
+        )->startOfDay();
+
+        $slots = $availability
+            ->slotsForDay(
+                (int) $professional->id,
+                (int) $data['service_id'],
+                $date,
+                isset(
+                    $data['exclude_appointment_id']
+                )
+                    ? (int) $data['exclude_appointment_id']
+                    : null
+            );
+
+        return response()->json([
+            'success' => true,
+            'date' => $date->toDateString(),
+            'professional' => [
+                'id' => (int) $professional->id,
+                'name' => $professional->name,
+            ],
+            'slots' => $slots,
+            'message' => $slots === []
+                ? 'Não há horários disponíveis para esta combinação nesta data.'
+                : null,
+        ]);
+    }
+
     public function bestSlots(
         Request $request,
         AvailabilityService $availability,
