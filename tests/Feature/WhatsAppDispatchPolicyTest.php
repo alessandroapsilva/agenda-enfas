@@ -76,6 +76,58 @@ class WhatsAppDispatchPolicyTest extends TestCase
         );
     }
 
+    public function test_reminder_window_is_narrow_and_offset_specific(): void
+    {
+        Carbon::setTestNow(
+            '2026-10-10 10:00:00'
+        );
+
+        $policy = app(
+            WhatsAppDispatchPolicy::class
+        );
+
+        [$dayStart, $dayEnd] =
+            $policy->reminderWindow(
+                1440,
+                now()
+            );
+
+        [$twoHourStart, $twoHourEnd] =
+            $policy->reminderWindow(
+                120,
+                now()
+            );
+
+        $this->assertSame(
+            '2026-10-11 09:55:00',
+            $dayStart->format('Y-m-d H:i:s')
+        );
+
+        $this->assertSame(
+            '2026-10-11 10:01:00',
+            $dayEnd->format('Y-m-d H:i:s')
+        );
+
+        $this->assertSame(
+            '2026-10-10 11:55:00',
+            $twoHourStart->format('Y-m-d H:i:s')
+        );
+
+        $this->assertSame(
+            '2026-10-10 12:01:00',
+            $twoHourEnd->format('Y-m-d H:i:s')
+        );
+
+        $this->assertFalse(
+            $dayStart->between(
+                $twoHourStart,
+                $twoHourEnd
+            )
+        );
+
+        Carbon::setTestNow();
+    }
+
     public function test_only_time_based_events_belong_to_scheduler(): void
     {
         $policy = app(
