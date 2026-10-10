@@ -62,6 +62,10 @@ class ConfirmationHealthCheck extends Command
             $rows
         );
 
+        $this->appendDuplicateSnapshot(
+            $rows
+        );
+
         $this->table(
             [
                 'Area',
@@ -485,6 +489,142 @@ class ConfirmationHealthCheck extends Command
             $failed24h
                 .' falha(s) · ultimo sucesso '
                 .($lastSuccess ?: '-'),
+        ];
+    }
+
+    private function appendDuplicateSnapshot(
+        array &$rows
+    ): void {
+        if (! Schema::hasTable('wa_messages')
+            || ! Schema::hasTable('wa_templates')) {
+            return;
+        }
+
+        $messages = DB::table('wa_messages as wm')
+            ->leftJoin(
+                'wa_templates as wt',
+                'wt.id',
+                '=',
+                'wm.template_id'
+            )
+            ->where(
+                'wm.direction',
+                'outbound'
+            )
+            ->where(
+                'wm.created_at',
+                '>=',
+                now()->subDay()
+            )
+            ->whereIn(
+                'wm.status',
+                [
+                    'queued',
+                    'sending',
+                    'sent',
+                    'delivered',
+                    'read',
+                ]
+            )
+            ->orderBy('wm.created_at')
+            ->get([
+                'wm.id',
+                'wm.appointment_id',
+                'wm.patient_id',
+                'wm.automation_id',
+                'wm.body',
+                'wm.created_at',
+                'wt.purpose',
+            ]);
+
+        $semanticDuplicates = 0;
+
+        $messages
+            ->filter(
+                fn ($row) =>
+                    $row->automation_id
+                    && $row->appointment_id
+            )
+            ->groupBy(
+                fn ($row) =>
+                    $row->appointment_id
+                    .'|'
+                    .($row->purpose ?: 'general')
+            )
+            ->each(function ($group) use (
+                &$semanticDuplicates
+            ) {
+                $previous = null;
+
+                foreach ($group as $row) {
+                    $at = \Illuminate\Support\Carbon::parse(
+                        $row->created_at
+                    );
+
+                    if ($previous
+                        && $previous->diffInMinutes(
+                            $at
+                        ) <= 10) {
+                        $semanticDuplicates++;
+                    }
+
+                    $previous = $at;
+                }
+            });
+
+        $manualDuplicates = 0;
+
+        $messages
+            ->filter(
+                fn ($row) =>
+                    ! $row->automation_id
+                    && filled($row->body)
+            )
+            ->groupBy(
+                fn ($row) =>
+                    ($row->appointment_id
+                        ?: 'patient-'.$row->patient_id)
+                    .'|'
+                    .sha1(
+                        trim(
+                            (string) $row->body
+                        )
+                    )
+            )
+            ->each(function ($group) use (
+                &$manualDuplicates
+            ) {
+                $previous = null;
+
+                foreach ($group as $row) {
+                    $at = \Illuminate\Support\Carbon::parse(
+                        $row->created_at
+                    );
+
+                    if ($previous
+                        && $previous->diffInMinutes(
+                            $at
+                        ) <= 2) {
+                        $manualDuplicates++;
+                    }
+
+                    $previous = $at;
+                }
+            });
+
+        $total = $semanticDuplicates
+            + $manualDuplicates;
+
+        $rows[] = [
+            'WhatsApp',
+            'Duplicidade 24h',
+            $total > 0
+                ? 'ATENCAO'
+                : 'OK',
+            $semanticDuplicates
+                .' automatica(s) suspeita(s) · '
+                .$manualDuplicates
+                .' manual(is) suspeita(s)',
         ];
     }
 
