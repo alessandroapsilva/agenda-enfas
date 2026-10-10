@@ -150,6 +150,29 @@ class AppointmentController extends Controller
             $data['service_id']
         );
 
+        if (
+            Schema::hasTable(
+                'professional_service'
+            )
+            && DB::table(
+                'professional_service'
+            )
+                ->where(
+                    'professional_id',
+                    $professional->id
+                )
+                ->where(
+                    'service_id',
+                    $service->id
+                )
+                ->doesntExist()
+        ) {
+            throw ValidationException::withMessages([
+                'professional_id' =>
+                    'Este profissional não está habilitado para o serviço selecionado.',
+            ]);
+        }
+
         $start = Carbon::parse(
             $data['start_at']
         );
