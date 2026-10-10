@@ -81,6 +81,72 @@ class WhatsAppDispatchPolicy
         return true;
     }
 
+    public function patientAllowsContactByPatientId(
+        int $patientId
+    ): bool {
+        $row = DB::table('patients')
+            ->where('id', $patientId)
+            ->first([
+                'contact_consent',
+                'do_not_contact',
+            ]);
+
+        if (! $row) {
+            return false;
+        }
+
+        if ((bool) ($row->do_not_contact ?? false)) {
+            return false;
+        }
+
+        if (isset($row->contact_consent)
+            && ! (bool) $row->contact_consent) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function manualTextDedupeKey(
+        ?int $appointmentId,
+        ?int $patientId,
+        string $body
+    ): string {
+        return implode(
+            ':',
+            [
+                'wa',
+                'manual',
+                'text',
+                $appointmentId ?: 0,
+                $patientId ?: 0,
+                substr(
+                    sha1(trim($body)),
+                    0,
+                    16
+                ),
+                now()->format('YmdHi'),
+            ]
+        );
+    }
+
+    public function manualTemplateDedupeKey(
+        int $appointmentId,
+        int $templateId
+    ): string {
+        return implode(
+            ':',
+            [
+                'wa',
+                'manual',
+                'template',
+                $appointmentId,
+                $templateId,
+                now()->format('YmdHi'),
+            ]
+        );
+    }
+
     public function patientAllowsContact(
         int $appointmentId
     ): bool {
