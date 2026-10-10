@@ -587,34 +587,68 @@ class ConfirmationHealthCheck extends Command
         $since = now()->subDay();
 
         $failedRows = DB::table(
-            'wa_messages'
+            'wa_messages as wm'
         )
+            ->leftJoin(
+                'appointments as a',
+                'a.id',
+                '=',
+                'wm.appointment_id'
+            )
             ->where(
-                'direction',
+                'wm.direction',
                 'outbound'
             )
             ->where(
-                'created_at',
+                'wm.created_at',
                 '>=',
                 $since
             )
             ->where(
-                'status',
+                'wm.status',
                 'failed'
             )
             ->orderByDesc(
-                'created_at'
+                'wm.created_at'
             )
             ->get([
-                'id',
-                'appointment_id',
-                'recipient',
-                'created_at',
+                'wm.id',
+                'wm.appointment_id',
+                'wm.recipient',
+                'wm.created_at',
+                'a.status as appointment_status',
+                'a.start_at as appointment_start_at',
             ]);
 
         $unresolved = $failedRows
             ->filter(
                 function ($failed) {
+                    if ($failed->appointment_id) {
+                        $finalStatus = in_array(
+                            strtolower(
+                                (string) $failed->appointment_status
+                            ),
+                            [
+                                'confirmed',
+                                'cancelled',
+                                'canceled',
+                                'completed',
+                                'no_show',
+                            ],
+                            true
+                        );
+
+                        $alreadyPassed =
+                            $failed->appointment_start_at
+                            && \Illuminate\Support\Carbon::parse(
+                                $failed->appointment_start_at
+                            )->isPast();
+
+                        if ($finalStatus || $alreadyPassed) {
+                            return false;
+                        }
+                    }
+
                     $recovery = DB::table(
                         'wa_messages'
                     )
