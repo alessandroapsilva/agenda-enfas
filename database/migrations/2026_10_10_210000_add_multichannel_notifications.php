@@ -2,12 +2,39 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        if (
+            Schema::hasTable('appointments')
+            && Schema::hasTable('professional_service')
+        ) {
+            DB::table('appointments')
+                ->select([
+                    'professional_id',
+                    'service_id',
+                ])
+                ->whereNotNull('professional_id')
+                ->whereNotNull('service_id')
+                ->distinct()
+                ->orderBy('professional_id')
+                ->get()
+                ->each(function ($row) {
+                    DB::table(
+                        'professional_service'
+                    )->insertOrIgnore([
+                        'professional_id' =>
+                            $row->professional_id,
+                        'service_id' =>
+                            $row->service_id,
+                    ]);
+                });
+        }
+
         if (Schema::hasTable('professionals')) {
             Schema::table('professionals', function (Blueprint $table) {
                 if (! Schema::hasColumn('professionals', 'email_notifications_enabled')) {
