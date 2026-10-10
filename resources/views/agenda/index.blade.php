@@ -211,14 +211,21 @@
                     <div class="col-md-5">
 
                         <label class="form-label">
-                            Data e hora
+                            Data
                         </label>
 
                         <input
-                            id="appointmentStart"
-                            type="datetime-local"
-                            name="start_at"
+                            id="appointmentDate"
+                            type="date"
                             class="form-control"
+                            min="{{ now()->format('Y-m-d') }}"
+                            value="{{ now()->format('Y-m-d') }}"
+                            required>
+
+                        <input
+                            id="appointmentStart"
+                            type="hidden"
+                            name="start_at"
                             required>
 
                     </div>
@@ -283,6 +290,42 @@
 
                         </select>
 
+                    </div>
+
+                    <div class="col-12">
+                        <div class="ea-availability-picker">
+                            <div class="ea-availability-picker-head">
+                                <div>
+                                    <span class="ea-section-kicker">
+                                        Disponibilidade real
+                                    </span>
+
+                                    <strong>
+                                        Horários livres
+                                    </strong>
+
+                                    <small>
+                                        Escolha um horário disponível. Horários fora da grade não podem ser salvos.
+                                    </small>
+                                </div>
+
+                                <span
+                                    id="appointmentSelectedSlot"
+                                    class="ea-selected-slot is-empty"
+                                >
+                                    Nenhum horário selecionado
+                                </span>
+                            </div>
+
+                            <div
+                                id="appointmentSlotResults"
+                                class="ea-availability-slots"
+                            >
+                                <div class="ea-availability-empty">
+                                    Selecione serviço e profissional para carregar os horários.
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-md-6">
