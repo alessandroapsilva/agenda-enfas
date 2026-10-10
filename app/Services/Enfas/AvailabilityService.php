@@ -372,7 +372,7 @@ class AvailabilityService
                 );
 
                 $minutesFromWindowStart =
-                    $windowStart->diffInMinutes(
+                    (int) $windowStart->diffInMinutes(
                         $start,
                         false
                     );
