@@ -15,6 +15,7 @@ use App\Services\Enfas\AccessScopeService;
 use App\Services\Enfas\MetaWhatsAppService;
 use App\Services\Enfas\RecurringAppointmentService;
 use App\Services\Enfas\WaitlistService;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -547,7 +548,8 @@ class AppointmentController extends Controller
         Request $request,
         Appointment $appointment,
         MetaWhatsAppService $meta,
-        AccessScopeService $access
+        AccessScopeService $access,
+        WhatsAppDispatchPolicy $policy
     ) {
         abort_unless($access->canViewAppointment($request->user(), $appointment), 403);
         $data = $request->validate([
@@ -563,12 +565,29 @@ class AppointmentController extends Controller
             ]);
         }
 
+        if (! $policy->patientAllowsContact(
+            (int) $appointment->id
+        )) {
+            throw ValidationException::withMessages([
+                'message' => 'O paciente optou por não receber contatos pelo sistema.',
+            ]);
+        }
+
         try {
+            $body = trim(
+                $data['message']
+            );
+
             $message = $meta->sendTextMessage(
                 $appointment->patient->phone,
-                trim($data['message']),
+                $body,
                 $appointment->id,
-                $appointment->patient_id
+                $appointment->patient_id,
+                $policy->manualTextDedupeKey(
+                    (int) $appointment->id,
+                    (int) $appointment->patient_id,
+                    $body
+                )
             );
         } catch (\Throwable $e) {
             report($e);
