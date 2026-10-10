@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Enfas\V11;
 
 use App\Http\Controllers\Controller;
+use App\Services\Enfas\ConfirmationOperationsService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -398,9 +399,17 @@ class OperationsController extends Controller
 
             'cancelled' =>
                 (clone $base)
+                    ->whereIn(
+                        'status',
+                        ['cancelled', 'canceled']
+                    )
+                    ->count(),
+
+            'no_show' =>
+                (clone $base)
                     ->where(
                         'status',
-                        'cancelled'
+                        'no_show'
                     )
                     ->count(),
         ];
@@ -546,7 +555,8 @@ class OperationsController extends Controller
     }
 
     public function confirmations(
-        Request $request
+        Request $request,
+        ConfirmationOperationsService $operations
     ) {
         [$start, $end, $day] =
             $this->dayRange(
@@ -569,6 +579,7 @@ class OperationsController extends Controller
                     'waiting',
                     'confirmed',
                     'cancelled',
+                    'no_show',
                     'attention',
                     'calls',
                     'all',
@@ -625,9 +636,16 @@ class OperationsController extends Controller
         }
 
         if ($state === 'cancelled') {
+            $query->whereIn(
+                'a.status',
+                ['cancelled', 'canceled']
+            );
+        }
+
+        if ($state === 'no_show') {
             $query->where(
                 'a.status',
-                'cancelled'
+                'no_show'
             );
         }
 
@@ -784,6 +802,11 @@ class OperationsController extends Controller
                 ->count()
             : 0;
 
+        $insights = $operations->snapshot(
+            $start,
+            $end
+        );
+
         return view(
             'enfas.v11.confirmations',
             compact(
@@ -791,7 +814,8 @@ class OperationsController extends Controller
                 'stats',
                 'state',
                 'search',
-                'day'
+                'day',
+                'insights'
             )
         );
     }
