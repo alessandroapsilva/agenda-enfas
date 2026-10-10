@@ -228,7 +228,7 @@
                                 strtolower($r->status ?? '')
                             ]
                             ?? [
-                                ucfirst($r->status ?? 'Status'),
+                                ucfirst($r->status ?? 'Sem atualização'),
                                 'neutral',
                             ];
 
@@ -236,7 +236,7 @@
                             $directionMap[
                                 strtolower($r->direction ?? '')
                             ]
-                            ?? ['Mensagem', 'bi-arrow-left-right'];
+                            ?? ['Comunicação', 'bi-arrow-left-right'];
                     @endphp
 
                     <article class="ea-history-row {{
@@ -267,7 +267,7 @@
                                 {{
                                     $r->template?->name
                                     ?: $r->message_type
-                                    ?: 'Mensagem'
+                                    ?: 'Comunicação sem modelo'
                                 }}
                             </strong>
 
