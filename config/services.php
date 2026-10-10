@@ -35,6 +35,28 @@ return [
         ],
     ],
 
+    'sms' => [
+        'enabled' => filter_var(
+            env('SMS_ENABLED', false),
+            FILTER_VALIDATE_BOOL
+        ),
+        'provider' => env(
+            'SMS_PROVIDER',
+            'twilio'
+        ),
+        'twilio' => [
+            'account_sid' => env(
+                'TWILIO_ACCOUNT_SID'
+            ),
+            'auth_token' => env(
+                'TWILIO_AUTH_TOKEN'
+            ),
+            'from' => env(
+                'TWILIO_SMS_FROM'
+            ),
+        ],
+    ],
+
     'voice' => [
         'enabled' => filter_var(
             env('VOICE_CALLS_ENABLED', false),
