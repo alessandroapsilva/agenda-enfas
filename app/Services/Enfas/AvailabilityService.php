@@ -84,7 +84,14 @@ class AvailabilityService
     ): bool {
         $appointments = DB::table('appointments')
             ->where('professional_id', $professionalId)
-            ->whereNotIn('status', ['cancelled', 'no_show'])
+            ->whereNotIn(
+                'status',
+                [
+                    'cancelled',
+                    'canceled',
+                    'no_show',
+                ]
+            )
             ->where('start_at', '<', $end)
             ->where('end_at', '>', $start);
 
