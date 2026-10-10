@@ -1,9 +1,9 @@
 @extends('enfas.layout')
 
 @section('title','Central WhatsApp')
-@section('page_kicker','ATENDIMENTO')
+@section('page_kicker','Comunicação')
 @section('page_title','Central WhatsApp')
-@section('page_subtitle','Atendimento 360: conversas, contexto, prioridades, tarefas e agendamentos em um único fluxo.')
+@section('page_subtitle','Conversas, contexto e pendências em uma central operacional única.')
 
 @section('page_actions')
 <a href="{{ route('v9.templates.index') }}" class="btn btn-light border">
