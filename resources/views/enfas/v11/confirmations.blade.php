@@ -333,6 +333,18 @@
                     <span>sem telefone cadastrado</span>
                 </div>
             </div>
+
+            <div class="ea-risk-item {{
+                ($risk['contact_blocked'] ?? 0) > 0
+                    ? 'is-warning'
+                    : ''
+            }}">
+                <i class="bi bi-shield-x"></i>
+                <div>
+                    <strong>{{ $risk['contact_blocked'] ?? 0 }}</strong>
+                    <span>com opt-out de contato</span>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -838,6 +850,22 @@
                             ]
                             ?? null;
 
+                        $contactBlocked =
+                            (bool) ($row->do_not_contact ?? false)
+                            || (
+                                isset($row->contact_consent)
+                                && ! (bool) $row->contact_consent
+                            );
+
+                        if ($contactBlocked) {
+                            $voiceUi = [
+                                'Não contatar',
+                                'neutral',
+                            ];
+
+                            $voiceOutcome = null;
+                        }
+
                         $priorityUi = null;
 
                         if (
@@ -906,7 +934,7 @@
                                 }}
                             </span>
 
-                            @if($row->patient_phone)
+                            @if($row->patient_phone && ! $contactBlocked)
                                 <a
                                     class="ea-row-meta text-decoration-none"
                                     href="tel:{{ preg_replace('/\\D+/', '', $row->patient_phone) }}"
@@ -914,6 +942,12 @@
                                     <i class="bi bi-telephone me-1"></i>
                                     {{ $row->patient_phone }}
                                 </a>
+                            @elseif($row->patient_phone)
+                                <span class="ea-row-meta">
+                                    <i class="bi bi-shield-x me-1"></i>
+                                    {{ $row->patient_phone }}
+                                    · não contatar
+                                </span>
                             @else
                                 <span class="ea-row-meta">
                                     Telefone não informado
@@ -1050,7 +1084,7 @@
                         <td class="ea-action-cell">
                             <div class="ea-actions">
 
-                                @if($row->patient_phone)
+                                @if($row->patient_phone && ! $contactBlocked)
                                     <a
                                         href="tel:{{ preg_replace('/\\D+/', '', $row->patient_phone) }}"
                                         class="btn btn-sm btn-outline-secondary"
