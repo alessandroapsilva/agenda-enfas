@@ -12,6 +12,7 @@ class ProfessionalAvailability extends Model
         'day_of_week',
         'start_time',
         'end_time',
+        'slot_minutes',
         'break_start',
         'break_end',
         'location_id',
