@@ -6,11 +6,6 @@
 @section('page_subtitle', 'Cadastro, histórico de atendimentos e comunicação em um só lugar.')
 
 @section('page_actions')
-@can('documents.view')
-<a href="{{ route('clinical-documents.index',['patient_id'=>$patient->id]) }}" class="btn btn-light border">
-    <i class="bi bi-file-earmark-text me-1"></i>Documentos
-</a>
-@endcan
 <a href="{{ route('patients.index') }}" class="btn btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Pacientes
 </a>
@@ -237,7 +232,7 @@
                             <th>Profissional</th>
                             <th>Status</th>
                             <th>Código</th>
-                            <th class="text-end">Prontuário</th>
+                            <th class="text-end">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -256,12 +251,13 @@
                             <td><span class="badge text-bg-{{ $appointment->statusBadge() }}">{{ $appointment->statusLabel() }}</span></td>
                             <td><strong>{{ $appointment->code }}</strong></td>
                             <td class="text-end">
-                                @can('records.view')
-                                <a href="{{ route('appointments.record',$appointment) }}" class="btn btn-sm btn-light border">
-                                    <i class="bi bi-file-earmark-medical"></i>
-                                    {{ $appointment->clinicalRecord?->isFinalized() ? 'Ver' : 'Abrir' }}
+                                <a
+                                    href="{{ url('/agenda?agendamento='.$appointment->id) }}"
+                                    class="btn btn-sm btn-light border"
+                                >
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    Abrir na agenda
                                 </a>
-                                @endcan
                             </td>
                         </tr>
                     @empty
