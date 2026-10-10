@@ -3,6 +3,7 @@
 namespace App\Services\Enfas;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -160,9 +161,26 @@ class CommunicationDeliveryService
             $payload['created_at'] =
                 now();
 
-            $id = DB::table(
-                'communication_deliveries'
-            )->insertGetId($payload);
+            try {
+                $id = DB::table(
+                    'communication_deliveries'
+                )->insertGetId($payload);
+            } catch (QueryException $e) {
+                $raced = DB::table(
+                    'communication_deliveries'
+                )
+                    ->where(
+                        'dedupe_key',
+                        $dedupeKey
+                    )
+                    ->first();
+
+                if ($raced) {
+                    return $raced;
+                }
+
+                throw $e;
+            }
         }
 
         try {
