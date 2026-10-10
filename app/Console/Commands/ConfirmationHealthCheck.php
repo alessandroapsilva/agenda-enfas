@@ -39,6 +39,10 @@ class ConfirmationHealthCheck extends Command
             $critical
         );
 
+        $this->appendAutomationConflictSnapshot(
+            $rows
+        );
+
         $this->checkVoiceRoutes(
             $rows,
             $critical
@@ -182,6 +186,89 @@ class ConfirmationHealthCheck extends Command
                 $critical
             );
         }
+    }
+
+    private function appendAutomationConflictSnapshot(
+        array &$rows
+    ): void {
+        if (! Schema::hasTable('wa_automations')
+            || ! Schema::hasTable('wa_templates')) {
+            return;
+        }
+
+        $active = DB::table(
+            'wa_automations as a'
+        )
+            ->leftJoin(
+                'wa_templates as t',
+                't.id',
+                '=',
+                'a.template_id'
+            )
+            ->where(
+                'a.is_active',
+                true
+            )
+            ->get([
+                'a.id',
+                'a.trigger_event',
+                'a.offset_minutes',
+                'a.service_id',
+                'a.template_id',
+                't.purpose',
+                't.status as template_status',
+                't.is_active as template_active',
+                't.archived_at',
+            ]);
+
+        $invalid = $active->filter(
+            fn ($row) =>
+                ! $row->template_id
+                || $row->template_status !== 'APPROVED'
+                || ! (bool) $row->template_active
+                || $row->archived_at !== null
+        )->count();
+
+        $duplicateGroups = $active
+            ->filter(
+                fn ($row) =>
+                    $row->template_id
+                    && $row->template_status === 'APPROVED'
+                    && (bool) $row->template_active
+                    && $row->archived_at === null
+            )
+            ->groupBy(
+                fn ($row) =>
+                    $row->trigger_event
+                    .'|'
+                    .(int) $row->offset_minutes
+                    .'|'
+                    .($row->service_id ?: 0)
+                    .'|'
+                    .strtolower(
+                        (string) (
+                            $row->purpose
+                            ?: 'general'
+                        )
+                    )
+            )
+            ->filter(
+                fn ($group) =>
+                    $group->count() > 1
+            )
+            ->count();
+
+        $rows[] = [
+            'WhatsApp',
+            'Regras redundantes',
+            ($invalid + $duplicateGroups) > 0
+                ? 'ATENCAO'
+                : 'OK',
+            $invalid
+                .' invalida(s) · '
+                .$duplicateGroups
+                .' grupo(s) duplicado(s)',
+        ];
     }
 
     private function checkVoiceRoutes(
