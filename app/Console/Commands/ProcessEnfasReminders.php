@@ -86,7 +86,8 @@ class ProcessEnfasReminders extends Command
 
             $appointments = $this->appointmentsFor(
                 $rule,
-                $now
+                $now,
+                $policy
             );
 
             if ($appointments === null) {
@@ -223,7 +224,8 @@ class ProcessEnfasReminders extends Command
 
     private function appointmentsFor(
         WaAutomation $rule,
-        Carbon $now
+        Carbon $now,
+        WhatsAppDispatchPolicy $policy
     ): ?\Illuminate\Support\Collection {
         $base = DB::table('appointments');
 
@@ -240,7 +242,7 @@ class ProcessEnfasReminders extends Command
                     clone $base,
                     (int) ($rule->offset_minutes ?? 0),
                     $now,
-                    app(WhatsAppDispatchPolicy::class)
+                    $policy
                 ),
 
             'appointment_return_due' =>
