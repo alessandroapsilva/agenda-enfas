@@ -29,7 +29,7 @@ class CommunicationPolicyService
         return (bool) AppSetting::getValue(
             'communication',
             'professional_whatsapp_enabled',
-            true
+            false
         );
     }
 
