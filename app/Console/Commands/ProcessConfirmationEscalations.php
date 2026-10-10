@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Enfas\ConfirmationPolicyService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,9 @@ class ProcessConfirmationEscalations extends Command
 
     protected $description = 'Cria a fila de escalonamento de confirmacoes para ligacao';
 
-    public function handle(): int
+    public function handle(
+        ConfirmationPolicyService $policy
+    ): int
     {
         if (! Schema::hasTable('appointments')
             || ! Schema::hasTable('confirmation_attempts')) {
@@ -45,11 +48,16 @@ class ProcessConfirmationEscalations extends Command
             ->orderBy('a.start_at')
             ->get([
                 'a.id',
+                'a.patient_id',
                 'a.code',
                 'a.start_at',
                 'a.status',
                 'a.confirmation_status',
+                'a.professional_id',
+                'a.service_id',
                 'p.phone as patient_phone',
+                'p.contact_consent',
+                'p.do_not_contact',
             ]);
 
         $stats = [
@@ -60,10 +68,18 @@ class ProcessConfirmationEscalations extends Command
         ];
 
         foreach ($rows as $row) {
+            if (! $policy->allowsAppointment(
+                $row
+            )) {
+                $stats['skipped']++;
+                continue;
+            }
+
             $reason = $this->reasonFor(
                 (int) $row->id,
                 Carbon::parse($row->start_at),
-                $now
+                $now,
+                $policy
             );
 
             if (! $reason) {
@@ -108,7 +124,11 @@ class ProcessConfirmationEscalations extends Command
             if ($lastAttempt
                 && $lastAttempt->completed_at
                 && Carbon::parse($lastAttempt->completed_at)
-                    ->greaterThan($now->copy()->subMinutes(30))) {
+                    ->greaterThan(
+                        $now->copy()->subMinutes(
+                            $policy->retryMinutes()
+                        )
+                    )) {
                 $stats['deduped']++;
                 continue;
             }
@@ -117,7 +137,15 @@ class ProcessConfirmationEscalations extends Command
                 ? ((int) $lastAttempt->attempt_no + 1)
                 : 1;
 
-            if ($attemptNo > 3) {
+            if (
+                $attemptNo
+                > $policy->maxVoiceAttempts()
+            ) {
+                $this->createHumanFallbackTask(
+                    $row,
+                    $policy
+                );
+
                 $stats['deduped']++;
                 continue;
             }
@@ -138,9 +166,30 @@ class ProcessConfirmationEscalations extends Command
                 continue;
             }
 
+            $scheduledAt =
+                $policy->nextAllowedCallAt(
+                    $now
+                );
+
+            if (
+                $scheduledAt->gte(
+                    Carbon::parse(
+                        $row->start_at
+                    )
+                )
+            ) {
+                $this->createHumanFallbackTask(
+                    $row,
+                    $policy
+                );
+
+                $stats['skipped']++;
+                continue;
+            }
+
             if ($this->option('dry-run')) {
                 $this->line(
-                    "DRY-RUN agendamento={$row->id} tentativa={$attemptNo} motivo={$reason}"
+                    "DRY-RUN agendamento={$row->id} tentativa={$attemptNo} motivo={$reason} previsto={$scheduledAt->format('d/m H:i')}"
                 );
                 continue;
             }
@@ -158,7 +207,7 @@ class ProcessConfirmationEscalations extends Command
                 ),
                 'attempt_no' => $attemptNo,
                 'dedupe_key' => $dedupe,
-                'scheduled_at' => $now,
+                'scheduled_at' => $scheduledAt,
                 'metadata' => json_encode([
                     'appointment_code' => $row->code,
                     'escalated_at' => $now->toIso8601String(),
@@ -187,7 +236,8 @@ class ProcessConfirmationEscalations extends Command
     private function reasonFor(
         int $appointmentId,
         Carbon $startAt,
-        Carbon $now
+        Carbon $now,
+        ConfirmationPolicyService $policy
     ): ?string {
         $latestOutbound = Schema::hasTable('wa_messages')
             ? DB::table('wa_messages')
@@ -208,17 +258,84 @@ class ProcessConfirmationEscalations extends Command
         }
 
         if ($minutesUntil >= 0
-            && $minutesUntil <= 120) {
-            return 'no_response_2h';
+            && $minutesUntil
+                <= $policy->voiceEscalationMinutes()) {
+            return 'no_response_voice_window';
         }
 
         if (! $latestOutbound
             && $minutesUntil >= 0
-            && $minutesUntil <= 360) {
-            return 'no_whatsapp_6h';
+            && $minutesUntil
+                <= $policy->noWhatsappMinutes()) {
+            return 'no_whatsapp_voice_window';
         }
 
         return null;
+    }
+
+    private function createHumanFallbackTask(
+        object $row,
+        ConfirmationPolicyService $policy
+    ): void {
+        if (! $policy->humanFallbackEnabled()
+            || ! Schema::hasTable('clinic_tasks')) {
+            return;
+        }
+
+        $exists = DB::table('clinic_tasks')
+            ->where(
+                'appointment_id',
+                $row->id
+            )
+            ->where(
+                'status',
+                'open'
+            )
+            ->where(
+                'title',
+                'Confirmar agendamento por contato humano'
+            )
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        if ($this->option('dry-run')) {
+            $this->line(
+                "DRY-RUN fallback humano agenda={$row->id}"
+            );
+            return;
+        }
+
+        DB::table('clinic_tasks')->insert([
+            'patient_id' =>
+                $row->patient_id ?? null,
+            'appointment_id' =>
+                $row->id,
+            'conversation_id' =>
+                null,
+            'title' =>
+                'Confirmar agendamento por contato humano',
+            'notes' =>
+                'Escalonamento automático da Central de Confirmações após indisponibilidade ou esgotamento da régua de voz.',
+            'priority' =>
+                'high',
+            'status' =>
+                'open',
+            'due_at' =>
+                now(),
+            'assigned_user_id' =>
+                null,
+            'created_by' =>
+                null,
+            'completed_at' =>
+                null,
+            'created_at' =>
+                now(),
+            'updated_at' =>
+                now(),
+        ]);
     }
 
     private function normalizePhone(?string $raw): ?string
