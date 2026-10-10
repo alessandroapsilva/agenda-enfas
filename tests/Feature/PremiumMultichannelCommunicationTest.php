@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\BrandedAgendaMessage;
 use App\Models\AppSetting;
 use App\Services\Enfas\CommunicationDeliveryService;
 use App\Services\Enfas\CommunicationPolicyService;
@@ -126,6 +127,11 @@ class PremiumMultichannelCommunicationTest extends TestCase
 
         $this->assertDatabaseCount(
             'communication_deliveries',
+            1
+        );
+
+        Mail::assertSent(
+            BrandedAgendaMessage::class,
             1
         );
     }
