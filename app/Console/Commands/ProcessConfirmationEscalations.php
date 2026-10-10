@@ -128,7 +128,6 @@ class ProcessConfirmationEscalations extends Command
                         'confirmed',
                         'cancelled',
                         'callback',
-                        'invalid_number',
                         'resolved_elsewhere',
                     ],
                     true
