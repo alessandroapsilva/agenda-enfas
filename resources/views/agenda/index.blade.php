@@ -1033,6 +1033,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelector('meta[name="csrf-token"]')
             .getAttribute('content');
 
+    const professionalAvailability =
+        @json($professionalAvailability);
+
     window.currentAppointmentId = null;
     window.currentAppointmentData = null;
 
@@ -1488,6 +1491,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     calendar.render();
+
+    const syncCalendarAvailability = () => {
+        const professionalId =
+            document.getElementById(
+                'agendaFilterProfessional'
+            )?.value || '';
+
+        const ranges =
+            professionalId
+                ? (
+                    professionalAvailability[
+                        String(professionalId)
+                    ] || []
+                )
+                : [];
+
+        calendar.setOption(
+            'businessHours',
+            ranges.length
+                ? ranges
+                : false
+        );
+    };
+
+    syncCalendarAvailability();
 
 
     async function moveAppointment(info) {
@@ -1970,6 +1998,13 @@ document.addEventListener('DOMContentLoaded', function () {
     agendaFilterIds.forEach(function(id) {
         document.getElementById(id)?.addEventListener('change', function () {
             updateActiveFilters();
+
+            if (
+                id === 'agendaFilterProfessional'
+            ) {
+                syncCalendarAvailability();
+            }
+
             calendar.refetchEvents();
         });
     });
