@@ -34,7 +34,11 @@ class AgendaController extends Controller
             ->orderBy('name')
             ->get();
 
-        $professionals = $access->professionals(Professional::query(), $request->user())
+        $professionals = $access->professionals(
+                Professional::query()
+                    ->with('services:id'),
+                $request->user()
+            )
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -240,6 +244,36 @@ class AgendaController extends Controller
                 true
             )
             ->firstOrFail();
+
+        if (
+            Schema::hasTable(
+                'professional_service'
+            )
+            && DB::table(
+                'professional_service'
+            )
+                ->where(
+                    'professional_id',
+                    $professional->id
+                )
+                ->where(
+                    'service_id',
+                    (int) $data['service_id']
+                )
+                ->doesntExist()
+        ) {
+            return response()->json([
+                'success' => true,
+                'date' => $data['date'],
+                'professional' => [
+                    'id' => (int) $professional->id,
+                    'name' => $professional->name,
+                ],
+                'slots' => [],
+                'message' =>
+                    'Este profissional não está habilitado para o serviço selecionado.',
+            ]);
+        }
 
         $date = Carbon::createFromFormat(
             'Y-m-d',
