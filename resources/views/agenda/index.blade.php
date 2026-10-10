@@ -2129,19 +2129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 )
             );
 
-            professionalInput?.dispatchEvent(
-                new Event(
-                    'change',
-                    { bubbles: true }
-                )
-            );
 
-            serviceInput?.dispatchEvent(
-                new Event(
-                    'change',
-                    { bubbles: true }
-                )
-            );
         };
 
         if (
