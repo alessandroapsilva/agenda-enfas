@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Enfas;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
+use App\Services\Enfas\BrandMediaService;
 use App\Services\Enfas\ConfirmationPolicyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -58,8 +59,10 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function saveBranding(Request $request)
-    {
+    public function saveBranding(
+        Request $request,
+        BrandMediaService $brandMedia
+    ) {
         $data = $request->validate([
             'system_name' => [
                 'required',
@@ -116,11 +119,17 @@ class SettingsController extends Controller
         );
 
         if ($request->boolean('remove_logo')) {
+            $oldLogo = AppSetting::getValue(
+                'branding',
+                'logo'
+            );
+
+            $brandMedia->deactivatePath(
+                $oldLogo
+            );
+
             $this->deleteBrandFile(
-                AppSetting::getValue(
-                    'branding',
-                    'logo'
-                )
+                $oldLogo
             );
 
             AppSetting::setValue(
@@ -147,7 +156,15 @@ class SettingsController extends Controller
                 $path
             );
 
+            $brandMedia->syncConfiguredLogo(
+                auth()->id()
+            );
+
             if ($old && $old !== $path) {
+                $brandMedia->deactivatePath(
+                    $old
+                );
+
                 $this->deleteBrandFile($old);
             }
         }
