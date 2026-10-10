@@ -38,11 +38,10 @@ class AppointmentObserver
     public function updated(
         Appointment $appointment
     ): void {
-        if (! Schema::hasTable(
-            'wa_automations'
-        )) {
-            return;
-        }
+        $hasWhatsAppAutomations =
+            Schema::hasTable(
+                'wa_automations'
+            );
 
         $rescheduled =
             $appointment->wasChanged(
@@ -50,12 +49,14 @@ class AppointmentObserver
             );
 
         if ($rescheduled) {
-            app(
-                WhatsAppAutomationEngine::class
-            )->trigger(
-                'appointment_rescheduled',
-                $appointment->id
-            );
+            if ($hasWhatsAppAutomations) {
+                app(
+                    WhatsAppAutomationEngine::class
+                )->trigger(
+                    'appointment_rescheduled',
+                    $appointment->id
+                );
+            }
 
             app(
                 PatientMultichannelNotificationService::class
@@ -101,12 +102,14 @@ class AppointmentObserver
         };
 
         if ($trigger) {
-            app(
-                WhatsAppAutomationEngine::class
-            )->trigger(
-                $trigger,
-                $appointment->id
-            );
+            if ($hasWhatsAppAutomations) {
+                app(
+                    WhatsAppAutomationEngine::class
+                )->trigger(
+                    $trigger,
+                    $appointment->id
+                );
+            }
 
             $event = match (
                 $appointment->status
