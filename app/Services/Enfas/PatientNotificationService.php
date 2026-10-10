@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\DB;
 
 class PatientNotificationService
 {
-    public function __construct(private MetaWhatsAppService $meta)
-    {
+    public function __construct(
+        private MetaWhatsAppService $meta,
+        private WhatsAppDispatchPolicy $policy
+    ) {
     }
 
     public function confirmed(int $appointmentId, string $phone): void
@@ -37,7 +39,10 @@ class PatientNotificationService
             $text,
             $appointmentId,
             $a->patient_id,
-            'patient-confirmed:'.$appointmentId
+            $this->policy->journeyDedupeKey(
+                $a,
+                'confirmed'
+            )
         );
     }
 
@@ -53,7 +58,10 @@ class PatientNotificationService
             ."*Enfermagem Alessandro Silva*",
             $appointmentId,
             $a->patient_id,
-            'patient-cancelled:'.$appointmentId
+            $this->policy->journeyDedupeKey(
+                $a,
+                'cancelled'
+            )
         );
     }
 
@@ -71,7 +79,10 @@ class PatientNotificationService
             ],
             $appointmentId,
             $a->patient_id,
-            'reschedule-period:'.$appointmentId.':'.now()->format('YmdHi'),
+            $this->policy->journeyDedupeKey(
+                $a,
+                'reschedule-period'
+            ),
             'Enfermagem Alessandro Silva'
         );
     }
@@ -155,10 +166,10 @@ class PatientNotificationService
             .route('patient-journey.show', $a->public_token),
             $appointmentId,
             $a->patient_id,
-            'patient-rescheduled:'
-                .$appointmentId
-                .':'
-                .$slot
+            $this->policy->journeyDedupeKey(
+                $a,
+                'rescheduled'
+            )
         );
     }
 
