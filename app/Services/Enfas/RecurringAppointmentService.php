@@ -16,6 +16,23 @@ class RecurringAppointmentService
 
     public function create(array $data): AppointmentSeries
     {
+        if (
+            DB::table('professional_service')
+                ->where(
+                    'professional_id',
+                    $data['professional_id']
+                )
+                ->where(
+                    'service_id',
+                    $data['service_id']
+                )
+                ->doesntExist()
+        ) {
+            throw new RuntimeException(
+                'O profissional não está habilitado para o serviço selecionado.'
+            );
+        }
+
         return DB::transaction(function () use ($data) {
             $series = AppointmentSeries::create([
                 'patient_id' => $data['patient_id'],
