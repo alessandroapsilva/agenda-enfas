@@ -258,6 +258,241 @@
                 <div class="ea-settings-card-head">
                     <div>
                         <span class="ea-ops-eyebrow">
+                            Comunicação multicanal
+                        </span>
+
+                        <h3>
+                            WhatsApp, e-mail e SMS
+                        </h3>
+
+                        <p>
+                            Defina os canais usados com pacientes e profissionais. Cada envio adicional tem auditoria e dedupe próprios.
+                        </p>
+                    </div>
+
+                    <div class="ea-channel-readiness">
+                        <span class="ea-status {{
+                            $channelSystem['email']['configured']
+                                ? 'confirmed'
+                                : 'neutral'
+                        }}">
+                            E-mail {{
+                                $channelSystem['email']['configured']
+                                    ? 'pronto'
+                                    : 'pendente'
+                            }}
+                        </span>
+
+                        <span class="ea-status {{
+                            $channelSystem['sms']['configured']
+                                ? 'confirmed'
+                                : 'neutral'
+                        }}">
+                            SMS {{
+                                $channelSystem['sms']['configured']
+                                    ? 'pronto'
+                                    : 'pendente'
+                            }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="ea-channel-config-grid">
+                    <div class="ea-channel-config-card">
+                        <div class="ea-channel-config-title">
+                            <i class="bi bi-person"></i>
+
+                            <div>
+                                <strong>Paciente</strong>
+                                <small>Confirmações, alterações e lembretes.</small>
+                            </div>
+                        </div>
+
+                        <div class="ea-setting-switches">
+                            <label class="ea-setting-switch">
+                                <span>
+                                    <strong>E-mail</strong>
+                                    <small>
+                                        {{
+                                            $channelSystem['email']['configured']
+                                                ? 'Canal disponível no servidor.'
+                                                : 'Configure o mailer antes de ativar envios reais.'
+                                        }}
+                                    </small>
+                                </span>
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="patient_email_enabled"
+                                    value="1"
+                                    @checked(
+                                        old(
+                                            'patient_email_enabled',
+                                            $communicationPolicy['patient_email_enabled']
+                                        )
+                                    )
+                                >
+                            </label>
+
+                            <label class="ea-setting-switch">
+                                <span>
+                                    <strong>SMS</strong>
+                                    <small>
+                                        {{
+                                            $channelSystem['sms']['configured']
+                                                ? 'Twilio SMS pronto.'
+                                                : 'SMS permanece seguro até configurar TWILIO_SMS_FROM e SMS_ENABLED.'
+                                        }}
+                                    </small>
+                                </span>
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="patient_sms_enabled"
+                                    value="1"
+                                    @checked(
+                                        old(
+                                            'patient_sms_enabled',
+                                            $communicationPolicy['patient_sms_enabled']
+                                        )
+                                    )
+                                >
+                            </label>
+                        </div>
+
+                        <div class="ea-channel-events">
+                            @foreach([
+                                'patient_created_enabled' => 'Novo agendamento',
+                                'patient_confirmed_enabled' => 'Confirmação',
+                                'patient_rescheduled_enabled' => 'Reagendamento',
+                                'patient_cancelled_enabled' => 'Cancelamento',
+                                'patient_reminders_enabled' => 'Lembretes programados',
+                            ] as $key => $label)
+                                <label>
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="{{ $key }}"
+                                        value="1"
+                                        @checked(
+                                            old(
+                                                $key,
+                                                $communicationPolicy[$key]
+                                            )
+                                        )
+                                    >
+                                    <span>{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="ea-channel-config-card">
+                        <div class="ea-channel-config-title">
+                            <i class="bi bi-person-badge"></i>
+
+                            <div>
+                                <strong>Profissional</strong>
+                                <small>O canal global ainda respeita a preferência individual de cada profissional.</small>
+                            </div>
+                        </div>
+
+                        <div class="ea-setting-switches">
+                            <label class="ea-setting-switch">
+                                <span>
+                                    <strong>WhatsApp</strong>
+                                    <small>Avisa a equipe pelo telefone cadastrado.</small>
+                                </span>
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="professional_whatsapp_enabled"
+                                    value="1"
+                                    @checked(
+                                        old(
+                                            'professional_whatsapp_enabled',
+                                            $communicationPolicy['professional_whatsapp_enabled']
+                                        )
+                                    )
+                                >
+                            </label>
+
+                            <label class="ea-setting-switch">
+                                <span>
+                                    <strong>E-mail</strong>
+                                    <small>Usa o endereço do cadastro profissional.</small>
+                                </span>
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="professional_email_enabled"
+                                    value="1"
+                                    @checked(
+                                        old(
+                                            'professional_email_enabled',
+                                            $communicationPolicy['professional_email_enabled']
+                                        )
+                                    )
+                                >
+                            </label>
+
+                            <label class="ea-setting-switch">
+                                <span>
+                                    <strong>SMS</strong>
+                                    <small>Usa o telefone do cadastro profissional.</small>
+                                </span>
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="professional_sms_enabled"
+                                    value="1"
+                                    @checked(
+                                        old(
+                                            'professional_sms_enabled',
+                                            $communicationPolicy['professional_sms_enabled']
+                                        )
+                                    )
+                                >
+                            </label>
+                        </div>
+
+                        <div class="ea-channel-events">
+                            @foreach([
+                                'professional_created_enabled' => 'Novo agendamento',
+                                'professional_confirmed_enabled' => 'Paciente confirmou',
+                                'professional_rescheduled_enabled' => 'Reagendamento',
+                                'professional_cancelled_enabled' => 'Cancelamento',
+                            ] as $key => $label)
+                                <label>
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="{{ $key }}"
+                                        value="1"
+                                        @checked(
+                                            old(
+                                                $key,
+                                                $communicationPolicy[$key]
+                                            )
+                                        )
+                                    >
+                                    <span>{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ea-settings-card">
+                <div class="ea-settings-card-head">
+                    <div>
+                        <span class="ea-ops-eyebrow">
                             Régua estilo Nina
                         </span>
 
@@ -637,6 +872,28 @@
                             }}
                         </strong>
                     </div>
+
+                    <div>
+                        <span>E-mail</span>
+                        <strong>
+                            {{
+                                $channelSystem['email']['configured']
+                                    ? strtoupper($channelSystem['email']['provider']).' pronto'
+                                    : 'Pendente'
+                            }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>SMS</span>
+                        <strong>
+                            {{
+                                $channelSystem['sms']['configured']
+                                    ? strtoupper($channelSystem['sms']['provider']).' pronto'
+                                    : 'Pendente'
+                            }}
+                        </strong>
+                    </div>
                 </div>
 
                 <div class="ea-settings-note">
@@ -652,7 +909,7 @@
                     type="submit"
                 >
                     <i class="bi bi-check2-circle me-1"></i>
-                    Salvar régua
+                    Salvar preferências
                 </button>
             </section>
         </aside>
