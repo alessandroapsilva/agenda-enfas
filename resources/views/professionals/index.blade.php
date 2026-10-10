@@ -35,7 +35,13 @@
                                     {{ $professional->is_active ? 'Ativo' : 'Inativo' }}
                                 </span>
                                 @if($professional->whatsapp_notifications_enabled)
-                                    <span class="badge text-bg-light border"><i class="bi bi-whatsapp me-1 text-success"></i>Notificações</span>
+                                    <span class="badge text-bg-light border"><i class="bi bi-whatsapp me-1 text-success"></i>WhatsApp</span>
+                                @endif
+                                @if($professional->email_notifications_enabled)
+                                    <span class="badge text-bg-light border"><i class="bi bi-envelope me-1 text-primary"></i>E-mail</span>
+                                @endif
+                                @if($professional->sms_notifications_enabled)
+                                    <span class="badge text-bg-light border"><i class="bi bi-chat-left-text me-1 text-primary"></i>SMS</span>
                                 @endif
                             </div>
                             <div class="text-muted small mt-1">
@@ -132,11 +138,30 @@
                             </div>
 
                             <div class="col-12">
-                                <input type="hidden" name="whatsapp_notifications_enabled" value="0">
-                                <label class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="whatsapp_notifications_enabled" value="1" @checked($professional->whatsapp_notifications_enabled)>
-                                    <span class="form-check-label">Receber notificações de confirmação, cancelamento e reagendamento</span>
-                                </label>
+                                <div class="ea-prof-channel-settings">
+                                    <strong>Notificações deste profissional</strong>
+                                    <small>O canal também precisa estar habilitado nas Preferências da Agenda.</small>
+
+                                    <div class="d-flex flex-wrap gap-3 mt-2">
+                                        <label class="form-check form-switch">
+                                            <input type="hidden" name="whatsapp_notifications_enabled" value="0">
+                                            <input class="form-check-input" type="checkbox" name="whatsapp_notifications_enabled" value="1" @checked($professional->whatsapp_notifications_enabled)>
+                                            <span class="form-check-label">WhatsApp</span>
+                                        </label>
+
+                                        <label class="form-check form-switch">
+                                            <input type="hidden" name="email_notifications_enabled" value="0">
+                                            <input class="form-check-input" type="checkbox" name="email_notifications_enabled" value="1" @checked($professional->email_notifications_enabled)>
+                                            <span class="form-check-label">E-mail</span>
+                                        </label>
+
+                                        <label class="form-check form-switch">
+                                            <input type="hidden" name="sms_notifications_enabled" value="0">
+                                            <input class="form-check-input" type="checkbox" name="sms_notifications_enabled" value="1" @checked($professional->sms_notifications_enabled)>
+                                            <span class="form-check-label">SMS</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="col-12"><button class="btn btn-primary btn-sm">Salvar profissional</button></div>
@@ -147,7 +172,7 @@
                 <div class="collapse mt-4" id="availability-prof-{{ $professional->id }}">
                     <div class="ea-summary-tile">
                         <h6>Disponibilidade semanal</h6>
-                        <p class="text-muted small">Defina jornada e pausa por dia. O motor de reagendamento usa estes horários.</p>
+                        <p class="text-muted small">Defina a grade real por dia. Novo agendamento, reagendamento e recorrências só aceitam horários desta disponibilidade.</p>
                         <form method="POST" action="{{ route('professionals.availability',$professional) }}">
                             @csrf
                             <div class="table-responsive">
@@ -269,8 +294,30 @@
                     </div>
 
                     <div class="col-12">
-                        <input type="hidden" name="whatsapp_notifications_enabled" value="0">
-                        <label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="whatsapp_notifications_enabled" value="1" checked><span class="form-check-label">Receber notificações pelo WhatsApp</span></label>
+                        <div class="ea-prof-channel-settings">
+                            <strong>Notificações do profissional</strong>
+                            <small>Escolha em quais canais este profissional poderá receber avisos da agenda.</small>
+
+                            <div class="d-flex flex-wrap gap-3 mt-2">
+                                <label class="form-check form-switch">
+                                    <input type="hidden" name="whatsapp_notifications_enabled" value="0">
+                                    <input class="form-check-input" type="checkbox" name="whatsapp_notifications_enabled" value="1" checked>
+                                    <span class="form-check-label">WhatsApp</span>
+                                </label>
+
+                                <label class="form-check form-switch">
+                                    <input type="hidden" name="email_notifications_enabled" value="0">
+                                    <input class="form-check-input" type="checkbox" name="email_notifications_enabled" value="1">
+                                    <span class="form-check-label">E-mail</span>
+                                </label>
+
+                                <label class="form-check form-switch">
+                                    <input type="hidden" name="sms_notifications_enabled" value="0">
+                                    <input class="form-check-input" type="checkbox" name="sms_notifications_enabled" value="1">
+                                    <span class="form-check-label">SMS</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
