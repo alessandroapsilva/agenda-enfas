@@ -121,7 +121,7 @@ class ProcessEnfasReminders extends Command
                     ?? 0
                 );
 
-                if ($policy->hasRecentAutomatedMessage(
+                if ($policy->hasRecentOutboundMessage(
                     (int) $appointment->id,
                     10
                 )) {
