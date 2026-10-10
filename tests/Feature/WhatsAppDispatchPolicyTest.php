@@ -45,6 +45,35 @@ class WhatsAppDispatchPolicyTest extends TestCase
         );
     }
 
+    public function test_lifecycle_event_uses_same_key_as_direct_journey_message(): void
+    {
+        $policy = app(
+            WhatsAppDispatchPolicy::class
+        );
+
+        $appointment = (object) [
+            'id' => 88,
+            'start_at' => '2026-10-22 15:00:00',
+        ];
+
+        $direct = $policy->journeyDedupeKey(
+            $appointment,
+            'confirmed'
+        );
+
+        $automation = $policy->canonicalDedupeKey(
+            $appointment,
+            'confirmation',
+            'appointment_confirmed',
+            0
+        );
+
+        $this->assertSame(
+            $direct,
+            $automation
+        );
+    }
+
     public function test_reminders_keep_different_offsets_distinct(): void
     {
         $policy = app(
