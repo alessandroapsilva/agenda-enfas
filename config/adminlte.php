@@ -247,12 +247,6 @@ return [
             'can' => 'agenda.view',
         ],
         [
-            'text' => 'Lista de agendamentos',
-            'route' => 'appointments.index',
-            'icon' => 'bi bi-calendar2-check',
-            'can' => 'agenda.view',
-        ],
-        [
             'text' => 'Confirmações',
             'route' => 'v11.confirmations',
             'icon' => 'bi bi-patch-check',
@@ -291,28 +285,16 @@ return [
             'can' => 'whatsapp.view',
             'submenu' => [
                 [
-                    'text' => 'Central de conversas',
+                    'text' => 'Conversas',
                     'route' => 'enfas.whatsapp',
                     'icon' => 'bi bi-chat-dots',
                     'can' => 'whatsapp.view',
                 ],
                 [
-                    'text' => 'Histórico de mensagens',
+                    'text' => 'Histórico',
                     'route' => 'enfas.v6.messages',
                     'icon' => 'bi bi-clock-history',
                     'can' => 'whatsapp.view',
-                ],
-                [
-                    'text' => 'Templates',
-                    'route' => 'v9.templates.index',
-                    'icon' => 'bi bi-chat-square-text',
-                    'can' => 'whatsapp.manage',
-                ],
-                [
-                    'text' => 'Automações',
-                    'route' => 'enfas.v6.automations',
-                    'icon' => 'bi bi-lightning-charge',
-                    'can' => 'whatsapp.manage',
                 ],
             ],
         ],
@@ -357,6 +339,25 @@ return [
             'route' => 'enfas.agenda-settings',
             'icon' => 'bi bi-sliders2',
             'can' => 'settings.manage',
+        ],
+        [
+            'text' => 'Comunicação',
+            'icon' => 'bi bi-broadcast',
+            'can' => 'whatsapp.manage',
+            'submenu' => [
+                [
+                    'text' => 'Templates',
+                    'route' => 'v9.templates.index',
+                    'icon' => 'bi bi-chat-square-text',
+                    'can' => 'whatsapp.manage',
+                ],
+                [
+                    'text' => 'Automações',
+                    'route' => 'enfas.v6.automations',
+                    'icon' => 'bi bi-lightning-charge',
+                    'can' => 'whatsapp.manage',
+                ],
+            ],
         ],
         [
             'text' => 'Aparência',
