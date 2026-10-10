@@ -676,11 +676,12 @@ class AgendaController extends Controller
             $data['start']
         );
 
-        $end = ! empty($data['end'])
-            ? Carbon::parse($data['end'])
-            : (clone $start)->addMinutes(
-                $appointment->duration_minutes
-            );
+        $end = (clone $start)->addMinutes(
+            max(
+                5,
+                (int) $appointment->duration_minutes
+            )
+        );
 
         if (! $availability->isBookable(
             $appointment->professional_id,
