@@ -7,6 +7,7 @@ use App\Models\MetaIntegration;
 use App\Models\WaConversation;
 use App\Models\WaMessage;
 use App\Services\Enfas\MetaWhatsAppService;
+use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -171,18 +172,42 @@ class WhatsAppController extends Controller
     public function sendConversationMessage(
         Request $request,
         WaConversation $conversation,
-        MetaWhatsAppService $meta
+        MetaWhatsAppService $meta,
+        WhatsAppDispatchPolicy $policy
     ) {
         $data = $request->validate([
             'message' => ['required','string','min:1','max:4000'],
         ]);
 
+        if ($conversation->patient_id
+            && ! $policy->patientAllowsContactByPatientId(
+                (int) $conversation->patient_id
+            )) {
+            throw ValidationException::withMessages([
+                'message' =>
+                    'O paciente optou por não receber contatos pelo sistema.',
+            ]);
+        }
+
+        $body = trim(
+            $data['message']
+        );
+
         try {
             $message = $meta->sendTextMessage(
                 $conversation->phone,
-                trim($data['message']),
+                $body,
                 $conversation->appointment_id,
-                $conversation->patient_id
+                $conversation->patient_id,
+                $policy->manualTextDedupeKey(
+                    $conversation->appointment_id
+                        ? (int) $conversation->appointment_id
+                        : null,
+                    $conversation->patient_id
+                        ? (int) $conversation->patient_id
+                        : null,
+                    $body
+                )
             );
         } catch (\Throwable $e) {
             report($e);
