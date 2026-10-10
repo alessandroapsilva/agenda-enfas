@@ -1107,10 +1107,16 @@
                                 @if(
                                     ($row->confirmation_status ?? null)
                                         !== 'confirmed'
-                                    && $row->status
-                                        !== 'confirmed'
-                                    && $row->status
-                                        !== 'cancelled'
+                                    && ! in_array(
+                                        $row->status,
+                                        [
+                                            'confirmed',
+                                            'cancelled',
+                                            'canceled',
+                                            'no_show',
+                                        ],
+                                        true
+                                    )
                                 )
                                     <form
                                         method="POST"
@@ -1154,8 +1160,15 @@
                                 </a>
 
                                 @if(
-                                    $row->status
-                                    !== 'cancelled'
+                                    ! in_array(
+                                        $row->status,
+                                        [
+                                            'cancelled',
+                                            'canceled',
+                                            'no_show',
+                                        ],
+                                        true
+                                    )
                                 )
                                     <form
                                         method="POST"
