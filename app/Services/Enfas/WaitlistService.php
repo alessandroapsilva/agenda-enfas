@@ -72,7 +72,7 @@ class WaitlistService
             return null;
         }
 
-        if (! $this->availability->isAvailable(
+        if (! $this->availability->isBookable(
             $appointment->professional_id,
             $start,
             $end,
@@ -148,6 +148,16 @@ class WaitlistService
 
             $start = $entry->offered_start_at->copy();
             $end = $entry->offered_end_at->copy();
+
+            if (! $this->availability->isBookable(
+                $professionalId,
+                $start,
+                $end
+            )) {
+                throw new RuntimeException(
+                    'Esse horário não pertence mais à disponibilidade atual do profissional.'
+                );
+            }
 
             $hold = $this->availability->hold(
                 $professionalId,
