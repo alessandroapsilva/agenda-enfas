@@ -281,6 +281,47 @@ class WhatsAppDispatchPolicy
         );
     }
 
+    public function interactionDedupeKey(
+        object $appointment,
+        string $intent,
+        ?string $fingerprint = null
+    ): string {
+        $intent = preg_replace(
+            '/[^a-z0-9_-]+/',
+            '-',
+            strtolower(
+                trim($intent)
+            )
+        );
+
+        $parts = [
+            'wa',
+            'interaction',
+            $intent ?: 'step',
+            'appointment',
+            $appointment->id,
+            'slot',
+            Carbon::parse(
+                $appointment->start_at
+            )->format('YmdHi'),
+            'bucket',
+            $this->manualBucket(),
+        ];
+
+        if ($fingerprint) {
+            $parts[] = substr(
+                sha1($fingerprint),
+                0,
+                16
+            );
+        }
+
+        return implode(
+            ':',
+            $parts
+        );
+    }
+
     public function manualTextDedupeKey(
         ?int $appointmentId,
         ?int $patientId,
