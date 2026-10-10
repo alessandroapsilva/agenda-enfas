@@ -291,6 +291,57 @@ class WhatsAppDispatchPolicyTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_interaction_dedupe_expires_after_five_minute_bucket(): void
+    {
+        Carbon::setTestNow(
+            '2026-10-10 12:31:00'
+        );
+
+        $policy = app(
+            WhatsAppDispatchPolicy::class
+        );
+
+        $appointment = (object) [
+            'id' => 101,
+            'start_at' => '2026-10-12 09:00:00',
+        ];
+
+        $first = $policy->interactionDedupeKey(
+            $appointment,
+            'reschedule-period'
+        );
+
+        Carbon::setTestNow(
+            '2026-10-10 12:34:59'
+        );
+
+        $sameBucket = $policy->interactionDedupeKey(
+            $appointment,
+            'reschedule-period'
+        );
+
+        Carbon::setTestNow(
+            '2026-10-10 12:35:01'
+        );
+
+        $nextBucket = $policy->interactionDedupeKey(
+            $appointment,
+            'reschedule-period'
+        );
+
+        $this->assertSame(
+            $first,
+            $sameBucket
+        );
+
+        $this->assertNotSame(
+            $first,
+            $nextBucket
+        );
+
+        Carbon::setTestNow();
+    }
+
     public function test_settings_and_patient_opt_out_control_automation(): void
     {
         $patientId = DB::table(
