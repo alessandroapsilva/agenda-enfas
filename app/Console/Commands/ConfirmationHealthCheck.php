@@ -2,7 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Enfas\CommunicationPolicyService;
 use App\Services\Enfas\ConfirmationPolicyService;
+use App\Services\Enfas\EmailChannelService;
+use App\Services\Enfas\SmsChannelService;
 use App\Services\Enfas\WhatsAppDispatchPolicy;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +21,10 @@ class ConfirmationHealthCheck extends Command
 
     public function handle(
         ConfirmationPolicyService $policy,
-        WhatsAppDispatchPolicy $whatsAppPolicy
+        WhatsAppDispatchPolicy $whatsAppPolicy,
+        CommunicationPolicyService $communication,
+        EmailChannelService $email,
+        SmsChannelService $sms
     ): int
     {
         $rows = [];
@@ -76,6 +82,13 @@ class ConfirmationHealthCheck extends Command
 
         $this->appendBrandingSnapshot(
             $rows
+        );
+
+        $this->appendChannelSnapshot(
+            $rows,
+            $communication,
+            $email,
+            $sms
         );
 
         $this->table(
@@ -926,6 +939,116 @@ class ConfirmationHealthCheck extends Command
                 .' de '
                 .$total
                 .' automacao(oes) ativa(s) usam modelo aprovado com imagem',
+        ];
+    }
+
+    private function appendChannelSnapshot(
+        array &$rows,
+        CommunicationPolicyService $policy,
+        EmailChannelService $email,
+        SmsChannelService $sms
+    ): void {
+        $summary = $policy->summary();
+
+        $emailEnabled =
+            $summary['patient_email_enabled']
+            || $summary['professional_email_enabled'];
+
+        $smsEnabled =
+            $summary['patient_sms_enabled']
+            || $summary['professional_sms_enabled'];
+
+        $rows[] = [
+            'Canais',
+            'E-mail',
+            $emailEnabled
+                ? (
+                    $email->configured()
+                        ? 'OK'
+                        : 'ATENCAO'
+                )
+                : 'PAUSADO',
+            $emailEnabled
+                ? (
+                    $email->configured()
+                        ? 'Canal habilitado e infraestrutura configurada'
+                        : 'Canal habilitado, mas o mailer ainda não está pronto'
+                )
+                : 'Canal desativado na política',
+        ];
+
+        $rows[] = [
+            'Canais',
+            'SMS',
+            $smsEnabled
+                ? (
+                    $sms->configured()
+                        ? 'OK'
+                        : 'ATENCAO'
+                )
+                : 'PAUSADO',
+            $smsEnabled
+                ? (
+                    $sms->configured()
+                        ? 'Canal habilitado e Twilio SMS configurado'
+                        : 'Canal habilitado, mas SMS_ENABLED/TWILIO_SMS_FROM estão pendentes'
+                )
+                : 'Canal desativado na política',
+        ];
+
+        if (! Schema::hasTable(
+            'communication_deliveries'
+        )) {
+            $rows[] = [
+                'Canais',
+                'Auditoria',
+                'ATENCAO',
+                'Tabela communication_deliveries ausente',
+            ];
+
+            return;
+        }
+
+        $since = now()->subDay();
+
+        $failed = DB::table(
+            'communication_deliveries'
+        )
+            ->where(
+                'created_at',
+                '>=',
+                $since
+            )
+            ->where(
+                'status',
+                'failed'
+            )
+            ->count();
+
+        $sent = DB::table(
+            'communication_deliveries'
+        )
+            ->where(
+                'created_at',
+                '>=',
+                $since
+            )
+            ->where(
+                'status',
+                'sent'
+            )
+            ->count();
+
+        $rows[] = [
+            'Canais',
+            'E-mail/SMS 24h',
+            $failed > 0
+                ? 'ATENCAO'
+                : 'OK',
+            $sent
+                .' enviado(s) · '
+                .$failed
+                .' falha(s)',
         ];
     }
 
