@@ -241,21 +241,21 @@ return [
             'can' => 'dashboard.view',
         ],
         [
-            'text' => 'Meu painel',
-            'route' => 'professional.workspace',
-            'icon' => 'bi bi-person-workspace',
-            'can' => 'professional.workspace',
-        ],
-        [
             'text' => 'Agenda',
             'route' => 'agenda.index',
             'icon' => 'bi bi-calendar3',
             'can' => 'agenda.view',
         ],
         [
-            'text' => 'Agendamentos',
+            'text' => 'Lista de agendamentos',
             'route' => 'appointments.index',
             'icon' => 'bi bi-calendar2-check',
+            'can' => 'agenda.view',
+        ],
+        [
+            'text' => 'Confirmações',
+            'route' => 'v11.confirmations',
+            'icon' => 'bi bi-patch-check',
             'can' => 'agenda.view',
         ],
         [
@@ -265,63 +265,56 @@ return [
             'can' => 'patients.view',
         ],
         [
-            'text' => 'Atividades',
-            'route' => 'activities.index',
-            'icon' => 'bi bi-list-check',
-            'can' => 'activities.view',
-        ],
-        [
             'text' => 'Lista de espera',
             'route' => 'waitlist.index',
             'icon' => 'bi bi-hourglass-split',
             'can' => 'agenda.view',
         ],
         [
-            'text' => 'Confirmações',
-            'route' => 'v11.confirmations',
-            'icon' => 'bi bi-patch-check',
-            'can' => 'agenda.view',
-        ],
-
-        ['header' => 'ATENDIMENTO'],
-
-        [
-            'text' => 'Documentos clínicos',
-            'route' => 'clinical-documents.index',
-            'icon' => 'bi bi-file-earmark-medical',
-            'can' => 'documents.view',
+            'text' => 'Atividades',
+            'route' => 'activities.index',
+            'icon' => 'bi bi-list-check',
+            'can' => 'activities.view',
         ],
         [
-            'text' => 'Prescrições',
-            'route' => 'clinical-prescriptions.index',
-            'icon' => 'bi bi-capsule-pill',
-            'can' => 'prescriptions.view',
+            'text' => 'Meu painel',
+            'route' => 'professional.workspace',
+            'icon' => 'bi bi-person-workspace',
+            'can' => 'professional.workspace',
         ],
 
+        ['header' => 'COMUNICAÇÃO'],
 
         [
-            'text' => 'Central WhatsApp',
-            'route' => 'enfas.whatsapp',
+            'text' => 'WhatsApp',
             'icon' => 'bi bi-whatsapp',
             'can' => 'whatsapp.view',
-        ],
-        [
-            'text' => 'Templates',
-            'route' => 'v9.templates.index',
-            'icon' => 'bi bi-chat-square-text',
-            'can' => 'whatsapp.view',
-        ],
-        [
-            'text' => 'Automações',
-            'route' => 'enfas.v6.automations',
-            'icon' => 'bi bi-lightning-charge',
-            'can' => 'whatsapp.manage',
-        ],
-        [
-            'text' => 'Histórico de mensagens',
-            'route' => 'enfas.v6.messages',
-            'icon' => 'bi bi-send',
-            'can' => 'whatsapp.view',
+            'submenu' => [
+                [
+                    'text' => 'Central de conversas',
+                    'route' => 'enfas.whatsapp',
+                    'icon' => 'bi bi-chat-dots',
+                    'can' => 'whatsapp.view',
+                ],
+                [
+                    'text' => 'Histórico de mensagens',
+                    'route' => 'enfas.v6.messages',
+                    'icon' => 'bi bi-clock-history',
+                    'can' => 'whatsapp.view',
+                ],
+                [
+                    'text' => 'Templates',
+                    'route' => 'v9.templates.index',
+                    'icon' => 'bi bi-chat-square-text',
+                    'can' => 'whatsapp.manage',
+                ],
+                [
+                    'text' => 'Automações',
+                    'route' => 'enfas.v6.automations',
+                    'icon' => 'bi bi-lightning-charge',
+                    'can' => 'whatsapp.manage',
+                ],
+            ],
         ],
 
         ['header' => 'GESTÃO'],
@@ -345,7 +338,7 @@ return [
             'can' => 'professionals.view',
         ],
         [
-            'text' => 'Indicadores e NPS',
+            'text' => 'Indicadores',
             'route' => 'v92.reports',
             'icon' => 'bi bi-graph-up-arrow',
             'can' => 'reports.view',
@@ -360,28 +353,34 @@ return [
         ['header' => 'ADMINISTRAÇÃO'],
 
         [
+            'text' => 'Preferências da Agenda',
+            'route' => 'enfas.agenda-settings',
+            'icon' => 'bi bi-sliders2',
+            'can' => 'settings.manage',
+        ],
+        [
+            'text' => 'Aparência',
+            'route' => 'enfas.branding',
+            'icon' => 'bi bi-palette',
+            'can' => 'settings.manage',
+        ],
+        [
             'text' => 'Usuários e acessos',
             'route' => 'users.index',
             'icon' => 'bi bi-person-lock',
             'can' => 'users.manage',
         ],
         [
-            'text' => 'Auditoria',
-            'route' => 'v92.audit',
-            'icon' => 'bi bi-shield-check',
-            'can' => 'audit.view',
-        ],
-        [
-            'text' => 'Preferências',
-            'route' => 'v92.settings',
-            'icon' => 'bi bi-sliders2',
-            'can' => 'settings.manage',
-        ],
-        [
             'text' => 'Campos personalizados',
             'route' => 'custom-fields.index',
             'icon' => 'bi bi-ui-checks-grid',
             'can' => 'settings.manage',
+        ],
+        [
+            'text' => 'Auditoria',
+            'route' => 'v92.audit',
+            'icon' => 'bi bi-shield-check',
+            'can' => 'audit.view',
         ],
         [
             'text' => 'Saúde do sistema',
