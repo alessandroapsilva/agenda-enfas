@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\AgendaController;
+use App\Services\Enfas\AccessScopeService;
 use App\Services\Enfas\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -83,4 +86,124 @@ class PremiumAvailabilityTest extends TestCase
             $service->isBookable($professionalId, $monday, $monday->copy()->addMinutes(30))
         );
     }
+    public function test_best_slot_search_can_find_across_available_professionals(): void
+    {
+        Carbon::setTestNow(
+            Carbon::parse(
+                '2026-10-10 10:00:00',
+                config('app.timezone')
+            )
+        );
+
+        $serviceId = DB::table(
+            'services'
+        )->insertGetId([
+            'name' => 'Avaliação funcional',
+            'duration_minutes' => 30,
+            'color' => '#2563eb',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $professionalIds = [];
+
+        foreach ([
+            'Ana',
+            'Bruno',
+        ] as $name) {
+            $professionalId = DB::table(
+                'professionals'
+            )->insertGetId([
+                'name' => $name,
+                'work_start' => '08:00:00',
+                'work_end' => '12:00:00',
+                'active_days' => json_encode([1]),
+                'slot_interval' => 30,
+                'color' => '#2563eb',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $professionalIds[] =
+                $professionalId;
+
+            DB::table(
+                'professional_service'
+            )->insert([
+                'professional_id' =>
+                    $professionalId,
+                'service_id' =>
+                    $serviceId,
+            ]);
+        }
+
+        $request = Request::create(
+            '/agenda/melhores-horarios',
+            'GET',
+            [
+                'service_id' =>
+                    $serviceId,
+                'from' =>
+                    '2026-10-12',
+                'period' =>
+                    'morning',
+                'limit' =>
+                    4,
+            ]
+        );
+
+        $response = app(
+            AgendaController::class
+        )->bestSlots(
+            $request,
+            app(
+                AvailabilityService::class
+            ),
+            app(
+                AccessScopeService::class
+            )
+        );
+
+        $payload = $response
+            ->getData(true);
+
+        $this->assertTrue(
+            $payload['success']
+        );
+
+        $this->assertSame(
+            2,
+            $payload['meta'][
+                'professionals_checked'
+            ]
+        );
+
+        $this->assertNotEmpty(
+            $payload['slots']
+        );
+
+        $returnedProfessionals = collect(
+            $payload['slots']
+        )
+            ->pluck(
+                'professional_id'
+            )
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame(
+            collect($professionalIds)
+                ->sort()
+                ->values()
+                ->all(),
+            $returnedProfessionals
+        );
+
+        Carbon::setTestNow();
+    }
+
 }
