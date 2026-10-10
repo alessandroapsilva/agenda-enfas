@@ -75,6 +75,12 @@ Route::middleware('auth')->group(function () {
         [TemplateStudioController::class,'brandedRevision']
     )->middleware('permission:whatsapp.manage')->name('v9.templates.brand');
 
+    Route::post(
+        '/whatsapp/templates/{template}/usar-na-regua',
+        [TemplateStudioController::class,'promote']
+    )->middleware('permission:whatsapp.manage')->name('v9.templates.promote');
+
+
 
     Route::patch(
         '/whatsapp/templates/{template}/status',
