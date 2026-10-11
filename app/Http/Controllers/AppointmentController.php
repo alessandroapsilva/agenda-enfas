@@ -151,20 +151,13 @@ class AppointmentController extends Controller
         );
 
         if (
-            Schema::hasTable(
-                'professional_service'
-            )
-            && DB::table(
-                'professional_service'
-            )
-                ->where(
-                    'professional_id',
-                    $professional->id
-                )
-                ->where(
-                    'service_id',
-                    $service->id
-                )
+            Schema::hasTable('professional_service')
+            && DB::table('professional_service')
+                ->where('professional_id', $professional->id)
+                ->exists()
+            && DB::table('professional_service')
+                ->where('professional_id', $professional->id)
+                ->where('service_id', $service->id)
                 ->doesntExist()
         ) {
             throw ValidationException::withMessages([
