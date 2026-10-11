@@ -18,14 +18,11 @@ class RecurringAppointmentService
     {
         if (
             DB::table('professional_service')
-                ->where(
-                    'professional_id',
-                    $data['professional_id']
-                )
-                ->where(
-                    'service_id',
-                    $data['service_id']
-                )
+                ->where('professional_id', $data['professional_id'])
+                ->exists()
+            && DB::table('professional_service')
+                ->where('professional_id', $data['professional_id'])
+                ->where('service_id', $data['service_id'])
                 ->doesntExist()
         ) {
             throw new RuntimeException(
