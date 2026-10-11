@@ -3,6 +3,8 @@
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\MicrosoftAuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\CepLookupController;
 use App\Http\Controllers\PatientController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\ProfessionalWorkspaceController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WaitlistController;
+use App\Http\Controllers\Enfas\SystemSettingsController;
 use Illuminate\Support\Facades\Route;
 
 /* ENFAS Agenda V11.1 */
@@ -39,6 +42,36 @@ Route::middleware('guest')->group(function () {
     )
         ->middleware('throttle:5,1')
         ->name('login.submit');
+
+    Route::get(
+        '/esqueci-minha-senha',
+        [PasswordResetController::class, 'requestForm']
+    )->name('password.request');
+
+    Route::post(
+        '/esqueci-minha-senha',
+        [PasswordResetController::class, 'sendLink']
+    )->middleware('throttle:5,1')->name('password.email');
+
+    Route::get(
+        '/redefinir-senha/{token}',
+        [PasswordResetController::class, 'resetForm']
+    )->name('password.reset.form');
+
+    Route::post(
+        '/redefinir-senha',
+        [PasswordResetController::class, 'reset']
+    )->middleware('throttle:5,1')->name('password.reset');
+
+    Route::get(
+        '/auth/microsoft',
+        [MicrosoftAuthController::class, 'redirect']
+    )->middleware('throttle:20,1')->name('microsoft.redirect');
+
+    Route::get(
+        '/auth/microsoft/callback',
+        [MicrosoftAuthController::class, 'callback']
+    )->middleware('throttle:20,1')->name('microsoft.callback');
 });
 
 
@@ -313,6 +346,17 @@ Route::middleware('auth')->group(function () {
         '/campos-personalizados/{field}/status',
         [CustomFieldController::class, 'toggle']
     )->middleware('permission:settings.manage')->name('custom-fields.status');
+
+
+    Route::get(
+        '/configuracoes/sistema',
+        [SystemSettingsController::class, 'index']
+    )->middleware('permission:settings.manage')->name('system-settings.index');
+
+    Route::post(
+        '/configuracoes/sistema',
+        [SystemSettingsController::class, 'update']
+    )->middleware('permission:settings.manage')->name('system-settings.update');
 
 
 
