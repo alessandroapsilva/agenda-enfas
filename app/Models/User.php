@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,7 +14,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name','username','email','phone','job_title','professional_id',
         'password','role','permissions','is_active','force_password_change',
-        'last_login_at','last_seen_at',
+        'last_login_at','last_seen_at','last_login_provider',
+        'microsoft_oid','microsoft_tenant_id','microsoft_linked_at',
     ];
 
     protected $hidden = ['password','remember_token'];
@@ -24,6 +26,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'microsoft_linked_at' => 'datetime',
             'is_active' => 'boolean',
             'force_password_change' => 'boolean',
             'permissions' => 'array',
@@ -63,6 +66,11 @@ class User extends Authenticatable
 
         return in_array('*', $permissions, true)
             || in_array($permission, $permissions, true);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function professional()
