@@ -150,14 +150,11 @@ class PatientJourneyController extends Controller
 
         if (
             DB::table('professional_service')
-                ->where(
-                    'professional_id',
-                    $appointment->professional_id
-                )
-                ->where(
-                    'service_id',
-                    $appointment->service_id
-                )
+                ->where('professional_id', $appointment->professional_id)
+                ->exists()
+            && DB::table('professional_service')
+                ->where('professional_id', $appointment->professional_id)
+                ->where('service_id', $appointment->service_id)
                 ->doesntExist()
         ) {
             throw ValidationException::withMessages([
