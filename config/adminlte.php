@@ -341,6 +341,12 @@ return [
         ['header' => 'ADMINISTRAÇÃO'],
 
         [
+            'text' => 'Configurações do sistema',
+            'route' => 'system-settings.index',
+            'icon' => 'bi bi-gear-wide-connected',
+            'can' => 'settings.manage',
+        ],
+        [
             'text' => 'Preferências da Agenda',
             'route' => 'enfas.agenda-settings',
             'icon' => 'bi bi-sliders2',
