@@ -35,6 +35,22 @@ return [
         ],
     ],
 
+    'microsoft' => [
+        'enabled' => filter_var(
+            env('MICROSOFT_LOGIN_ENABLED', false),
+            FILTER_VALIDATE_BOOL
+        ),
+        'tenant' => env('MICROSOFT_TENANT_ID', 'organizations'),
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'redirect_uri' => env('MICROSOFT_REDIRECT_URI'),
+        'auto_provision' => filter_var(
+            env('MICROSOFT_AUTO_PROVISION', false),
+            FILTER_VALIDATE_BOOL
+        ),
+        'default_role' => env('MICROSOFT_DEFAULT_ROLE', 'attendant'),
+    ],
+
     'sms' => [
         'enabled' => filter_var(
             env('SMS_ENABLED', false),
