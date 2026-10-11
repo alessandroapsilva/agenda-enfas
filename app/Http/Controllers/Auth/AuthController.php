@@ -47,6 +47,7 @@ class AuthController extends Controller
 
         Auth::user()->forceFill([
             'last_login_at' => now(),
+            'last_login_provider' => 'local',
         ])->save();
 
         return redirect()->intended(route('dashboard'));
