@@ -10,6 +10,11 @@ use RuntimeException;
 
 class AvailabilityService
 {
+    public function __construct(
+        private BusinessHoursService $businessHours
+    ) {
+    }
+
     public function nextSlots(
         int $professionalId,
         int $serviceId,
@@ -451,16 +456,19 @@ class AvailabilityService
                 ->get();
 
             if ($rows->isNotEmpty()) {
-                return $rows->map(fn ($row) => [
-                    'start' => $row->{$startColumn},
-                    'end' => $row->{$endColumn},
-                    'break_start' => $row->break_start ?? null,
-                    'break_end' => $row->break_end ?? null,
-                    'step' =>
-                        $row->slot_minutes
-                        ?? $professional->slot_interval
-                        ?? 30,
-                ])->all();
+                return $this->businessHours->constrain(
+                    $rows->map(fn ($row) => [
+                        'start' => $row->{$startColumn},
+                        'end' => $row->{$endColumn},
+                        'break_start' => $row->break_start ?? null,
+                        'break_end' => $row->break_end ?? null,
+                        'step' =>
+                            $row->slot_minutes
+                            ?? $professional->slot_interval
+                            ?? 30,
+                    ])->all(),
+                    $date
+                );
             }
         }
 
@@ -472,13 +480,15 @@ class AvailabilityService
             return [];
         }
 
-        return [[
-            'start' => $professional->work_start ?: '08:00:00',
-            'end' => $professional->work_end ?: '18:00:00',
-            'break_start' => null,
-            'break_end' => null,
-            'step' => $professional->slot_interval ?: 30,
-        ]];
+        return $this->businessHours->constrain([
+            [
+                'start' => $professional->work_start ?: '08:00:00',
+                'end' => $professional->work_end ?: '18:00:00',
+                'break_start' => null,
+                'break_end' => null,
+                'step' => $professional->slot_interval ?: 30,
+            ],
+        ], $date);
     }
 
     private function combine(Carbon $date, string $time): Carbon
