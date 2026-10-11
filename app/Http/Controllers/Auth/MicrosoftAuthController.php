@@ -154,7 +154,7 @@ class MicrosoftAuthController extends Controller
             'last_login_provider' => 'microsoft',
         ])->save();
 
-        Auth::login($user, true);
+        Auth::login($user);
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));
