@@ -74,14 +74,11 @@ class WaitlistService
 
         if (
             DB::table('professional_service')
-                ->where(
-                    'professional_id',
-                    $appointment->professional_id
-                )
-                ->where(
-                    'service_id',
-                    $appointment->service_id
-                )
+                ->where('professional_id', $appointment->professional_id)
+                ->exists()
+            && DB::table('professional_service')
+                ->where('professional_id', $appointment->professional_id)
+                ->where('service_id', $appointment->service_id)
                 ->doesntExist()
         ) {
             return null;
@@ -166,14 +163,11 @@ class WaitlistService
 
             if (
                 DB::table('professional_service')
-                    ->where(
-                        'professional_id',
-                        $professionalId
-                    )
-                    ->where(
-                        'service_id',
-                        $entry->service_id
-                    )
+                    ->where('professional_id', $professionalId)
+                    ->exists()
+                && DB::table('professional_service')
+                    ->where('professional_id', $professionalId)
+                    ->where('service_id', $entry->service_id)
                     ->doesntExist()
             ) {
                 throw new RuntimeException(
