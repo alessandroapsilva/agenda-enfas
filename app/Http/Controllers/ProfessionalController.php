@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProfessionalController extends Controller
 {
@@ -173,10 +174,14 @@ class ProfessionalController extends Controller
                 }
 
                 $day = (int) $day;
-                $start = ($row['start_time'] ?? null) ?: $professional->work_start;
-                $end = ($row['end_time'] ?? null) ?: $professional->work_end;
-                $breakStart = ($row['break_start'] ?? null) ?: null;
-                $breakEnd = ($row['break_end'] ?? null) ?: null;
+                $start = $this->normalizeTime(($row['start_time'] ?? null) ?: $professional->work_start);
+                $end = $this->normalizeTime(($row['end_time'] ?? null) ?: $professional->work_end);
+                $breakStart = filled($row['break_start'] ?? null)
+                    ? $this->normalizeTime($row['break_start'])
+                    : null;
+                $breakEnd = filled($row['break_end'] ?? null)
+                    ? $this->normalizeTime($row['break_end'])
+                    : null;
 
                 $payload = [
                     'professional_id' => $professional->id,
@@ -207,7 +212,11 @@ class ProfessionalController extends Controller
                     $payload['ends_at'] = $end;
                 }
                 if (Schema::hasColumn('professional_availabilities', 'slot_minutes')) {
-                    $payload['slot_minutes'] = $professional->slot_interval ?: 30;
+                    $payload['slot_minutes'] = (int) (
+                        $row['slot_minutes']
+                        ?? $professional->slot_interval
+                        ?? 30
+                    );
                 }
 
                 DB::table('professional_availabilities')->insert($payload);
@@ -256,6 +265,19 @@ class ProfessionalController extends Controller
             ->delete();
 
         return back()->with('success', 'Bloqueio removido.');
+    }
+
+    private function normalizeTime(?string $time): ?string
+    {
+        if (! $time) {
+            return null;
+        }
+
+        $time = trim($time);
+
+        return strlen($time) === 5
+            ? $time.':00'
+            : $time;
     }
 
     private function validated(Request $request, ?Professional $professional = null): array
